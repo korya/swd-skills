@@ -1,0 +1,24 @@
+{
+  "name": "swd",
+  "owner": {
+    "name": "korya"
+  },
+  "metadata": {
+    "description": "Software development skills: deep planning, root-cause analysis, agent-oriented repo docs, and spec-aware rebasing.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "swd",
+      "description": "Software development skills bundle: super-plan, rca, repo-docs, rebase.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/super-plan",
+        "./skills/rca",
+        "./skills/repo-docs",
+        "./skills/rebase"
+      ]
+    }
+  ]
+}
