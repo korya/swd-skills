@@ -12,17 +12,19 @@ A Claude Code plugin bundling four skills for serious software work.
 ## Install (from GitHub)
 
 ```sh
-/plugin marketplace add korya/swd
+/plugin marketplace add korya/swd-skills
 /plugin install swd@swd
 ```
 
-The first command points Claude Code at `github.com/korya/swd` as a marketplace. The second installs the `swd` plugin from that marketplace (`<plugin>@<marketplace>`).
+The first command points Claude Code at `github.com/korya/swd-skills` as a marketplace. The second installs the `swd` plugin from that marketplace (`<plugin>@<marketplace>`).
+
+The marketplace's internal name is `swd` (set in `.claude-plugin/marketplace.json`), which is why the install target is `swd@swd` even though the repo is `swd-skills`.
 
 ## Install (local checkout, for development)
 
 ```sh
-git clone https://github.com/korya/swd.git
-/plugin marketplace add /absolute/path/to/swd
+git clone https://github.com/korya/swd-skills.git
+/plugin marketplace add /absolute/path/to/swd-skills
 /plugin install swd@swd
 ```
 
