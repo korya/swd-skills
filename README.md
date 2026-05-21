@@ -40,8 +40,7 @@ After editing a skill, run `/reload-plugins` to pick up the changes.
 
 ```
 .claude-plugin/
-  marketplace.json   # marketplace manifest (one plugin: swd)
-  plugin.json        # plugin manifest
+  marketplace.json   # marketplace manifest + plugin definition
 skills/
   super-plan/
   rca/
