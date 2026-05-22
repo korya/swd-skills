@@ -4,7 +4,7 @@ A Claude Code plugin bundling four skills for serious software work.
 
 | Skill | When it triggers |
 | --- | --- |
-| **super-plan** | "/super-plan", "plan this thoroughly", "deep plan" — non-trivial changes where a wrong direction would burn meaningful time. |
+| **blueprint** | "/blueprint", "blueprint this", "plan this thoroughly", "deep plan" — non-trivial changes where a wrong direction would burn meaningful time. |
 | **rca** | "/rca", "root cause", "5 whys", "why is this failing" — failures you want to learn from, not just patch. |
 | **repo-docs** | "document the project for coding agents", "set up agent docs", "add AGENTS.md" — bootstrap or extend `AGENTS.md` + `docs/`. |
 | **rebase** | "rebase this branch on X", "move these commits onto the new base" — keep the original spec, invariants, and conventions intact. |
@@ -42,7 +42,7 @@ After editing a skill, run `/reload-plugins` to pick up the changes.
 .claude-plugin/
   marketplace.json   # marketplace manifest + plugin definition
 skills/
-  super-plan/
+  blueprint/
   rca/
   repo-docs/
   rebase/

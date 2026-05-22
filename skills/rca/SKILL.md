@@ -7,7 +7,7 @@ description: Conduct a root-cause analysis on a bug, incident, or regression —
 
 The point of this skill is **not** to fix a bug. It is to understand *why* the bug happened deeply enough that the fix kills the cause, not just the symptom — and to catch the class of failure next time, not just this instance.
 
-`/super-plan` plans a *change* you want to make. `/rca` investigates a *failure* you didn't want. The shapes are different: planning starts from a goal, RCA starts from a fact (something broke).
+`/blueprint` plans a *change* you want to make. `/rca` investigates a *failure* you didn't want. The shapes are different: planning starts from a goal, RCA starts from a fact (something broke).
 
 ## When to invoke
 
@@ -16,9 +16,9 @@ The point of this skill is **not** to fix a bug. It is to understand *why* the b
 - Production incidents and post-mortems
 - Bugs whose first-pass fix the user finds suspicious ("are we sure that's *why* it broke?")
 - Any failure where the team will pay for the same bug again if you just patch the symptom
-- When `/super-plan`'s validation reveals that the load-bearing assumption *was already wrong in prod*
+- When `/blueprint`'s validation reveals that the load-bearing assumption *was already wrong in prod*
 
-Do **not** invoke for: trivial bugs with obvious causes (typo, missing null check on a fresh edit, lint error), or for *future* failures you're trying to design around — that's `/super-plan` territory.
+Do **not** invoke for: trivial bugs with obvious causes (typo, missing null check on a fresh edit, lint error), or for *future* failures you're trying to design around — that's `/blueprint` territory.
 
 ## Operating principles
 
@@ -252,7 +252,7 @@ If a checkbox cannot be ticked honestly, the RCA is not done — return to the s
 
 ## Relationship to other skills
 
-- `/super-plan` — for designing a *change*. Use after RCA when the root-cause fix is non-trivial enough to warrant deep planning.
+- `/blueprint` — for designing a *change*. Use after RCA when the root-cause fix is non-trivial enough to warrant deep planning.
 - `/plan` — for the symptom fix when it's small and obvious.
 - `/rebase` — unrelated; named here only so future-you doesn't conflate "regression after rebase" with "rebase failure." Regression after rebase → `/rca`; merge-conflict failure → `/rebase`.
 - The "regression CRA" referenced in `docs/guidelines.md` (per the `repo-docs` skill) is this skill, applied to a regression specifically.

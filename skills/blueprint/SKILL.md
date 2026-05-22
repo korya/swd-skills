@@ -1,13 +1,13 @@
 ---
-name: super-plan
-description: Plan a non-trivial code change rigorously — understand the problem, form a hypothesis, validate assumptions through real experiments and doc/code reads, and cross-check the proposed solution against product specs, architecture, and the existing codebase before writing any plan. Use when the user says "/super-plan", "plan this thoroughly", "deep plan", "I want to be sure before we build this", or for any change where a wrong direction would burn meaningful time, tokens, or compute. Heavier and more deliberate than `/plan`; the goal is the global optimum, not a local one.
+name: blueprint
+description: Plan a non-trivial code change rigorously — understand the problem, form a hypothesis, validate assumptions through real experiments and doc/code reads, and cross-check the proposed solution against product specs, architecture, and the existing codebase before writing any plan. Use when the user says "/blueprint", "blueprint this", "plan this thoroughly", "deep plan", "I want to be sure before we build this", or for any change where a wrong direction would burn meaningful time, tokens, or compute. Heavier and more deliberate than `/plan`; the goal is the global optimum, not a local one.
 ---
 
-# Super Plan: thorough, validation-first planning
+# Blueprint: thorough, validation-first planning
 
 The point of this skill is **not** to produce a longer plan. It is to refuse to commit to a plan until the assumptions underneath it have been tested against reality. A plan built on unverified assumptions is just a confident-looking bug report from the future.
 
-`/plan` says "here's how I'd build it." `/super-plan` says "here's how I'd build it, here's why each load-bearing assumption holds, and here's the evidence."
+`/plan` says "here's how I'd build it." `/blueprint` says "here's how I'd build it, here's why each load-bearing assumption holds, and here's the evidence."
 
 ## When to invoke
 
@@ -207,7 +207,7 @@ When tempted to skip or shortcut a step, check whether your reasoning appears be
 | Rationalization | Why it fails here |
 |---|---|
 | "I already know how this library/API works." | Memory of third-party APIs decays; versions drift. Cost to confirm: minutes. Cost of being wrong: hours. Verify on the version actually in use. |
-| "This change is small enough to skip validation." | If it were that small, the user would have invoked `/plan`, not `/super-plan`. The invocation itself is the signal that validation is required. |
+| "This change is small enough to skip validation." | If it were that small, the user would have invoked `/plan`, not `/blueprint`. The invocation itself is the signal that validation is required. |
 | "The user is waiting — just commit to the hypothesis." | A wrong plan costs more wall-clock than a slow one. The whole reason this skill exists is to front-load the failure. |
 | "I'll validate the risky assumption while implementing." | Validation discovered mid-implementation means rework, lost commits, and (worse) silent papering-over. Validate first. |
 | "Reading the source is overkill — the docs say X." | Docs lie, code does not. For any load-bearing assumption, read the implementation. |
