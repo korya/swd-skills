@@ -26,6 +26,32 @@ If any of these are ambiguous, **ask** before proceeding. Wrong base picks silen
 
 ## Workflow
 
+### 0. Preflight: account for uncommitted changes
+
+Before touching history, check the working tree:
+
+```bash
+git status --porcelain
+```
+
+If the working tree is clean, skip to step 1.
+
+Otherwise the working tree is a **fourth point** alongside `curr` / `old_base` / `new_base` — work the user hasn't yet decided whether to keep. The skill must account for it explicitly because (a) `git rebase` refuses to run with a dirty tree, (b) silently dropping it costs the user real work, and (c) the changes themselves may be relevant context for the rebase (a half-applied fix, debug instrumentation, a WIP commit-in-waiting).
+
+Do this:
+
+1. **Surface the diff to the user** — show `git status --porcelain` and a one-line summary of what's modified. Ask whether the changes are related to the rebase. The answer doesn't change the *mechanics* (always stash, always restore) but it changes how you reason about conflicts later: related changes that conflict on restore are a finding; unrelated debug prints that conflict are noise.
+2. **Stash with a labeled, unique name** so the entry is easy to spot in `git stash list` and survives accidental `git stash drop`s elsewhere. Include untracked files — debug scripts and new test files are common:
+
+   ```bash
+   STASH_LABEL="swd-rebase-preflight-$(date +%Y%m%d-%H%M%S)"
+   git stash push --include-untracked --message "$STASH_LABEL"
+   ```
+
+3. **Remember the label** for step 10.5. If the agent context might compact mid-rebase, write it somewhere durable (a scratch note in the conversation, a plan entry).
+
+After this step, the working tree is clean and the rest of the workflow runs unchanged.
+
 ### 1. Establish the three points
 
 ```bash
@@ -129,6 +155,22 @@ Prefer an interactive-style approach where each logical commit is handled indepe
 
 Never `--no-verify` to push past hook failures. Fix the underlying issue.
 
+### 9.5. Restore stashed changes (if step 0 stashed any)
+
+If step 0 stashed anything, restore it now — before final verification, so the verification reflects the state the user will actually have:
+
+```bash
+git stash list | grep "$STASH_LABEL"          # confirm it's there
+git stash pop "stash@{<index of the labeled entry>}"
+```
+
+Outcomes:
+
+- **Clean pop.** Working tree now has the rebased history plus the previously uncommitted changes. Continue to step 10.
+- **Pop with conflicts.** Git leaves the stash entry intact and writes conflict markers into the working tree. **Do not drop the stash.** Surface the conflict to the user with: (a) the files involved, (b) whether the stashed changes are related to the rebase (from step 0's question), (c) options — resolve manually, drop the stash if the user confirms the changes are now obsolete, or abandon and let the user recover from `git stash list`.
+
+Never silently `git checkout -- .` or `git reset --hard` to clear a conflicted pop — the user's uncommitted work is the most fragile state in this entire workflow.
+
 ### 10. Final verification
 
 After all commits land:
@@ -164,6 +206,8 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 | "I'll bundle the rebase-fix into the original commit." | If the fix is preserving the original intent, bundle. If it's a *new* bug fix you discovered during rebase, split — per the project's split-move-and-fix rule. |
 | "Lint/tests aren't needed; rebase didn't touch logic." | Rebase always touches logic — replaying a change against new code *is* a logic change. Run them. |
 | "Three iterations of conflict resolution is enough — push it." | If you've fought the same hunk three times, the approach itself is probably wrong on `new_base`. Stop and reframe with the user. |
+| "The working tree was dirty; I'll just `git stash` and `git stash pop` without telling the user." | The stashed work is the most fragile state in this workflow — if `pop` conflicts and the agent silently drops it, real work disappears. Label the stash, surface it, restore explicitly, handle pop conflicts visibly. |
+| "Pop conflicted; `git checkout -- .` to clean it up and move on." | That deletes the user's uncommitted changes. The stash entry survives the pop conflict — leave it alone and surface to the user. |
 
 ## Anti-patterns
 
@@ -177,6 +221,7 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 
 The rebase is complete when **all** of these are true. Each item is answerable with evidence, not a vibe.
 
+- [ ] Working tree was clean before any history-mutating step. If it wasn't, preflight stashed it with a labeled name and step 9.5 restored it — or the user was explicitly asked how to handle a conflicted pop.
 - [ ] Three points (`curr`, `old_base`, `new_base`) stated back to the user; `old_base != new_base` confirmed.
 - [ ] Every commit on `curr` carries a classification (Untouched / Adjusted / Extended / Obsolete / Conflicting) with a one-line justification.
 - [ ] Any **Conflicting** or **Obsolete** classification has been surfaced to the user and resolved — not silently dropped or force-resolved.
