@@ -10,14 +10,15 @@
   "plugins": [
     {
       "name": "swd",
-      "description": "Software development skills bundle: blueprint, rca, repo-docs, rebase.",
+      "description": "Software development skills bundle: blueprint, rca, repo-docs, rebase, pr-review.",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/blueprint",
         "./skills/rca",
         "./skills/repo-docs",
-        "./skills/rebase"
+        "./skills/rebase",
+        "./skills/pr-review"
       ]
     }
   ]
