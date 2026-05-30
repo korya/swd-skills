@@ -161,6 +161,16 @@ The report carries four distinct signals. Mixing them up trains the author to sk
 
 Within each severity tier, sort by `file:line` so the author can walk top-down through the codebase.
 
+**Tag every issue and suggestion with a stable ID** so the author and reviewer can refer to them in follow-up conversation, commits, or PR comments without quoting the whole finding. Use:
+
+- `C1`, `C2`, … for Critical issues
+- `H1`, `H2`, … for High issues
+- `M1`, `M2`, … for Medium issues
+- `L1`, `L2`, … for Low issues
+- `S1`, `S2`, … for Suggestions
+
+Counters are per-review (start at 1 for each review) and per-bucket (C and H are independent sequences). "Fixed C1 and C2; declining S3" is a complete, unambiguous status update — that's what the IDs are for.
+
 A note on calibration: **critical and high are scarce.** If every PR comes back with three criticals, the severity scheme stops carrying information. If the issue's failure mode is "uncomfortable" or "ugly" rather than "broken," it's not critical.
 
 ### 5. Report locally — inverted pyramid
@@ -190,24 +200,24 @@ Print to the terminal, **not the PR**, unless the user explicitly says "post it.
 ## Issues
 
 ### Critical (must fix before merge)
-- [file:line] <issue> — <why critical> — <suggested fix>
-...
+- **C1** [file:line] <issue> — <why critical> — <suggested fix>
+- **C2** [file:line] ...
 
 ### High (should fix before merge)
-- [file:line] <issue> — <failure mode> — <suggested fix>
-...
+- **H1** [file:line] <issue> — <failure mode> — <suggested fix>
+- **H2** [file:line] ...
 
 ### Medium (worth fixing now; acceptable as a follow-up)
-- [file:line] <issue> — <suggested fix>
-...
+- **M1** [file:line] <issue> — <suggested fix>
+- **M2** [file:line] ...
 
 ### Low (defer)
-- [file:line] <issue>
-...
+- **L1** [file:line] <issue>
+- **L2** [file:line] ...
 
 ## Suggestions
-- [file:line] <constructive alternative or improvement> — <why it'd be better> (optional)
-- ...
+- **S1** [file:line] <constructive alternative or improvement> — <why it'd be better>
+- **S2** [file:line] ...
 (Suggestions are offers, not orders. The author may decline; that's fine.)
 
 ## Verified
@@ -270,7 +280,7 @@ The review is complete when **all** of these are true. Each item is answerable w
 - [ ] Top 3 production-risk failure modes are named; for each, the test (or lack of test) that covers it is identified.
 - [ ] Reversibility has been assessed; irreversible side effects, if any, are flagged as **Critical** or **High**.
 - [ ] Dependencies, if any were added or bumped, were audited for typosquatting, CVEs, abandonment, and version-range hygiene.
-- [ ] Report contains all four signals: **What was done well** (with `file:line`), **Gaps** (what's missing), **Issues** classified as Critical / High / Medium / Low, and **Suggestions** (constructive alternatives, framed as offers). Each issue and suggestion has a `file:line` citation.
+- [ ] Report contains all four signals: **What was done well** (with `file:line`), **Gaps** (what's missing), **Issues** classified as Critical / High / Medium / Low, and **Suggestions** (constructive alternatives, framed as offers). Each issue and suggestion has a `file:line` citation **and a stable ID** (`C1`, `C2`, …; `H1`, …; `M1`, …; `L1`, …; `S1`, …) so it can be referenced later.
 - [ ] Severity calibration sanity-checked: critical and high are scarce and reserved for their definitions; constructive "consider X" notes live under Suggestions, not under Low issues.
 - [ ] Report includes **Verified** and **Not reviewed** sections so the author sees the scope.
 - [ ] Report was printed to the terminal. It was posted to the PR only if the user explicitly asked.
