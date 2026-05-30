@@ -1,6 +1,6 @@
 ---
 name: examine
-description: Review a pull request rigorously — establish the PR's stated intent, audit the diff against the claimed approach, check correctness, completeness, architecture, conventions, security, data privacy, testing, reversibility, and dependency hygiene. Validate load-bearing assumptions against independent sources. Use when the user says "/examine", "examine this PR", "review this PR", "review pr #N", "look over my pull request", "check my PR before merge", or asks for a deep code review beyond surface diff-reading. Heavier than the built-in `/review`; the goal is to surface what would actually break in production, not to summarize the diff.
+description: Review a pull request rigorously — establish the PR's stated intent, audit the diff against the claimed approach, check correctness, completeness, architecture, conventions, security, data privacy, testing, reversibility, and dependency hygiene. Validate load-bearing assumptions against independent sources. Returns a structured report with three signals — what was done well, gaps (what's missing), and issues classified as Critical / High / Medium / Low. Use when the user says "/examine", "examine this PR", "review this PR", "review pr #N", "look over my pull request", "check my PR before merge", or asks for a deep code review beyond surface diff-reading. Heavier than the built-in `/review`; the goal is to surface what would actually break in production, not to summarize the diff.
 ---
 
 # Examine: production-risk-first PR review
@@ -22,10 +22,11 @@ Do **not** invoke for: trivial typo fixes, doc-only PRs, or when the user explic
 ## Operating principles
 
 - **Trust nothing, verify everything.** The PR description is a claim. The diff is a claim. Tests passing is a claim. Verify each against the code, the project docs, and external sources where the assumption is load-bearing.
-- **Production-risk first.** Sort findings by what breaks if this ships, not by code style. Nits go last.
+- **Production-risk first.** Sort findings by what breaks if this ships, not by code style. Lows go last.
 - **Review against the project's rules, not generic best practices.** Architecture, invariants, conventions — these are the rules the PR is supposed to comply with. Read them before judging.
-- **Surface gaps as findings, not assumptions.** A missing description, an unclear test, a vague manual-test plan — these are review output, not blockers to the review itself.
-- **Be useful, not exhaustive.** A review with 50 nits and 1 buried critical bug is worse than 5 findings sorted by severity. Headline the things that matter.
+- **Three signals, not one.** A useful review tells the author three things, not just one: what's working well (so they keep doing it), what's missing (so they know the gaps), and what's wrong (so they know what to fix). All three carry information; omitting any of them shortchanges the author.
+- **Acknowledge good work explicitly.** Looking hard for what was done well is part of the discipline, not optional politeness. It calibrates your tone, prevents "review by nitpicking," and tells the author which patterns to repeat. A review that finds nothing good is almost always a reviewer-fatigue artifact, not a fact about the PR.
+- **Be useful, not exhaustive.** A review with 50 lows and 1 buried critical issue is worse than 5 findings sorted by severity. Headline the things that matter.
 
 ## Inputs to establish up front
 
@@ -142,41 +143,65 @@ For each added or bumped dependency (`go.mod`, `package.json`, `requirements.txt
 - **Version range** — overly broad ranges (`*`, `^0.x`) or pinned to unreleased commits
 - **Maintenance** — last release within ~2 years; abandoned packages are a finding
 
-### 4. Synthesize — severity-sorted findings
+### 4. Synthesize — three signals, four severities
 
-Group into:
+The report carries three distinct signals. Mixing them up trains the author to skim:
 
-- **Blocking** — must fix before merge: correctness bugs, security holes, data loss, irreversibility
-- **Strong concern** — should fix unless explicitly accepted: architecture violation, missing tests of a real risk, unverified load-bearing assumption
-- **Suggestion** — non-blocking improvements
-- **Nit** — purely stylistic
+- **What was done well** — concrete things in this PR worth keeping. Cite `file:line` so it's specific, not flattering. Examples: "good failure-path coverage in `auth_test.go:120-180`", "schema migration is backward-compatible — old readers still parse new rows", "telemetry tagged correctly for cross-region requirements".
+- **Gaps** — things *missing* from the PR rather than wrong with it. Examples: missing tests for a stated risk; missing manual-test plan; missing handling for an edge case the diff's logic implies; missing entry in `docs/invariants.md` for a new invariant; missing rollback notes for a migration. A gap is different from an issue: gaps describe absences; issues describe present-but-wrong code.
+- **Issues** — present code that's wrong, classified into four severities:
 
-Within each tier, sort by `file:line` so the reader can walk the codebase top-down.
+  | Severity | Definition |
+  |---|---|
+  | **Critical** | PR cannot be merged before this is fixed. The change would break production on deploy, violates security requirements or data-privacy rules, irreversibly damages data, or violates a critical project invariant. No way to ship around it. |
+  | **High** | Should be fixed before merge — high risk of something going wrong. Concrete failure modes are plausible (not just possible). Includes: unverified load-bearing assumption that the PR rests on, missing test for an actual risk, architecture violation that other code will copy. |
+  | **Medium** | Subjective; likely a bug or likely a violation. Worth fixing now, but acceptable to address in a follow-up review if the author commits to it. Includes most "this looks wrong but I can't prove it breaks." |
+  | **Low** | Small issues — naming, formatting, redundant code, minor refactors. Defer freely. |
+
+Within each severity tier, sort by `file:line` so the author can walk top-down through the codebase.
+
+A note on calibration: **critical and high are scarce.** If every PR comes back with three criticals, the severity scheme stops carrying information. If the issue's failure mode is "uncomfortable" or "ugly" rather than "broken," it's not critical.
 
 ### 5. Report locally — inverted pyramid
 
 Print to the terminal, **not the PR**, unless the user explicitly says "post it." Format:
 
 ```
-# PR review: <PR title> (#<N>)
+# Examine: <PR title> (#<N>)
 
 ## Headline
-<one sentence: ship / ship-with-fixes / hold>
+<one sentence: merge / merge-with-fixes / hold>
 
 ## Stated intent
 <one-line summary, or "PR has no description" finding>
 
-## Blocking
-- [file:line] <issue> — <why it blocks> — <suggested fix>
+## What was done well
+- [file:line] <specific thing>: <why it's good>
+- ...
+(If genuinely none after honest looking, say so — but the bar is "I looked hard," not "nothing struck me.")
+
+## Gaps
+- <missing test for risk X>
+- <no manual-test plan in description>
+- <new invariant Y not added to docs/invariants.md>
+- ...
+
+## Issues
+
+### Critical (must fix before merge)
+- [file:line] <issue> — <why critical> — <suggested fix>
 ...
 
-## Strong concerns
+### High (should fix before merge)
+- [file:line] <issue> — <failure mode> — <suggested fix>
 ...
 
-## Suggestions
+### Medium (worth fixing now; acceptable as a follow-up)
+- [file:line] <issue> — <suggested fix>
 ...
 
-## Nits
+### Low (defer)
+- [file:line] <issue>
 ...
 
 ## Verified
@@ -210,7 +235,9 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 | "The author says they tested manually, that's good enough." | "Tested manually" without specific steps and a specific environment is unverifiable. Either it's a finding ("how was this tested?") or it's risk you're now carrying. |
 | "Load-bearing assumption looks plausible; ship it." | Plausible is not verified. The whole point of identifying it as load-bearing is that getting it wrong breaks the PR — go read the docs / measure / confirm. |
 | "Reversibility is the deployer's problem, not the reviewer's." | A merged PR is one CI run away from prod. The reviewer is the last filter before irreversible damage — if you don't ask the rollback question, no one will. |
-| "I'll just post all findings to the PR — let the author triage." | A 40-comment review trains the author to skim. Sort by severity; lead with what blocks; bury the nits or drop them. |
+| "I'll just post all findings to the PR — let the author triage." | A 40-comment review trains the author to skim. Sort by severity; lead with what's critical; drop or bury the lows. |
+| "Everything I noticed is at least High." | Probably not — that pattern is severity inflation. If three of the four buckets are empty, recalibrate: criticals reserve for "this breaks prod or violates a hard constraint," highs for "concrete plausible failure mode." Otherwise, demote. |
+| "I don't have time to find anything that was done well." | "Done well" is part of the review, not garnish. It calibrates the author's signal-to-noise and prevents the review from reading as pure nitpicking. Spend the two minutes. |
 | "I have inline doubts but no smoking gun — skip them." | Quiet doubts become loud bugs. List them as questions in the report; let the author answer. Silent doubts are findings you decided not to surface. |
 | "Posting to the PR is faster than copying the review." | The user didn't ask you to post it. PR comments are public and durable; let the user decide what's visible. |
 
@@ -219,7 +246,9 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 - **Reviewing the diff without reading the description.** You'll review the implementation; you won't review whether it solves the problem.
 - **Reviewing against generic best practices.** The project has its own rules; review against those.
 - **"LGTM" reviews on non-trivial PRs.** If the change is non-trivial, the review owes the author at least a Verified / Not-reviewed split so they know what was actually audited.
-- **Burying critical findings under style nits.** Severity-sort. Always.
+- **Burying critical findings under low-severity noise.** Severity-sort. Always.
+- **Pure-negative reviews.** A review with no "what was done well" trains the author to dread review. Find at least one concrete thing per PR worth keeping; if you genuinely can't, that's a finding about the PR, not absence of effort.
+- **Severity inflation.** If every issue is Critical or High, the severity scheme stops carrying signal. Reserve the top tiers; demote what doesn't actually meet the bar.
 - **Posting to the PR by default.** Terminal-first. The user decides what becomes public.
 - **Treating CI green as the end of testing.** CI runs the tests the author wrote. The review covers the tests they didn't.
 
@@ -232,9 +261,10 @@ The review is complete when **all** of these are true. Each item is answerable w
 - [ ] Every axis in step 3 has been walked: alignment, problem-solving, correctness, completeness, architecture, conventions, security, data privacy, testing, load-bearing assumptions, risk, reversibility, dependencies. Skipped axes are listed in **Not reviewed**.
 - [ ] At least one load-bearing assumption has been independently verified against an outside source (library docs, stdlib docs, measurement, etc.) — or the absence of any load-bearing assumption is justified.
 - [ ] Top 3 production-risk failure modes are named; for each, the test (or lack of test) that covers it is identified.
-- [ ] Reversibility has been assessed; irreversible side effects, if any, are flagged as **Blocking** or **Strong concern**.
+- [ ] Reversibility has been assessed; irreversible side effects, if any, are flagged as **Critical** or **High**.
 - [ ] Dependencies, if any were added or bumped, were audited for typosquatting, CVEs, abandonment, and version-range hygiene.
-- [ ] Findings are severity-sorted (Blocking / Strong concern / Suggestion / Nit), with `file:line` citations.
+- [ ] Report contains all three signals: **What was done well** (with `file:line`), **Gaps** (what's missing), and **Issues** classified as Critical / High / Medium / Low — each issue with a `file:line` citation.
+- [ ] Severity calibration sanity-checked: critical and high are scarce and reserved for their definitions; inflation is avoided.
 - [ ] Report includes **Verified** and **Not reviewed** sections so the author sees the scope.
 - [ ] Report was printed to the terminal. It was posted to the PR only if the user explicitly asked.
 
