@@ -8,7 +8,7 @@ A Claude Code plugin bundling five skills for serious software work.
 | **rca** | "/rca", "root cause", "5 whys", "why is this failing" — failures you want to learn from, not just patch. |
 | **repo-docs** | "document the project for coding agents", "set up agent docs", "add AGENTS.md" — bootstrap or extend `AGENTS.md` + `docs/`. |
 | **rebase** | "rebase this branch on X", "move these commits onto the new base" — keep the original spec, invariants, and conventions intact. |
-| **pr-review** | "/pr-review", "review this PR", "check my PR before merge" — production-risk-first deep review; heavier than the built-in `/review`. |
+| **examine** | "/examine", "examine this PR", "review this PR", "check my PR before merge" — production-risk-first deep PR review; heavier than the built-in `/review`. |
 
 ## Install (from GitHub)
 
@@ -47,5 +47,5 @@ skills/
   rca/
   repo-docs/
   rebase/
-  pr-review/
+  examine/
 ```

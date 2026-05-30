@@ -1,18 +1,18 @@
 ---
-name: pr-review
-description: Review a pull request rigorously — establish the PR's stated intent, audit the diff against the claimed approach, check correctness, completeness, architecture, conventions, security, data privacy, testing, reversibility, and dependency hygiene. Validate load-bearing assumptions against independent sources. Use when the user says "/pr-review", "review this PR", "review pr #N", "look over my pull request", "check my PR before merge", or asks for a deep code review beyond surface diff-reading. Heavier than the built-in `/review`; the goal is to surface what would actually break in production, not to summarize the diff.
+name: examine
+description: Review a pull request rigorously — establish the PR's stated intent, audit the diff against the claimed approach, check correctness, completeness, architecture, conventions, security, data privacy, testing, reversibility, and dependency hygiene. Validate load-bearing assumptions against independent sources. Use when the user says "/examine", "examine this PR", "review this PR", "review pr #N", "look over my pull request", "check my PR before merge", or asks for a deep code review beyond surface diff-reading. Heavier than the built-in `/review`; the goal is to surface what would actually break in production, not to summarize the diff.
 ---
 
-# PR Review: production-risk-first review
+# Examine: production-risk-first PR review
 
 The point of this skill is **not** to produce a "looks good to me" or a paragraph summary of the diff. It is to find what would actually break in production — and to verify the PR's claims rather than trust them.
 
-`/review` is the built-in quick pass. `/pr-review` is the deep one — for non-trivial changes, real production exposure, or when the user wants a second pair of skeptical eyes before merge.
+`/review` is the built-in quick pass. `/examine` is the deep one — for non-trivial changes, real production exposure, or when the user wants a second pair of skeptical eyes before merge.
 
 ## When to invoke
 
-- "/pr-review", "/pr-review <PR-url-or-number>"
-- "Review this PR" / "look over my pull request" / "deep review pr #N"
+- "/examine", "/examine <PR-url-or-number>"
+- "Examine this PR" / "review this PR" / "look over my pull request" / "deep review pr #N"
 - Pre-merge for any non-trivial change: schema, auth, payments, data migrations, dependency bumps, infra
 - After CI green when the user wants signal that CI didn't catch
 - Before deploy when the user is on-call and the PR was authored by someone else
@@ -242,8 +242,8 @@ If a checkbox cannot be ticked honestly, the review is not done — return to th
 
 ## Relationship to other skills
 
-- `/review` — the built-in quick pass. Use when the change is small or the user wants a 30-second look. `/pr-review` is the deep one.
-- `/security-review` — the built-in security-focused pass. Use when the threat surface is the primary concern; `/pr-review` covers security as one axis among many.
-- `/rca` — for *failures* after merge. If a `/pr-review`-blessed PR breaks prod, follow up with `/rca`.
+- `/review` — the built-in quick pass. Use when the change is small or the user wants a 30-second look. `/examine` is the deep one.
+- `/security-review` — the built-in security-focused pass. Use when the threat surface is the primary concern; `/examine` covers security as one axis among many.
+- `/rca` — for *failures* after merge. If a `/examine`-blessed PR breaks prod, follow up with `/rca`.
 - `/blueprint` — for designing a *change*. If review surfaces that the approach is wrong on `new_base` (not just the implementation), point the author at `/blueprint` for the redesign.
 - `/rebase` — if review reveals the branch is behind and needs to move onto a new base before review can be meaningfully finished, switch to `/rebase` first.
