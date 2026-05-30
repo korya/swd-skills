@@ -215,6 +215,8 @@ Counters are per-review (start at 1 for each review) and per-bucket (C and H are
 
 A note on calibration: **critical and high are scarce.** If every PR comes back with three criticals, the severity scheme stops carrying information. If the issue's failure mode is "uncomfortable" or "ugly" rather than "broken," it's not critical.
 
+A note on rendering: non-Low issues and suggestions are written as **blocks**, not one-line bullets. Each block has a heading (`#### C1 — title`), then labeled fields for Locator / What / Why / Fix / Cites (see step 5 for the template). The block shape exists because one-line findings collapse the problem, the failure mode, and the fix into a wall of em-dashes that the author can't act on for anything non-trivial. Low issues stay compact — they're noise-tier and would only bloat the report.
+
 ### 5. Report locally — inverted pyramid
 
 Print to the terminal, **not the PR**, unless the user explicitly says "post it." Format:
@@ -240,26 +242,69 @@ Print to the terminal, **not the PR**, unless the user explicitly says "post it.
 
 ## Issues
 
+Non-Low issues are rendered as **blocks**, not one-line bullets — each finding gets a heading and labeled fields so the author can drill into severity / cause / fix / cited rule without parsing em-dash-separated phrases. Low issues stay compact because they're noise-tier by definition.
+
 ### Critical (must fix before merge)
-- **C1** [locator] <issue> — <why critical> — <suggested fix>
-- **C2** [locator] ...
+
+#### C1 — <one-line title>
+- **Locator:** <locator>
+- **What:** <the problem, 1–3 sentences; describe the present-but-wrong code or behavior>
+- **Why Critical:** <the failure mode that breaks production / violates security / violates privacy / damages data, and why it can't be shipped around>
+- **Fix:** <concrete suggested change — file edits, approach, or "see below" with a sketch>
+- **Cites:** <docs/path.md §section> *(omit if no project rule applies; presence of the field is the operational hook for the cross-validation requirement)*
+
+#### C2 — <next critical, same shape>
+...
+
+*Worked example of a non-trivial finding to illustrate the format:*
+
+> #### C1 — Duplicate-signup race lets the same email register twice
+> - **Locator:** `flow: app/signup.py:13 → app/db.py:32-36`
+> - **What:** `signup.signup` calls `db.find_by_email` to enforce uniqueness, then `db.insert` — two non-atomic steps. Two concurrent signups with the same email both see "no match," both insert, and the store ends up with two `User` rows for one person.
+> - **Why Critical:** Silent data corruption. Downstream billing, auth, and password-reset all join by email and now behave non-deterministically (which row wins depends on insertion order). No detection in prod until support traces a duplicated invoice.
+> - **Fix:** Move the uniqueness check into `db.insert` under a single critical section (or rely on a `UNIQUE` constraint and translate the integrity error to `SignupError`). Drop the now-redundant check in `signup.signup`.
+> - **Cites:** `docs/invariants.md §4 (User identity is unique per canonical email)`
 
 ### High (should fix before merge)
-- **H1** [locator] <issue> — <failure mode> — <suggested fix>
-- **H2** [locator] ...
+
+#### H1 — <one-line title>
+- **Locator:** <locator>
+- **What:** <the problem>
+- **Why High:** <concrete plausible failure mode — not "could break" but "the failure mode is X and it's plausible because Y">
+- **Fix:** <concrete suggested change>
+- **Cites:** <docs/path.md §section> *(when judging against a project rule)*
+
+#### H2 ...
 
 ### Medium (worth fixing now; acceptable as a follow-up)
-- **M1** [locator] <issue> — <suggested fix>
-- **M2** [locator] ...
+
+#### M1 — <one-line title>
+- **Locator:** <locator>
+- **What:** <the problem>
+- **Why Medium:** <why it's likely-a-bug or likely-a-violation, and why it's ok to defer to follow-up>
+- **Fix:** <concrete suggested change>
+- **Cites:** <docs/path.md §section> *(when judging against a project rule)*
+
+#### M2 ...
 
 ### Low (defer)
-- **L1** [locator] <issue>
+
+Compact form — one line per finding. If a Low issue genuinely needs more than one line to describe, it's not Low; promote it.
+
+- **L1** [locator] <one-line note>
 - **L2** [locator] ...
 
 ## Suggestions
-- **S1** [locator] <constructive alternative or improvement> — <why it'd be better>
-- **S2** [locator] ...
-(Suggestions are offers, not orders. The author may decline; that's fine.)
+
+Same block shape as non-Low issues. Suggestions are offers, not orders — the **Why** field describes the improvement, not a failure mode, and the author may decline.
+
+#### S1 — <one-line title>
+- **Locator:** <locator>
+- **What:** <the constructive alternative or improvement>
+- **Why it'd be better:** <the gain — clearer intent, simpler API, fewer foot-guns, etc.>
+- **Sketch:** <optional — a short code snippet or pseudo-code if the alternative is non-obvious>
+
+#### S2 ...
 
 ## Verified
 <what was checked and confirmed fine — especially load-bearing assumptions — so the author sees the audited surface>
@@ -326,6 +371,7 @@ The review is complete when **all** of these are true. Each item is answerable w
 - [ ] Reversibility has been assessed; irreversible side effects, if any, are flagged as **Critical** or **High**.
 - [ ] Dependencies, if any were added or bumped, were audited for typosquatting, CVEs, abandonment, and version-range hygiene.
 - [ ] Report contains all four signals: **What was done well** (with `file:line` where applicable), **Gaps** (low-consequence absences only — consequential ones live under Issues), **Issues** classified as Critical / High / Medium / Low, and **Suggestions** (constructive alternatives, framed as offers). Each issue and suggestion has a **locator** (default `file:line`; `flow:` / `arch:` / `deps:` / `scope: PR` / `meta:` when the finding lives above the code) **and a stable ID** (`C1`, `C2`, …; `H1`, …; `M1`, …; `L1`, …; `S1`, …) so it can be referenced later.
+- [ ] Non-Low issues and suggestions render as **structured blocks** with `#### <ID> — title` headings and labeled `Locator / What / Why / Fix / Cites` fields. Low issues stay compact (one-line bullets); if a Low needs more than one line, it's not Low — promote it.
 - [ ] Severity calibration sanity-checked: critical and high are scarce and reserved for their definitions; constructive "consider X" notes live under Suggestions, not under Low issues.
 - [ ] Report includes **Verified** and **Not reviewed** sections so the author sees the scope.
 - [ ] Report was printed to the terminal. It was posted to the PR only if the user explicitly asked.
