@@ -63,6 +63,7 @@ In parallel with step 1, have an Explore subagent read:
 - `docs/invariants.md` (rules that must hold)
 - `docs/guidelines.md` (conventions — code style, testing, modularization, UX)
 - `docs/product-specs/<relevant>` (what the user-visible behavior should be)
+- `docs/security.md` / `docs/threat-model.md` / `SECURITY.md` (project-specific threat model and security rules — if present, judge step 3g against these rather than against generic OWASP framing)
 - `README` if no `docs/` exists
 
 If none of these exist, note it in the report and review against the implicit conventions visible in surrounding code. Don't fall back to generic best practices — they're usually wrong for the specific project.
