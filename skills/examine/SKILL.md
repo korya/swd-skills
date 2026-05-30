@@ -149,7 +149,14 @@ For each added or bumped dependency (`go.mod`, `package.json`, `requirements.txt
 The report carries four distinct signals. Mixing them up trains the author to skim:
 
 - **What was done well** — concrete things in this PR worth keeping. Cite `file:line` so it's specific, not flattering. Examples: "good failure-path coverage in `auth_test.go:120-180`", "schema migration is backward-compatible — old readers still parse new rows", "telemetry tagged correctly for cross-region requirements".
-- **Gaps** — things *missing* from the PR rather than wrong with it. Examples: missing tests for a stated risk; missing manual-test plan; missing handling for an edge case the diff's logic implies; missing entry in `docs/invariants.md` for a new invariant; missing rollback notes for a migration. A gap is different from an issue: gaps describe absences; issues describe present-but-wrong code.
+- **Gaps** — low-consequence absences worth surfacing but not severity-worthy on their own: missing changelog entry, missing brief in the PR description, missing manual-test plan when the change is auto-covered, missing screenshot for a UI tweak.
+
+  **Consequential absences belong in Issues, not Gaps.** A missing test for a stated risk is functionally a finding the author has to act on, same as a present-but-wrong bug — file it as Critical/High/Medium/Low with a `scope: PR` (or appropriate) locator. Examples:
+  - Missing test for a documented failure mode → **H1 [scope: PR]** "no test for migration-rollback path — leaves data-loss failure mode uncovered."
+  - Missing handling for an edge case the diff's logic implies → severity per the failure mode.
+  - Missing entry in `docs/invariants.md` for a new invariant the PR introduces → **M1 [scope: PR]** or **L1**, depending on how load-bearing the invariant is.
+
+  The split rule: if the author has to address it before merge (or it changes the risk of merge), it's an Issue. If it's a "nice to have noted" that doesn't gate anything, it's a Gap.
 - **Suggestions** — constructive improvements the author *could* make but isn't *required* to. Includes: a cleaner approach the diff hints at, a simpler API shape, a naming change that would make intent obvious, a refactor opportunity, a "have you considered …" prompt. Suggestions are not issues — declining them is fine. Frame them as offers, not orders: "consider extracting …", "an alternative shape would be …". Cite `file:line` and, where helpful, sketch the alternative.
 - **Issues** — present code that's wrong, classified into four severities:
 
@@ -208,10 +215,9 @@ Print to the terminal, **not the PR**, unless the user explicitly says "post it.
 (If genuinely none after honest looking, say so — but the bar is "I looked hard," not "nothing struck me.")
 
 ## Gaps
-- <missing test for risk X>
-- <no manual-test plan in description>
-- <new invariant Y not added to docs/invariants.md>
+- <low-consequence absence — e.g. no changelog entry, no screenshot, no manual-test plan for an auto-covered change>
 - ...
+(Consequential absences belong in Issues with a severity, not here.)
 
 ## Issues
 
@@ -271,6 +277,7 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 | "Everything I noticed is at least High." | Probably not — that pattern is severity inflation. If three of the four buckets are empty, recalibrate: criticals reserve for "this breaks prod or violates a hard constraint," highs for "concrete plausible failure mode." Otherwise, demote. |
 | "I don't have time to find anything that was done well." | "Done well" is part of the review, not garnish. It calibrates the author's signal-to-noise and prevents the review from reading as pure nitpicking. Spend the two minutes. |
 | "This 'consider X' note is really a Low issue." | If it's a problem with the present code, it's an issue. If it's a constructive alternative or "have you considered" prompt, it's a Suggestion. Mixing them either inflates the issue list or hides real findings under polite framing. Pick the right bucket. |
+| "There's no test for the stated risk — I'll just note it as a Gap." | A missing test for a *stated* risk is a finding the author has to address; that's an Issue with a severity, not a Gap. Leaving it under Gaps softens it into something the author can skim past. |
 | "I have inline doubts but no smoking gun — skip them." | Quiet doubts become loud bugs. List them as questions in the report; let the author answer. Silent doubts are findings you decided not to surface. |
 | "Posting to the PR is faster than copying the review." | The user didn't ask you to post it. PR comments are public and durable; let the user decide what's visible. |
 
@@ -296,7 +303,7 @@ The review is complete when **all** of these are true. Each item is answerable w
 - [ ] Top 3 production-risk failure modes are named; for each, the test (or lack of test) that covers it is identified.
 - [ ] Reversibility has been assessed; irreversible side effects, if any, are flagged as **Critical** or **High**.
 - [ ] Dependencies, if any were added or bumped, were audited for typosquatting, CVEs, abandonment, and version-range hygiene.
-- [ ] Report contains all four signals: **What was done well** (with `file:line` where applicable), **Gaps** (what's missing), **Issues** classified as Critical / High / Medium / Low, and **Suggestions** (constructive alternatives, framed as offers). Each issue and suggestion has a **locator** (default `file:line`; `flow:` / `arch:` / `deps:` / `scope: PR` / `meta:` when the finding lives above the code) **and a stable ID** (`C1`, `C2`, …; `H1`, …; `M1`, …; `L1`, …; `S1`, …) so it can be referenced later.
+- [ ] Report contains all four signals: **What was done well** (with `file:line` where applicable), **Gaps** (low-consequence absences only — consequential ones live under Issues), **Issues** classified as Critical / High / Medium / Low, and **Suggestions** (constructive alternatives, framed as offers). Each issue and suggestion has a **locator** (default `file:line`; `flow:` / `arch:` / `deps:` / `scope: PR` / `meta:` when the finding lives above the code) **and a stable ID** (`C1`, `C2`, …; `H1`, …; `M1`, …; `L1`, …; `S1`, …) so it can be referenced later.
 - [ ] Severity calibration sanity-checked: critical and high are scarce and reserved for their definitions; constructive "consider X" notes live under Suggestions, not under Low issues.
 - [ ] Report includes **Verified** and **Not reviewed** sections so the author sees the scope.
 - [ ] Report was printed to the terminal. It was posted to the PR only if the user explicitly asked.
