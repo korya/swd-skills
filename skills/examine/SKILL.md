@@ -1,6 +1,6 @@
 ---
 name: examine
-description: Review a pull request rigorously — establish the PR's stated intent, audit the diff against the claimed approach, check correctness, completeness, architecture, conventions, security, data privacy, testing, reversibility, and dependency hygiene. Validate load-bearing assumptions against independent sources. Returns a structured report with three signals — what was done well, gaps (what's missing), and issues classified as Critical / High / Medium / Low. Use when the user says "/examine", "examine this PR", "review this PR", "review pr #N", "look over my pull request", "check my PR before merge", or asks for a deep code review beyond surface diff-reading. Heavier than the built-in `/review`; the goal is to surface what would actually break in production, not to summarize the diff.
+description: Review a pull request rigorously — establish the PR's stated intent, audit the diff against the claimed approach, check correctness, completeness, architecture, conventions, security, data privacy, testing, reversibility, and dependency hygiene. Validate load-bearing assumptions against independent sources. Returns a structured report with four signals — what was done well, gaps (what's missing), issues classified as Critical / High / Medium / Low, and suggestions (constructive improvements). Use when the user says "/examine", "examine this PR", "review this PR", "review pr #N", "look over my pull request", "check my PR before merge", or asks for a deep code review beyond surface diff-reading. Heavier than the built-in `/review`; the goal is to surface what would actually break in production, not to summarize the diff.
 ---
 
 # Examine: production-risk-first PR review
@@ -24,7 +24,7 @@ Do **not** invoke for: trivial typo fixes, doc-only PRs, or when the user explic
 - **Trust nothing, verify everything.** The PR description is a claim. The diff is a claim. Tests passing is a claim. Verify each against the code, the project docs, and external sources where the assumption is load-bearing.
 - **Production-risk first.** Sort findings by what breaks if this ships, not by code style. Lows go last.
 - **Review against the project's rules, not generic best practices.** Architecture, invariants, conventions — these are the rules the PR is supposed to comply with. Read them before judging.
-- **Three signals, not one.** A useful review tells the author three things, not just one: what's working well (so they keep doing it), what's missing (so they know the gaps), and what's wrong (so they know what to fix). All three carry information; omitting any of them shortchanges the author.
+- **Four signals, not one.** A useful review tells the author four things: what's working well (so they keep doing it), what's missing (so they know the gaps), what's wrong (so they know what to fix), and what could be better (constructive alternatives that aren't required but would improve the PR). All four carry information; omitting any of them shortchanges the author.
 - **Acknowledge good work explicitly.** Looking hard for what was done well is part of the discipline, not optional politeness. It calibrates your tone, prevents "review by nitpicking," and tells the author which patterns to repeat. A review that finds nothing good is almost always a reviewer-fatigue artifact, not a fact about the PR.
 - **Be useful, not exhaustive.** A review with 50 lows and 1 buried critical issue is worse than 5 findings sorted by severity. Headline the things that matter.
 
@@ -143,12 +143,13 @@ For each added or bumped dependency (`go.mod`, `package.json`, `requirements.txt
 - **Version range** — overly broad ranges (`*`, `^0.x`) or pinned to unreleased commits
 - **Maintenance** — last release within ~2 years; abandoned packages are a finding
 
-### 4. Synthesize — three signals, four severities
+### 4. Synthesize — four signals, four severities
 
-The report carries three distinct signals. Mixing them up trains the author to skim:
+The report carries four distinct signals. Mixing them up trains the author to skim:
 
 - **What was done well** — concrete things in this PR worth keeping. Cite `file:line` so it's specific, not flattering. Examples: "good failure-path coverage in `auth_test.go:120-180`", "schema migration is backward-compatible — old readers still parse new rows", "telemetry tagged correctly for cross-region requirements".
 - **Gaps** — things *missing* from the PR rather than wrong with it. Examples: missing tests for a stated risk; missing manual-test plan; missing handling for an edge case the diff's logic implies; missing entry in `docs/invariants.md` for a new invariant; missing rollback notes for a migration. A gap is different from an issue: gaps describe absences; issues describe present-but-wrong code.
+- **Suggestions** — constructive improvements the author *could* make but isn't *required* to. Includes: a cleaner approach the diff hints at, a simpler API shape, a naming change that would make intent obvious, a refactor opportunity, a "have you considered …" prompt. Suggestions are not issues — declining them is fine. Frame them as offers, not orders: "consider extracting …", "an alternative shape would be …". Cite `file:line` and, where helpful, sketch the alternative.
 - **Issues** — present code that's wrong, classified into four severities:
 
   | Severity | Definition |
@@ -204,6 +205,11 @@ Print to the terminal, **not the PR**, unless the user explicitly says "post it.
 - [file:line] <issue>
 ...
 
+## Suggestions
+- [file:line] <constructive alternative or improvement> — <why it'd be better> (optional)
+- ...
+(Suggestions are offers, not orders. The author may decline; that's fine.)
+
 ## Verified
 <what was checked and confirmed fine — especially load-bearing assumptions — so the author sees the audited surface>
 
@@ -238,6 +244,7 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 | "I'll just post all findings to the PR — let the author triage." | A 40-comment review trains the author to skim. Sort by severity; lead with what's critical; drop or bury the lows. |
 | "Everything I noticed is at least High." | Probably not — that pattern is severity inflation. If three of the four buckets are empty, recalibrate: criticals reserve for "this breaks prod or violates a hard constraint," highs for "concrete plausible failure mode." Otherwise, demote. |
 | "I don't have time to find anything that was done well." | "Done well" is part of the review, not garnish. It calibrates the author's signal-to-noise and prevents the review from reading as pure nitpicking. Spend the two minutes. |
+| "This 'consider X' note is really a Low issue." | If it's a problem with the present code, it's an issue. If it's a constructive alternative or "have you considered" prompt, it's a Suggestion. Mixing them either inflates the issue list or hides real findings under polite framing. Pick the right bucket. |
 | "I have inline doubts but no smoking gun — skip them." | Quiet doubts become loud bugs. List them as questions in the report; let the author answer. Silent doubts are findings you decided not to surface. |
 | "Posting to the PR is faster than copying the review." | The user didn't ask you to post it. PR comments are public and durable; let the user decide what's visible. |
 
@@ -263,8 +270,8 @@ The review is complete when **all** of these are true. Each item is answerable w
 - [ ] Top 3 production-risk failure modes are named; for each, the test (or lack of test) that covers it is identified.
 - [ ] Reversibility has been assessed; irreversible side effects, if any, are flagged as **Critical** or **High**.
 - [ ] Dependencies, if any were added or bumped, were audited for typosquatting, CVEs, abandonment, and version-range hygiene.
-- [ ] Report contains all three signals: **What was done well** (with `file:line`), **Gaps** (what's missing), and **Issues** classified as Critical / High / Medium / Low — each issue with a `file:line` citation.
-- [ ] Severity calibration sanity-checked: critical and high are scarce and reserved for their definitions; inflation is avoided.
+- [ ] Report contains all four signals: **What was done well** (with `file:line`), **Gaps** (what's missing), **Issues** classified as Critical / High / Medium / Low, and **Suggestions** (constructive alternatives, framed as offers). Each issue and suggestion has a `file:line` citation.
+- [ ] Severity calibration sanity-checked: critical and high are scarce and reserved for their definitions; constructive "consider X" notes live under Suggestions, not under Low issues.
 - [ ] Report includes **Verified** and **Not reviewed** sections so the author sees the scope.
 - [ ] Report was printed to the terminal. It was posted to the PR only if the user explicitly asked.
 
