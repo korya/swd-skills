@@ -160,7 +160,22 @@ The report carries four distinct signals. Mixing them up trains the author to sk
   | **Medium** | Subjective; likely a bug or likely a violation. Worth fixing now, but acceptable to address in a follow-up review if the author commits to it. Includes most "this looks wrong but I can't prove it breaks." |
   | **Low** | Small issues — naming, formatting, redundant code, minor refactors. Defer freely. |
 
-Within each severity tier, sort by `file:line` so the author can walk top-down through the codebase.
+Within each severity tier, sort by locator (file path / cross-cutting scope) so the author can walk top-down through the codebase.
+
+### Locators
+
+Every issue and suggestion needs a **locator** — something concrete enough that the reader can find the thing being talked about. The default and most useful form is `file:line`, but it's not the only valid form. Use whichever fits the finding:
+
+- `file:line` (e.g. `app/db.py:34`) — local issue at a specific line or hunk. Default; use whenever applicable.
+- `flow: X → Y → Z` (e.g. `flow: signup → db.find_by_email → db.insert`) — issue that emerges from the interaction of multiple call sites, not from any single one. Cite the participating files but locate the finding at the flow.
+- `arch: <area>` (e.g. `arch: http handlers / domain layering`) — architectural or layering issue that describes a pattern across files; cite the architecture doc section that the pattern violates.
+- `deps: <package>` (e.g. `deps: lodash`) — dependency-policy issue not tied to a code line.
+- `scope: PR` — issue about the PR as a whole (missing description, scope sprawl, atomicity, etc.).
+- `meta: <other-IDs>` (e.g. `meta: C1, S2`) — finding that references other findings (e.g. "if we accept C1, S2 is the wrong shape").
+
+The rule isn't "must have `file:line`," it's "the reader can find the thing." Forcing a flow-level issue into a single line is *worse* than locating it correctly at the flow — it implies a local fix that won't address the actual finding.
+
+When a single root cause produces multiple symptoms, prefer **one big-picture finding** with the participating sites listed, not several fine-grained findings that obscure the shared root. (If C1 and C2 are both "duplicate signup races" at different files, file one C1 with `flow:` locator instead.)
 
 **Tag every issue and suggestion with a stable ID** so the author and reviewer can refer to them in follow-up conversation, commits, or PR comments without quoting the whole finding. Use:
 
@@ -201,24 +216,24 @@ Print to the terminal, **not the PR**, unless the user explicitly says "post it.
 ## Issues
 
 ### Critical (must fix before merge)
-- **C1** [file:line] <issue> — <why critical> — <suggested fix>
-- **C2** [file:line] ...
+- **C1** [locator] <issue> — <why critical> — <suggested fix>
+- **C2** [locator] ...
 
 ### High (should fix before merge)
-- **H1** [file:line] <issue> — <failure mode> — <suggested fix>
-- **H2** [file:line] ...
+- **H1** [locator] <issue> — <failure mode> — <suggested fix>
+- **H2** [locator] ...
 
 ### Medium (worth fixing now; acceptable as a follow-up)
-- **M1** [file:line] <issue> — <suggested fix>
-- **M2** [file:line] ...
+- **M1** [locator] <issue> — <suggested fix>
+- **M2** [locator] ...
 
 ### Low (defer)
-- **L1** [file:line] <issue>
-- **L2** [file:line] ...
+- **L1** [locator] <issue>
+- **L2** [locator] ...
 
 ## Suggestions
-- **S1** [file:line] <constructive alternative or improvement> — <why it'd be better>
-- **S2** [file:line] ...
+- **S1** [locator] <constructive alternative or improvement> — <why it'd be better>
+- **S2** [locator] ...
 (Suggestions are offers, not orders. The author may decline; that's fine.)
 
 ## Verified
@@ -281,7 +296,7 @@ The review is complete when **all** of these are true. Each item is answerable w
 - [ ] Top 3 production-risk failure modes are named; for each, the test (or lack of test) that covers it is identified.
 - [ ] Reversibility has been assessed; irreversible side effects, if any, are flagged as **Critical** or **High**.
 - [ ] Dependencies, if any were added or bumped, were audited for typosquatting, CVEs, abandonment, and version-range hygiene.
-- [ ] Report contains all four signals: **What was done well** (with `file:line`), **Gaps** (what's missing), **Issues** classified as Critical / High / Medium / Low, and **Suggestions** (constructive alternatives, framed as offers). Each issue and suggestion has a `file:line` citation **and a stable ID** (`C1`, `C2`, …; `H1`, …; `M1`, …; `L1`, …; `S1`, …) so it can be referenced later.
+- [ ] Report contains all four signals: **What was done well** (with `file:line` where applicable), **Gaps** (what's missing), **Issues** classified as Critical / High / Medium / Low, and **Suggestions** (constructive alternatives, framed as offers). Each issue and suggestion has a **locator** (default `file:line`; `flow:` / `arch:` / `deps:` / `scope: PR` / `meta:` when the finding lives above the code) **and a stable ID** (`C1`, `C2`, …; `H1`, …; `M1`, …; `L1`, …; `S1`, …) so it can be referenced later.
 - [ ] Severity calibration sanity-checked: critical and high are scarce and reserved for their definitions; constructive "consider X" notes live under Suggestions, not under Low issues.
 - [ ] Report includes **Verified** and **Not reviewed** sections so the author sees the scope.
 - [ ] Report was printed to the terminal. It was posted to the PR only if the user explicitly asked.
