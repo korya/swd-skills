@@ -56,17 +56,26 @@ If the description is missing, empty, or pure boilerplate ("update the foo"), **
 
 ### 2. Establish context — what is the project's own rulebook?
 
-In parallel with step 1, have an Explore subagent read:
+This step is what separates a real review from training-data pattern-matching. The agent does not get to skip it.
+
+In parallel with step 1, **read in full** the load-bearing documents (these will be cited per-finding in step 3, so excerpts aren't enough):
+
+- `docs/invariants.md` — rules that must hold; load-bearing for any finding about invariants
+- `docs/security.md` / `docs/threat-model.md` / `SECURITY.md` — project-specific threat model; load-bearing for step 3g
+- `docs/privacy.md` / data-handling policy — load-bearing for step 3h
+- `docs/product-specs/<area-touched-by-the-PR>` — load-bearing for steps 3a / 3b
+- `docs/testing.md` / testing conventions — load-bearing for step 3i
+
+Other context docs can go via Explore subagent (excerpts are fine):
 
 - `AGENTS.md` / `CLAUDE.md` (agent-facing instructions)
-- `docs/architecture.md` (boundaries the PR must respect)
-- `docs/invariants.md` (rules that must hold)
-- `docs/guidelines.md` (conventions — code style, testing, modularization, UX)
-- `docs/product-specs/<relevant>` (what the user-visible behavior should be)
-- `docs/security.md` / `docs/threat-model.md` / `SECURITY.md` (project-specific threat model and security rules — if present, judge step 3g against these rather than against generic OWASP framing)
+- `docs/architecture.md` (boundaries; full read if the PR touches module boundaries)
+- `docs/guidelines.md` (general conventions — code style, modularization, UX)
 - `README` if no `docs/` exists
 
-If none of these exist, note it in the report and review against the implicit conventions visible in surrounding code. Don't fall back to generic best practices — they're usually wrong for the specific project.
+If a load-bearing doc is **missing**, note it in the report — the absence of a project rule on (e.g.) privacy is itself a finding the reviewer should surface, not a license to fall back to generic best practices.
+
+The mandate: every finding about architecture, conventions, security, privacy, or testing in step 3 must **cite the specific project rule** it's judged against (`docs/path.md §section` or quoted line). A finding like "violates project conventions" without a citation is itself a finding — either go get the citation, or downgrade to a Suggestion. Citations are what distinguish "I'm pattern-matching" from "this PR contradicts a rule the project actually has."
 
 ### 3. Audit the diff
 
@@ -91,8 +100,12 @@ Search for sibling call sites. If `foo()` was modified for a reason, every calle
 #### 3e. Architecture
 Does the change respect the layering in `docs/architecture.md`? Common violation: bypassing a module boundary because it was inconvenient.
 
+**Findings cite the rule:** every architecture finding names the `docs/architecture.md` section (or other architecture doc) the PR contradicts. No citation = no project rule was actually verified.
+
 #### 3f. Conventions
 Project-specific code style, file layout, dependency rules, test colocation, commit-message format, UX/UI guidelines. Verify against the docs, not against your priors.
+
+**Findings cite the rule:** every conventions finding names the `docs/guidelines.md` (or `AGENTS.md`, style guide, etc.) section the PR contradicts. A finding that can't be tied to a documented convention is at most a Suggestion, not an Issue.
 
 #### 3g. Security
 - **Trust boundaries:** inputs from outside (HTTP body, query, headers, uploads, webhooks) parsed and validated before use?
@@ -101,11 +114,15 @@ Project-specific code style, file layout, dependency rules, test colocation, com
 - **Secrets:** none logged, none in tests, none in error responses
 - **OWASP Top 10** sweep against the affected surface
 
+**Findings cite the rule:** if the project has `docs/security.md` / `threat-model.md` / `SECURITY.md`, every security finding cites the specific rule violated. If no project rule exists for the concern, name the OWASP item or industry-standard rule explicitly — and note in the report that no project-level rule was found (that's itself a finding).
+
 #### 3h. Data privacy
 - New PII in fields, logs, telemetry — tagged/redacted per project policy?
 - Retention — new data persisted? For how long? Per policy?
 - Cross-tenant leakage — does the new query filter by tenant/org?
 - Regional / GDPR data-residency rules respected?
+
+**Findings cite the rule:** every privacy finding cites the project's privacy / data-handling policy (`docs/privacy.md`, similar) by section. If no policy exists, note its absence as a finding — privacy concerns can't be honestly judged from training-data priors alone.
 
 #### 3i. Testing
 - Tests included? At what level — unit / integration / e2e?
@@ -113,6 +130,8 @@ Project-specific code style, file layout, dependency rules, test colocation, com
 - Cover regressions in adjacent unchanged code the PR could break?
 - Manual testing described? Specific (steps, env) or hand-wavy ("I tested it locally")?
 - CI: `gh pr checks <N>` — what passed, what failed, what's flaky vs. broken?
+
+**Findings cite the rule:** if the project has testing conventions (`docs/testing.md`, `AGENTS.md` testing section, or similar), every testing finding cites the specific convention. "Missing tests" without a documented coverage expectation is a Suggestion, not an Issue.
 
 #### 3j. Validate load-bearing assumptions independently
 For each non-obvious claim the PR rests on, verify against an outside source:
@@ -278,6 +297,8 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 | "I don't have time to find anything that was done well." | "Done well" is part of the review, not garnish. It calibrates the author's signal-to-noise and prevents the review from reading as pure nitpicking. Spend the two minutes. |
 | "This 'consider X' note is really a Low issue." | If it's a problem with the present code, it's an issue. If it's a constructive alternative or "have you considered" prompt, it's a Suggestion. Mixing them either inflates the issue list or hides real findings under polite framing. Pick the right bucket. |
 | "There's no test for the stated risk — I'll just note it as a Gap." | A missing test for a *stated* risk is a finding the author has to address; that's an Issue with a severity, not a Gap. Leaving it under Gaps softens it into something the author can skim past. |
+| "This is obviously a privacy / security / conventions violation, no need to cite the doc." | "Obviously" is exactly the move that lets training-data priors masquerade as project rules. The citation is what distinguishes "this PR contradicts a rule the project actually has" from "this looks wrong to me." Either find the rule, or downgrade the finding to a Suggestion. |
+| "I'll just skim the invariants/security/privacy/testing docs — I get the gist." | Excerpts work for orientation but not for compliance checks. Findings are going to cite these by section — if you only skimmed, you'll either miss the rule the PR violates or invent a rule that isn't there. Read in full. |
 | "I have inline doubts but no smoking gun — skip them." | Quiet doubts become loud bugs. List them as questions in the report; let the author answer. Silent doubts are findings you decided not to surface. |
 | "Posting to the PR is faster than copying the review." | The user didn't ask you to post it. PR comments are public and durable; let the user decide what's visible. |
 
@@ -297,7 +318,8 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 The review is complete when **all** of these are true. Each item is answerable with evidence — a quote from the diff, a doc path, a CI line — not a vibe.
 
 - [ ] PR description has been read; stated problem, approach, constraints, and non-obvious decisions are extracted (or flagged as missing).
-- [ ] Project docs (`AGENTS.md`, `docs/`, README) have been read; the review judges against the project's own rules, not generic ones. Absence of docs is itself noted.
+- [ ] Project docs have been read. Load-bearing docs (`docs/invariants.md`, `docs/security.md`/threat-model, `docs/privacy.md`, `docs/product-specs/<area>`, `docs/testing.md`) were **read in full**, not excerpted. Absence of any of these is itself noted as a finding.
+- [ ] Findings about architecture, conventions, security, privacy, and testing each cite the specific project-doc rule (file + section, or quoted line) they're judged against. Findings that can't be tied to a project rule are downgraded to Suggestions or recorded as "no project rule on this; reviewed against generic standard X."
 - [ ] Every axis in step 3 has been walked: alignment, problem-solving, correctness, completeness, architecture, conventions, security, data privacy, testing, load-bearing assumptions, risk, reversibility, dependencies. Skipped axes are listed in **Not reviewed**.
 - [ ] At least one load-bearing assumption has been independently verified against an outside source (library docs, stdlib docs, measurement, etc.) — or the absence of any load-bearing assumption is justified.
 - [ ] Top 3 production-risk failure modes are named; for each, the test (or lack of test) that covers it is identified.
