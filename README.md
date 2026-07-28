@@ -1,6 +1,6 @@
 # swd — software development skills
 
-A Claude Code plugin bundling five skills for serious software work.
+A plugin bundling five skills for serious software work. Runs on **Claude Code** and **Codex CLI** — both read the same `.claude-plugin/marketplace.json`.
 
 | Skill | When it triggers |
 | --- | --- |
@@ -10,14 +10,25 @@ A Claude Code plugin bundling five skills for serious software work.
 | **rebase** | "rebase this branch on X", "move these commits onto the new base" — keep the original spec, invariants, and conventions intact. |
 | **examine** | "/examine", "examine this PR", "review this PR", "check my PR before merge" — production-risk-first deep PR review; heavier than the built-in `/review`. |
 
+Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:blueprint`, `$swd:rca`, `$swd:examine`, `$swd:rebase`, `$swd:repo-docs`.
+
 ## Install (from GitHub)
+
+**Claude Code** — in the session:
 
 ```sh
 /plugin marketplace add korya/swd-skills
 /plugin install swd@swd
 ```
 
-The first command points Claude Code at `github.com/korya/swd-skills` as a marketplace. The second installs the `swd` plugin from that marketplace (`<plugin>@<marketplace>`).
+**Codex CLI** — in the shell (requires Codex ≥ 0.145):
+
+```sh
+codex plugin marketplace add korya/swd-skills
+codex plugin add swd@swd
+```
+
+The first command points the host at `github.com/korya/swd-skills` as a marketplace. The second installs the `swd` plugin from that marketplace (`<plugin>@<marketplace>`).
 
 The marketplace's internal name is `swd` (set in `.claude-plugin/marketplace.json`), which is why the install target is `swd@swd` even though the repo is `swd-skills`.
 
@@ -25,17 +36,41 @@ The marketplace's internal name is `swd` (set in `.claude-plugin/marketplace.jso
 
 ```sh
 git clone https://github.com/korya/swd-skills.git
+```
+
+**Claude Code:**
+
+```sh
 /plugin marketplace add /absolute/path/to/swd-skills
 /plugin install swd@swd
 ```
 
 After editing a skill, run `/reload-plugins` to pick up the changes.
 
+**Codex CLI:**
+
+```sh
+codex plugin marketplace add /absolute/path/to/swd-skills
+codex plugin add swd@swd
+```
+
+Codex copies the plugin into `~/.codex/plugins/cache/`, so edits to your checkout are *not* live. After editing a skill, re-run `codex plugin add swd@swd` to re-sync the copy, then start a new Codex session.
+
 ## Update
+
+**Claude Code:**
 
 ```sh
 /plugin marketplace update swd
 ```
+
+**Codex CLI:**
+
+```sh
+codex plugin marketplace upgrade swd
+```
+
+This refreshes the Git snapshot *and* the installed copy under `~/.codex/plugins/cache/`. It only works for unpinned Git marketplaces — if you added the marketplace with `--ref <sha>`, `upgrade` fails; re-add it without the ref.
 
 ## Layout
 
