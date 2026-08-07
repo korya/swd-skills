@@ -87,7 +87,7 @@ Pay particular attention to:
 - **Public APIs and shared utilities** — signatures `curr` depends on may have changed
 - **Files `curr` touches** — direct conflict surface
 
-For non-trivial deltas, delegate the survey to an Explore agent rather than reading every commit by hand.
+For non-trivial deltas, delegate the survey to a read-only search subagent (if your host provides one) rather than reading every commit by hand.
 
 ### 4. Cross-impact analysis
 

@@ -40,7 +40,7 @@ Do **not** invoke for: trivial typo fixes, doc-only PRs, or when the user explic
 
 ## Workflow
 
-Many of these steps parallelize. Spawn Explore subagents for the docs sweep, the conventions audit, the security pass, and the dependency audit — you stay in charge of severity calls and the final synthesis.
+Many of these steps parallelize. If your host supports read-only search subagents, delegate the docs sweep, the conventions audit, the security pass, and the dependency audit — you stay in charge of severity calls and the final synthesis. If it doesn't, run them yourself in sequence; the order below is already dependency-correct.
 
 ### 1. Establish intent — what is this PR trying to do?
 
@@ -71,7 +71,7 @@ In parallel with step 1, **read in full** the load-bearing documents (these will
 - `docs/product-specs/<area-touched-by-the-PR>` — load-bearing for steps 5a / 5b
 - `docs/testing.md` / testing conventions — load-bearing for step 5i
 
-Other context docs can go via Explore subagent (excerpts are fine):
+Other context docs can be gathered by a read-only search subagent, or skimmed directly (excerpts are fine):
 
 - `AGENTS.md` / `CLAUDE.md` (agent-facing instructions)
 - `docs/architecture.md` (boundaries; full read if the PR touches module boundaries)
@@ -112,7 +112,7 @@ Compare the PR's actual approach against the step-3 sketches:
 gh pr diff <N>
 ```
 
-Walk the diff against the axes below. Use TaskCreate to track each axis; spawn subagents for the ones that benefit from parallel work (security, conventions, dependencies, docs alignment).
+Walk the diff against the axes below. Track each axis in whatever task or plan tool your host provides, so none is silently dropped; delegate the ones that benefit from parallel work (security, conventions, dependencies, docs alignment) if subagents are available.
 
 #### 5a. Alignment with the claimed approach
 Does the code actually do what the description says? Common drift: the description says "I added validation"; the diff adds a helper but doesn't call it from the relevant endpoint.
