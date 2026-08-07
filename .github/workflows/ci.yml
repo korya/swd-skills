@@ -7,11 +7,44 @@ on:
 
 jobs:
   validate:
+    name: Manifests and skills
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate plugin manifest and skills
+      - name: Validate plugin manifests and skills
         run: python3 scripts/validate.py
+
+  hosts:
+    name: Host validators (${{ matrix.host }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [claude-code, codex]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Claude Code reads .claude-plugin/marketplace.json and the skill frontmatter.
+      # It ignores the root plugin.json entirely.
+      - name: Validate the Claude Code marketplace manifest
+        if: matrix.host == 'claude-code'
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude plugin validate .
+
+      # Codex reads the root plugin.json as an Agent Plugins manifest. A wrong `$schema`
+      # makes `plugin add` exit 1, which is precisely what this job exists to catch —
+      # `claude plugin validate` returns 0 on that failure.
+      - name: Install the plugin as an Agent Plugins client
+        if: matrix.host == 'codex'
+        run: |
+          npm install -g @openai/codex
+          codex plugin marketplace add .
+          codex plugin add swd@swd
+          codex plugin list
