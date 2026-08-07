@@ -28,6 +28,7 @@ Do **not** invoke for: trivial typo fixes, doc-only PRs, or when the user explic
 - **Five signals, not one.** A useful review tells the author five things: what's working well (so they keep doing it), what's missing (so they know the gaps), what's wrong (so they know what to fix), what could be better (constructive alternatives that aren't required but would improve the PR), and what's known-broken but accepted (so risk-acceptance is documented, not silent). All five carry information; omitting any of them shortchanges the author.
 - **Acknowledge good work explicitly.** Looking hard for what was done well is part of the discipline, not optional politeness. It calibrates your tone, prevents "review by nitpicking," and tells the author which patterns to repeat. A review that finds nothing good is almost always a reviewer-fatigue artifact, not a fact about the PR.
 - **Be useful, not exhaustive.** A review with 50 lows and 1 buried critical issue is worse than 5 findings sorted by severity. Headline the things that matter.
+- **Verify without side effects.** Verification may read anything and run anything locally — check out the branch, run the tests, write probe scripts. It may not touch anything others observe: no pushes to the author's branch, no PR comments (the terminal-first default in step 8), no CI triggers, no fix commits, nothing sent to a person or third-party service. Reversibility is judged by observable effects, not artifact state — a reverted push does not unsend the notifications. If the only path to evidence crosses that line, ask the user; consent granted for an earlier task does not carry over. Local experimental edits are reverted before the report.
 
 ## Inputs to establish up front
 
@@ -35,6 +36,7 @@ Do **not** invoke for: trivial typo fixes, doc-only PRs, or when the user explic
 - Repo context: AGENTS.md / docs/ / README — note their presence
 - CI status: `gh pr checks <N>` — passing, failing, or flaky
 - Whether the user wants the review posted to the PR (default: **no**, terminal only)
+- Working-tree baseline before any local experimenting: current branch, `HEAD` sha, `git status --porcelain` output. The end-of-review restore check compares against this, not against "clean" — the user's own uncommitted work is part of the baseline, not something to revert.
 
 ## Workflow
 
@@ -403,6 +405,8 @@ When tempted to skip a step, check whether your reasoning appears below. If it d
 | "I'll just skim the invariants/security/privacy/testing docs — I get the gist." | Excerpts work for orientation but not for compliance checks. Findings are going to cite these by section — if you only skimmed, you'll either miss the rule the PR violates or invent a rule that isn't there. Read in full. |
 | "I have inline doubts but no smoking gun — skip them." | Quiet doubts become loud bugs. List them as questions in the report; let the author answer. Silent doubts are findings you decided not to surface. |
 | "Posting to the PR is faster than copying the review." | The user didn't ask you to post it. PR comments are public and durable; let the user decide what's visible. |
+| "The fix is one line — I'll just push it to the author's branch." | That mutates the subject under review and publishes the mutation: CI runs, watchers get notified, the author's work changes under them. A review's output is findings, not commits. Put the fix in the report; the author decides. |
+| "I'll trigger CI / push a probe commit to test my theory about the pipeline." | The experiment is observable by the author and every watcher, and it alters the PR under review. Exhaust read-only evidence first — prior run logs, `gh api`, a local repro — and if the theory genuinely needs a live trigger, that's a question for the user, not a judgment call. |
 
 ## Anti-patterns
 
@@ -436,6 +440,7 @@ The review is complete when **all** of these are true. Each item is answerable w
 - [ ] Severity calibration sanity-checked: critical and high are scarce and reserved for their definitions; constructive "consider X" notes live under Suggestions, not under Low issues.
 - [ ] Report includes **Verified** and **Not reviewed** sections so the author sees the scope.
 - [ ] Report was printed to the terminal. It was posted to the PR only if the user explicitly asked.
+- [ ] Review left no trace: working tree restored to the recorded baseline (`git status` compared and shown); nothing pushed, commented, triggered, or sent to any person or third-party system without explicit approval obtained *during this review* — consent from an earlier task does not carry over.
 
 If a checkbox cannot be ticked honestly, the review is not done — return to the step that produces it.
 
