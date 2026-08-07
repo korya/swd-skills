@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Software development skills: deep planning, root-cause analysis, agent-oriented repo docs, and spec-aware rebasing.",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "plugins": [
     {
