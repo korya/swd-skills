@@ -1,6 +1,6 @@
 # swd — software development skills
 
-A plugin bundling five skills for serious software work. Runs on **Claude Code** and **Codex CLI** — both read the same `.claude-plugin/marketplace.json`.
+A plugin bundling five skills for serious software work. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
 
 | Skill | When it triggers |
 | --- | --- |
@@ -72,15 +72,40 @@ codex plugin marketplace upgrade swd
 
 This refreshes the Git snapshot *and* the installed copy under `~/.codex/plugins/cache/`. It only works for unpinned Git marketplaces — if you added the marketplace with `--ref <sha>`, `upgrade` fails; re-add it without the ref.
 
+## Other hosts
+
+The skills themselves are portable — `SKILL.md` with YAML frontmatter is read by OpenCode, pi, Grok Build, and Muse Code too. Only the *packaging* is host-specific: outside Claude Code and Codex there is no install command, so clone the repo and point your agent at `skills/`.
+
+| Host | Reads |
+| --- | --- |
+| OpenCode | `.opencode/skills/`, `.claude/skills/`, `.agents/skills/` (and `~/` equivalents) |
+| pi | `~/.pi/agent/skills/`, `~/.agents/skills/`, `.agents/skills/` |
+| Muse Code | `~/.agents/skills/`, `.agents/skills/`; also `muse skills import --from claude` |
+| Grok Build | `.claude/` skills, `AGENTS.md`, hooks, MCP |
+
+`~/.agents/skills/` is the closest thing to a vendor-neutral location — symlinking `skills/*` there covers most of the table.
+
 ## Layout
 
 ```
+plugin.json          # Agent Plugins 1.0.0 manifest (Codex + other AP clients)
 .claude-plugin/
-  marketplace.json   # marketplace manifest + plugin definition
+  marketplace.json   # marketplace manifest + plugin definition (Claude Code)
 skills/
   blueprint/
   rca/
   repo-docs/
   rebase/
   examine/
+LICENSE              # AGPL-3.0-or-later
 ```
+
+Two manifests, one package. Claude Code reads `marketplace.json` and ignores `plugin.json`; Codex resolves `plugin.json` first and validates its `$schema` strictly — a wrong value makes `codex plugin add` fail outright. CI runs both hosts' native validators to keep them honest, plus `scripts/validate.py` for the checks neither host makes (version agreement across manifests, marketplace ↔ `skills/` symmetry, and skills naming no host-specific tool).
+
+## Development
+
+```sh
+python3 scripts/validate.py
+```
+
+Bump the version in **both** `plugin.json` and `.claude-plugin/marketplace.json` (`metadata.version` and the plugin entry). The validator fails if they disagree — Codex derives the installed version from `plugin.json`, so a stale value stalls updates for Codex users.

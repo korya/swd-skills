@@ -95,7 +95,7 @@ For each unverified assumption, pick the cheapest validation that produces real 
 
 Record each result as **confirmed**, **refuted**, or **partial**. For refuted assumptions, return to step 2 with new information — do not patch around the refutation.
 
-For batched investigation (multiple parallel reads, broad searches), delegate to an Explore agent rather than draining the main context.
+For batched investigation (multiple parallel reads, broad searches), delegate to a read-only search subagent if your host provides one, rather than draining the main context.
 
 ### 5. Cross-validate with product specs
 
