@@ -28,6 +28,8 @@ you catch yourself skipping a step and your reason isn't among those eight.
 | "Posting to the PR is faster than copying the review." | The user didn't ask you to post it. PR comments are public and durable; let the user decide what's visible. |
 | "The fix is one line — I'll just push it to the author's branch." | That mutates the subject under review and publishes the mutation: CI runs, watchers get notified, the author's work changes under them. A review's output is findings, not commits. Put the fix in the report; the author decides. |
 | "I'll trigger CI / push a probe commit to test my theory about the pipeline." | The experiment is observable by the author and every watcher, and it alters the PR under review. Exhaust read-only evidence first — prior run logs, `gh api`, a local repro — and if the theory genuinely needs a live trigger, that's a question for the user, not a judgment call. |
+| "This candidate is speculative — I'll quietly drop it." | Dropping half-believed candidates bypasses the verify stage; the verifier decides, not the finder. Record it with its failure scenario and pass it through. |
+| "The verifier should refute anything that depends on runtime state." | PLAUSIBLE by default: races, cold caches, and rare-but-reachable error paths are realistic production states. REFUTED requires proof constructible from the code — a quoted guard, type, or invariant. |
 
 ## Anti-patterns
 

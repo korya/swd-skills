@@ -1,6 +1,6 @@
 # Report format
 
-Loaded from `SKILL.md` step 7 (synthesis). Covers locators, IDs, block rendering, and the
+Loaded from `SKILL.md` step 8 (synthesis). Covers locators, IDs, block rendering, and the
 report template.
 
 ## Locators
@@ -32,7 +32,8 @@ the participating sites listed, not several fine-grained findings that obscure t
 Tag every issue and suggestion so the author and reviewer can refer to it in follow-up
 conversation, commits, or PR comments without quoting the whole finding:
 
-- `C1`, `C2`, … Critical · `H1`, … High · `M1`, … Medium · `L1`, … Low · `S1`, … Suggestions
+- `C1`, `C2`, … Critical · `H1`, … High · `M1`, … Medium · `L1`, … Low · `Q1`, … Questions ·
+  `S1`, … Suggestions
 
 Counters are per-review and per-bucket. "Fixed C1 and C2; declining S3" is a complete status
 update — that's what the IDs are for.
@@ -70,7 +71,11 @@ match is unremarkable — say so in Verified instead.>
 
 #### C1 — <one-line title>
 - **Locator:** <locator>
+- **Changed anchor:** <the hunk that introduced or exposed it> *(omit when the locator
+  already is the anchor)*
 - **What:** <the problem, 1–3 sentences; the present-but-wrong code or behavior>
+- **Evidence:** <the call path, input, or probe result that demonstrates it>
+- **Verdict:** CONFIRMED | PLAUSIBLE — <one clause on what verification checked>
 - **Why Critical:** <the failure mode that breaks production / violates security / violates
   privacy / damages data, and why it can't be shipped around>
 - **Fix:** <concrete suggested change>
@@ -79,18 +84,28 @@ match is unremarkable — say so in Verified instead.>
 ### High (should fix before merge)
 
 #### H1 — <one-line title>
-- **Locator:** / **What:** / **Why High:** <concrete plausible failure mode — not "could
-  break" but "the failure mode is X and it's plausible because Y"> / **Fix:** / **Cites:**
+- **Locator:** / **Changed anchor:** / **What:** / **Evidence:** / **Verdict:** /
+  **Why High:** <the serious failure mode — wrong data, outage, weakened security> /
+  **Fix:** / **Cites:**
 
 ### Medium (worth fixing now; acceptable as a follow-up)
 
 #### M1 — <one-line title>
-- **Locator:** / **What:** / **Why Medium:** / **Fix:** / **Cites:**
+- **Locator:** / **Changed anchor:** / **What:** / **Evidence:** / **Verdict:** /
+  **Why Medium:** / **Fix:** / **Cites:**
 
 ### Low (defer)
 - **L1** [locator] <one-line note>
 
 (If there are no qualifying issues, write "No qualifying issues." under ## Issues.)
+
+## Questions
+
+Doubts that survived scrutiny but earned no verdict — the author can usually answer in a
+minute what would take the reviewer an hour to prove. One line each, answerable, never
+rhetorical.
+
+- **Q1** [locator] <the doubt, phrased as a question the author can answer>
 
 ## Suggestions
 
@@ -133,9 +148,13 @@ the scope of the review and may argue findings they don't need to.
 
 > #### C1 — Duplicate-signup race lets the same email register twice
 > - **Locator:** `flow: app/signup.py:13 → app/db.py:32-36`
+> - **Changed anchor:** `app/signup.py:13` (new call site; `db.py` unchanged)
 > - **What:** `signup.signup` calls `db.find_by_email` to enforce uniqueness, then
 >   `db.insert` — two non-atomic steps. Two concurrent signups with the same email both see
 >   "no match," both insert, and the store ends up with two `User` rows for one person.
+> - **Evidence:** no lock or `UNIQUE` constraint on `users.email` (`schema.sql:8`); the
+>   handler is async, so interleaving is unforced.
+> - **Verdict:** PLAUSIBLE — mechanism confirmed from the code; trigger needs concurrency.
 > - **Why Critical:** Silent data corruption. Downstream billing, auth, and password-reset all
 >   join by email and now behave non-deterministically. No detection in prod until support
 >   traces a duplicated invoice.
