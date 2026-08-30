@@ -45,11 +45,13 @@ needs them**, not up front: `references/axes.md` (audit axes 5e–5m), `referenc
 - **Be useful, not exhaustive.** A review with 50 lows and 1 buried critical is worse than 5
   findings sorted by severity. Headline what matters.
 - **Verify without side effects.** Verification may read anything and run anything locally —
-  check out the branch, run the tests, write probe scripts. It may not touch anything others
-  observe: no pushes to the author's branch, no PR comments (terminal-first; step 8), no CI
-  triggers, no fix commits, nothing sent to a person or third-party service. If the only path
-  to evidence crosses that line, ask the user; consent from an earlier task does not carry
-  over. Local experimental edits are reverted before the report.
+  run the tests, write probe scripts, experiment. But never edit or switch branches in the
+  primary checkout: experiments run in a detached worktree (`git worktree add --detach`) or
+  on files outside the repo, removed before the report. And never touch anything others
+  observe: no pushes to the author's branch, no PR comments (terminal-first; step 9), no CI
+  triggers, no fix commits, nothing sent to a person or third-party service. If the only
+  path to evidence crosses that line, ask the user; consent from an earlier task does not
+  carry over.
 
 ## Inputs and target resolution
 
@@ -71,9 +73,25 @@ Also establish up front:
 
 - Repo context: which rule sources exist (step 2) — note their presence.
 - Whether the user wants the review posted to the PR (default: **no**, terminal only).
-- Working-tree baseline before any local experimenting: current branch, `HEAD` sha,
-  `git status --porcelain` output. The end-of-review restore check compares against this, not
-  against "clean" — the user's own uncommitted work is part of the baseline.
+- Working-tree baseline: current branch, `HEAD` sha, `git status --porcelain` output. The
+  end-of-review check confirms the primary checkout is untouched — experiments happen in a
+  detached worktree or outside the repo (see principles), so nothing should need restoring.
+  The user's own uncommitted work is part of the baseline, not something to revert.
+
+## Modes — quick and full
+
+`/examine [quick|full] <target>`. When neither is given, choose by blast radius and state
+which mode you chose and why: **full** when the diff touches migrations, auth, payments,
+personal data, dependencies, infra, or more than ~15 files; **quick** otherwise.
+
+- **full** — every step below.
+- **quick** — steps 1, 2 (agent instruction files only — pull a project doc in only when a
+  finding needs its citation), 3 (three-bullet sketches), 4, 5a–5d plus 5k, 7, 9. Skip axes
+  5e–5j and 5l–5m (list them under **Not reviewed**), the Occam pass, and host reviewers.
+  At most 8 Issues; Lows beyond 3 roll into one line.
+
+In full mode, Lows beyond five roll into one line. In both modes an empty bucket stays
+empty — never pad toward a cap.
 
 ## Workflow
 
@@ -202,6 +220,12 @@ provides, so none is silently dropped.
   load-bearing assumptions (5j) apply to any runtime change — skip them only for doc/test-only
   diffs.
 
+**Host reviewers as extra finders (full mode).** If the host exposes a defect-first review
+capability (a built-in code-review skill or review agent), run it against the same target in
+a subagent and feed its findings into step 7's dedup and verification as one more candidate
+source — never as the report. Run a security-focused built-in only when the diff has a
+trust-boundary surface. Skip in quick mode or when the user passes `--no-host-reviewers`.
+
 ### 6. The Occam pass — is this more solution than the problem needs?
 
 The audit asks "is it wrong?"; this pass asks "is it more than needed?" Walk the diff once
@@ -285,6 +309,10 @@ template in `references/report.md`: Headline → Approach fit → Issues → Que
 Suggestions → Gaps → Known limitations → What was done well → Verified → Not reviewed. Omit
 empty sections (What was done well is mandatory); a clean review says "No qualifying issues."
 
+If the host exposes a structured findings-reporting tool, also call it once with the Issues
+(file, line, category, verdict) so the host UI can render and track them. The terminal
+report remains the deliverable; the stable IDs remain the reference in conversation.
+
 ### 10. Post to the PR — only if the user asks
 
 See `references/report.md` § Posting. Default is terminal-only — PR comments are public,
@@ -314,6 +342,8 @@ vibe. If a checkbox cannot be ticked honestly, return to the step that produces 
 
 - [ ] Target resolved per **Inputs**: the reviewed diff is the merge-base comparison (or the
   explicit PR/range), working-tree changes included when present.
+- [ ] Mode stated — quick or full, with the blast-radius reason when auto-chosen. In quick
+  mode, every skipped axis is listed under **Not reviewed**.
 - [ ] Description read; problem, approach, constraints, non-obvious decisions extracted or
   flagged as missing. Linked ticket read and reconciled.
 - [ ] Problem confirmed to exist in the base-snapshot code — or the report flags that it
@@ -343,7 +373,8 @@ vibe. If a checkbox cannot be ticked honestly, return to the step that produces 
   IDs, locators, block rendering with Evidence and Verdict fields on non-Low issues,
   findings-first order, Verified and Not reviewed present.
 - [ ] Report printed to the terminal; posted to the PR only on explicit request.
-- [ ] No trace left: working tree restored to the recorded baseline (`git status` compared);
+- [ ] No trace left: the primary checkout matches the recorded baseline (`git status`
+  compared) — experiments ran in a detached worktree or outside the repo, now removed;
   nothing pushed, commented, triggered, or sent anywhere without approval obtained *during
   this review*.
 
