@@ -225,6 +225,37 @@ def validate_skill_layout(errors: list[str], marketplace: dict) -> None:
         )
 
 
+def validate_references(errors: list[str]) -> None:
+    """Progressive-disclosure hygiene: reference files and SKILL.md must point at each other.
+
+    A file under skills/<name>/references/ that SKILL.md never mentions is dead weight the
+    model will never load; a referenced path that does not exist is an instruction the model
+    cannot follow. Both are errors.
+    """
+    if not SKILLS_DIR.is_dir():
+        return
+    for skill_dir in sorted(SKILLS_DIR.iterdir()):
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+        text = skill_md.read_text()
+
+        refs_dir = skill_dir / "references"
+        on_disk = {p.name for p in refs_dir.glob("*.md")} if refs_dir.is_dir() else set()
+        mentioned = set(re.findall(r"references/([\w.-]+\.md)", text))
+
+        for unused in sorted(on_disk - mentioned):
+            errors.append(
+                f"skills/{skill_dir.name}/references/{unused}: not mentioned in SKILL.md — "
+                "a reference file the skill never loads is dead weight"
+            )
+        for missing in sorted(mentioned - on_disk):
+            errors.append(
+                f"skills/{skill_dir.name}/SKILL.md references references/{missing}, "
+                "which does not exist"
+            )
+
+
 def validate_host_neutrality(errors: list[str]) -> None:
     """Skills must not hardcode one host's tool names."""
     if not SKILLS_DIR.is_dir():
@@ -305,6 +336,7 @@ def validate() -> list[str]:
         validate_versions(errors, marketplace, manifest)
     if marketplace:
         validate_skill_layout(errors, marketplace)
+    validate_references(errors)
     validate_host_neutrality(errors)
     return errors
 
