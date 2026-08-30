@@ -8,7 +8,7 @@ A plugin bundling five skills for serious software work. Runs on **Claude Code**
 | **rca** | "/rca", "root cause", "5 whys", "why is this failing" — failures you want to learn from, not just patch. |
 | **repo-docs** | "document the project for coding agents", "set up agent docs", "add AGENTS.md" — bootstrap or extend `AGENTS.md` + `docs/`. |
 | **rebase** | "rebase this branch on X", "move these commits onto the new base" — keep the original spec, invariants, and conventions intact. |
-| **examine** | "/examine", "examine this PR", "review this PR", "check my PR before merge" — production-risk-first deep PR review; heavier than the built-in `/review`. |
+| **examine** | "/examine", "examine this PR", "review this PR", "review my branch", "check my PR before merge" — production-risk-first holistic review of a PR, branch, or working tree; the host's built-in review is defect-first, this one also judges intent, approach, and right-sizing. |
 
 Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:blueprint`, `$swd:rca`, `$swd:examine`, `$swd:rebase`, `$swd:repo-docs`.
 
@@ -96,7 +96,7 @@ skills/
   rca/
   repo-docs/
   rebase/
-  examine/
+  examine/           # SKILL.md core + references/ loaded per step
 LICENSE              # AGPL-3.0-or-later
 ```
 
