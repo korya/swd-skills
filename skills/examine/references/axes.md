@@ -90,11 +90,18 @@ carries higher risk by definition — irreversible side effects are Critical or 
 ## 5m. Dependency audit
 
 For each added or bumped dependency (`go.mod`, `package.json`, `requirements.txt`,
-`Cargo.toml`, etc.):
+`Cargo.toml`, etc.), two tiers:
 
-- **Typosquatting** — package name sanity check (`requets` vs `requests`, `lodahs` vs `lodash`)
-- **Major version** — current vs. latest; deprecated majors are findings
-- **CVEs** — `npm audit` / `pip-audit` / language-specific advisory lookup; or search
-  "<package> CVE"
-- **Version range** — overly broad ranges (`*`, `^0.x`) or pinned to unreleased commits
-- **Maintenance** — last release within ~2 years; abandoned packages are a finding
+**Findings on sight:**
+
+- **Typosquatting** — package name sanity check (`requets` vs `requests`, `lodahs` vs
+  `lodash`); a suspected typosquat is Critical.
+- **Unreviewable pins** — a wildcard range (`*`) or a pin to an unreleased commit.
+- **Known CVEs** — `npm audit` / `pip-audit` / language-specific advisory lookup, or search
+  "<package> CVE", scoped to the version in use.
+
+**Investigation triggers, not defects:** distance from the latest major, no release in ~2
+years, a broad-looking semver range. Investigate; file an Issue only with evidence — an
+applicable CVE, an upstream EOL or deprecation notice, or a project dependency policy to
+cite. A stable library that hasn't needed a release is not a finding, and upgrading to the
+latest major is sometimes the riskier choice.
