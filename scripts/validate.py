@@ -16,6 +16,7 @@ Exits 0 on success, 1 with a list of errors otherwise. Stdlib only — no pip re
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -72,25 +73,71 @@ HOST_SPECIFIC_PATTERNS = [
     (re.compile(r"\bWeb(?:Fetch|Search)\b"), "a generic description of fetching or searching"),
 ]
 
+# Codex injects the raw SKILL.md text — frontmatter included — and cuts it at this many
+# UTF-8 bytes (codex-rs/ext/skills/src/render.rs, `MAX_SKILL_PROMPT_BYTES`). The model gets a
+# one-line "was truncated" warning and no pointer back to the file, so anything past the cut
+# is simply gone. Claude Code has no such cap. Mirrors an upstream constant deliberately: a
+# bump here is a conscious edit, made after re-reading the source. See issue #10.
+CODEX_SKILL_PROMPT_BYTES = 8_000
+
+# Same file, `MAX_CATALOG_SKILL_DESCRIPTION_CHARS`: longer descriptions are shortened in the
+# skill catalog. Counted in Unicode scalar values, which is what Python's len() returns.
+CODEX_DESCRIPTION_CHARS = 1_024
+
+# Codex's default shared budget for every skill's name + description (or 2% of the context
+# window when known); past it, all descriptions are trimmed proportionally.
+CODEX_METADATA_CHARS = 8_000
+
+# The cut lands mid-word at byte 8000. Warn at 90% so one added paragraph cannot tip a skill
+# over between two CI runs.
+BUDGET_HEADROOM = 0.9
+
+# Every skill is over the prompt budget today (#10). Size violations are warnings until the
+# last core is under budget; then this flips to True and they fail the build.
+ENFORCE_PROMPT_BYTES = False
+
 
 def parse_frontmatter(skill_md: Path) -> tuple[dict | None, str]:
+    """Parse the flat YAML frontmatter of a SKILL.md without a YAML library.
+
+    Handles what skill frontmatter actually uses: `key: value` scalars, quoted scalars, and
+    multi-line values — both block scalars (`key: >` / `key: |`) and plain continuation
+    lines. Anything fancier (nested maps, lists) is out of scope and reported as an error.
+    """
     text = skill_md.read_text()
     if not text.startswith("---"):
         return None, "no YAML frontmatter (file does not start with '---')"
     match = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
     if not match:
         return None, "frontmatter delimiters not found"
-    # Minimal YAML: scalar key: value lines only. Skill frontmatter is flat enough that
-    # the stdlib gets us through without a full YAML parser.
+
     data: dict = {}
+    key: str | None = None
+    block: str | None = None  # ">" folded, "|" literal, None plain
     for raw_line in match.group(1).splitlines():
         line = raw_line.rstrip()
+        if key is not None and (line.startswith((" ", "\t")) or (block and not line)):
+            # Continuation of the previous value.
+            piece = line.strip()
+            if block == "|":
+                data[key] = f"{data[key]}\n{piece}" if data[key] else piece
+            else:
+                data[key] = f"{data[key]} {piece}".strip() if piece else data[key]
+            continue
         if not line or line.startswith("#"):
             continue
         if ":" not in line:
             return None, f"unparseable frontmatter line: {raw_line!r}"
         key, _, value = line.partition(":")
-        data[key.strip()] = value.strip()
+        key = key.strip()
+        value = value.strip()
+        if value in (">", "|", ">-", "|-", ">+", "|+"):
+            block, value = value[0], ""
+        else:
+            block = None
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+        data[key] = value
     return data, ""
 
 
@@ -256,6 +303,79 @@ def validate_references(errors: list[str]) -> None:
             )
 
 
+def validate_skill_budgets(
+    errors: list[str],
+    warnings: list[str],
+    skills_dir: Path = SKILLS_DIR,
+    enforce_bytes: bool = ENFORCE_PROMPT_BYTES,
+) -> list[dict]:
+    """Keep every SKILL.md inside what Codex will actually load.
+
+    Codex measures the raw file in UTF-8 bytes, frontmatter included; the catalog cap on the
+    description is in characters. Returns one row per skill for the budget table.
+    """
+    rows: list[dict] = []
+    if not skills_dir.is_dir():
+        return rows
+
+    byte_soft = int(CODEX_SKILL_PROMPT_BYTES * BUDGET_HEADROOM)
+    desc_soft = int(CODEX_DESCRIPTION_CHARS * BUDGET_HEADROOM)
+    metadata_total = 0
+
+    for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
+        rel = f"skills/{skill_md.parent.name}/SKILL.md"
+        size = len(skill_md.read_bytes())
+        frontmatter, _ = parse_frontmatter(skill_md)
+        description = (frontmatter or {}).get("description", "")
+        desc_len = len(description)
+        metadata_total += len(skill_md.parent.name) + desc_len
+        rows.append({"skill": skill_md.parent.name, "bytes": size, "description": desc_len})
+
+        if size > CODEX_SKILL_PROMPT_BYTES:
+            msg = (
+                f"{rel}: {size} bytes; Codex truncates the prompt at "
+                f"{CODEX_SKILL_PROMPT_BYTES} — move detail into references/ (#10)"
+            )
+            (errors if enforce_bytes else warnings).append(msg)
+        elif size > byte_soft:
+            warnings.append(
+                f"{rel}: {size} bytes, within {CODEX_SKILL_PROMPT_BYTES - size} of the "
+                f"{CODEX_SKILL_PROMPT_BYTES}-byte Codex cut — trim before adding more"
+            )
+
+        if desc_len > CODEX_DESCRIPTION_CHARS:
+            errors.append(
+                f"{rel}: description is {desc_len} chars; Codex shortens it in the catalog "
+                f"past {CODEX_DESCRIPTION_CHARS}"
+            )
+        elif desc_len > desc_soft:
+            warnings.append(
+                f"{rel}: description is {desc_len} chars, close to the "
+                f"{CODEX_DESCRIPTION_CHARS}-char Codex catalog cap"
+            )
+
+    if metadata_total > CODEX_METADATA_CHARS * BUDGET_HEADROOM:
+        warnings.append(
+            f"skill names + descriptions total {metadata_total} chars; Codex trims all "
+            f"descriptions proportionally past {CODEX_METADATA_CHARS}"
+        )
+    return rows
+
+
+def format_budget_table(rows: list[dict]) -> str:
+    lines = [
+        f"Skill budgets (Codex loads at most {CODEX_SKILL_PROMPT_BYTES} bytes of SKILL.md, "
+        f"{CODEX_DESCRIPTION_CHARS} chars of description):"
+    ]
+    for row in rows:
+        pct = 100 * row["bytes"] // CODEX_SKILL_PROMPT_BYTES
+        lines.append(
+            f"  {row['skill']:<12} {row['bytes']:>6} B {pct:>4}%   "
+            f"description {row['description']:>5} ch"
+        )
+    return "\n".join(lines)
+
+
 def validate_host_neutrality(errors: list[str]) -> None:
     """Skills must not hardcode one host's tool names."""
     if not SKILLS_DIR.is_dir():
@@ -328,8 +448,9 @@ def validate_marketplace(errors: list[str]) -> dict:
     return marketplace
 
 
-def validate() -> list[str]:
+def validate() -> tuple[list[str], list[str], list[dict]]:
     errors: list[str] = []
+    warnings: list[str] = []
     marketplace = validate_marketplace(errors)
     manifest = validate_agent_plugins_manifest(errors)
     if marketplace and manifest:
@@ -337,12 +458,22 @@ def validate() -> list[str]:
     if marketplace:
         validate_skill_layout(errors, marketplace)
     validate_references(errors)
+    budgets = validate_skill_budgets(errors, warnings)
     validate_host_neutrality(errors)
-    return errors
+    return errors, warnings, budgets
 
 
 def main() -> int:
-    errors = validate()
+    errors, warnings, budgets = validate()
+    print(format_budget_table(budgets))
+    if warnings:
+        print("Warnings:")
+        for w in warnings:
+            print(f"  - {w}")
+            if os.environ.get("GITHUB_ACTIONS"):
+                # Surfaces as an annotation on the PR instead of dying in the job log.
+                file, _, rest = w.partition(": ")
+                print(f"::warning file={file}::{rest}")
     if errors:
         print("Validation failed:")
         for e in errors:

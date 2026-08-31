@@ -16,6 +16,8 @@ jobs:
           python-version: "3.12"
       - name: Validate plugin manifests and skills
         run: python3 scripts/validate.py
+      - name: Test the validator's budget thresholds
+        run: python3 -m unittest discover -s tests -v
 
   hosts:
     name: Host validators (${{ matrix.host }})
