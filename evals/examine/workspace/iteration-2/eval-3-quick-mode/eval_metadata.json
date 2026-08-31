@@ -1,0 +1,14 @@
+{
+  "eval_id": 3,
+  "eval_name": "eval-3-quick-mode",
+  "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/examine/make_fixture.sh OUTPUT_DIR/repo` to set up the repository, then cd into OUTPUT_DIR/repo (already on feature/discounts). I'm about to open the PR \u2014 give me a quick review of my branch first. /examine quick. Write the report to OUTPUT_DIR/report.md.",
+  "assertions": [
+    "Report file exists at outputs/report.md and is non-empty.",
+    "The report states it ran in quick mode (or names the mode and why).",
+    "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+    "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+    "No more than 8 issues are reported.",
+    "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+    "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE)."
+  ]
+}

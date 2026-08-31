@@ -1,0 +1,154 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 20910 bytes, begins '# Examine: feat(discounts): Add discount codes with API validation (branch `feature/discounts` vs `main`)' and contains full Headline / Approach fit / Issues / Questions / Suggestions / Gaps / Known limitations / What was done well / Verified / Not reviewed sections."
+    },
+    {
+      "text": "The report states it ran in quick mode (or names the mode and why).",
+      "passed": true,
+      "evidence": "Line 3: '**Mode:** quick, as requested. Note: the auto-selected mode would have been **full** \u2014 the diff contains a migration and touches the payments path.' The 'Not reviewed' section also opens with 'Quick mode. Skipped axes:'."
+    },
+    {
+      "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+      "passed": true,
+      "evidence": "Report: '**Target:** `git diff 79ef07d..c11dc93` (merge-base with `main`; no upstream configured, working tree clean). 8 files, +129/\u221214.' Verified in the fixture: `git merge-base main feature/discounts` = 79ef07d5..., HEAD = c11dc93, and `git diff --stat 79ef07d..c11dc93` reports exactly '8 files changed, 129 insertions(+), 14 deletions(-)'. The unrelated feature/audit-log commit (5c88236) was not included."
+    },
+    {
+      "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+      "passed": true,
+      "evidence": "Four of five caught, each verified against the fixture source. (1) Uncalled percent validation \u2014 C1: '`validate_percent` (`app/discount_engine/__init__.py:26-30`) exists but has no callers; `api_create_discount` does `int(payload[\"percent\"])` and stores it' (grep confirms only the definition exists). (2) Dropped email normalization \u2014 C2: 'the hunk that removes `from .util import normalize_email` and replaces `email = normalize_email(email)` with `\"email\": email.strip()`' (matches `git diff 79ef07d..c11dc93 -- app/users.py`). (3) Swallowed redemption error \u2014 H2: 'the resulting `KeyError` is swallowed by `except Exception: pass` and the function reports `{\"redeemed\": True}`' (reproduced: `api_redeem({'code':'NOPE'})` -> `{'redeemed': True}`). (4) Unfixed support.lookup \u2014 H1: '`support.py` was not [updated]: it still wraps the call in `except NotFound`, which is now never raised, then dereferences `u[\"id\"]` on `None`' (support.py unchanged in the diff, confirmed). Not caught: the check-then-act redemption race as a concurrency issue \u2014 H2 discusses `api_redeem`'s condition and its disconnection from `charge` but never frames it as a race."
+    },
+    {
+      "text": "No more than 8 issues are reported.",
+      "passed": true,
+      "evidence": "Exactly 8 issues under '## Issues': C1, C2, C3 (Critical), H1, H2, H3, H4 (High), M1 (Medium). No Low issues. Questions (Q1-Q3), Suggestions (S1-S3), Gaps, and Known limitations are separate sections and not counted as issues."
+    },
+    {
+      "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+      "passed": true,
+      "evidence": "'## Not reviewed' / 'Quick mode. Skipped axes:' lists '5e architecture', '5f conventions', '5g security \u2014 not swept', '5h privacy \u2014 not swept; no `docs/privacy.md`', '5i testing as a full axis', '5j', '5l reversibility as an axis', '5m dependencies \u2014 none added', '**Occam pass** and host built-in reviewers \u2014 not run', plus 'External references \u2014 SUPPORT-311, FIN-88 not accessible'. All three named examples (privacy, dependencies, Occam) are present."
+    },
+    {
+      "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "All 8 issues (3 Critical, 4 High, 1 Medium) carry a '**Verdict:** CONFIRMED' line with a reproduction note, e.g. C1: 'CONFIRMED \u2014 grep shows `validate_percent` referenced only at its definition; probe reproduces the negative charge'; H1: 'CONFIRMED \u2014 probe reproduces; 5d tracer found the unchanged call site'; M1: 'CONFIRMED.' The Verified section adds: 'Every non-Low finding has a reproduced probe.'"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "note": "No transcript or metrics.json was present in the run directory; only the report and the fixture repo were available. Tool-call counts are unavailable.",
+    "output_chars": 20910,
+    "total_tokens": 94743
+  },
+  "claims": [
+    {
+      "claim": "Target diff is 79ef07d..c11dc93, the merge-base with main; 8 files, +129/-14",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`git merge-base main feature/discounts` = 79ef07d; HEAD = c11dc93; `git diff --stat` = 8 files changed, 129 insertions(+), 14 deletions(-)."
+    },
+    {
+      "claim": "Tests at HEAD: 4/4 pass",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`python3 -m unittest discover tests` -> 'Ran 4 tests ... OK'."
+    },
+    {
+      "claim": "validate_percent has no callers; MAX_DISCOUNT_PERCENT cap is not enforced anywhere",
+      "type": "factual",
+      "verified": true,
+      "evidence": "grep over app/ tests/ migrations/ finds validate_percent only at its definition (discount_engine/__init__.py:26); api_create_discount stores `int(payload['percent'])` unchecked."
+    },
+    {
+      "claim": "percent=200 on a 10.00 charge yields amount=-1000, total=-1050",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Re-ran probe: `{'user_id': 1, 'amount': -1000, 'total': -1050}`."
+    },
+    {
+      "claim": "normalize_email now has no callers",
+      "type": "factual",
+      "verified": true,
+      "evidence": "grep finds normalize_email only at its definition in app/util.py:1; users.py diff removes the import and the call."
+    },
+    {
+      "claim": "support.py is the only remaining consumer of NotFound; NotFound is now dead code in db.py",
+      "type": "factual",
+      "verified": true,
+      "evidence": "db.py defines NotFound but no longer raises it (`return None` at find_user_by_email); support.py still imports and catches it and then indexes `u['id']`."
+    },
+    {
+      "claim": "api_redeem({'code': 'NOPE'}) on an empty store returns {'redeemed': True}",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Re-ran probe: `{'redeemed': True}`. Condition `if row is None or row['uses'] < row['max_uses']` enters the success branch for None; KeyError swallowed by `except Exception: pass`."
+    },
+    {
+      "claim": "Migration 002 has no down(); code still writes plan, never writes/reads tier",
+      "type": "factual",
+      "verified": true,
+      "evidence": "migrations/002_drop_plan.py defines only up(); users.create_user writes `'plan': 'free'`; `grep -rn tier app tests` returns nothing."
+    },
+    {
+      "claim": "api_apply_credit strips a leading '-' and negates parse_money's result, writing a user_id: None entry into STORE.charges",
+      "type": "factual",
+      "verified": true,
+      "evidence": "api.py:42-50 matches the description verbatim."
+    },
+    {
+      "claim": "Float tax math (billing.py:23) produces zero mismatches vs integer math for every cent value in [0, 5,000,000)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Re-ran exhaustive check: 0 mismatches over range(0, 5_000_000)."
+    },
+    {
+      "claim": "Checkout unchanged at end; pycache removed; detached worktree removed",
+      "type": "process",
+      "verified": true,
+      "evidence": "`git status --porcelain` empty; branch = feature/discounts; `git worktree list` shows only the main checkout."
+    },
+    {
+      "claim": "H2: api_redeem's condition is 'inverted'",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Slightly loose wording \u2014 the bug is `row is None or ...` where `row is not None and ...` was intended, not a full inversion \u2014 but the described behaviour (nonexistent code reports redeemed=True) is accurate and reproduced."
+    },
+    {
+      "claim": "Verification method: single-context adversarial pass with executable probes in a detached worktree; no subagent verifiers",
+      "type": "process",
+      "verified": false,
+      "evidence": "No transcript was available to confirm the method. The probe results themselves all reproduce, and the worktree is gone, which is consistent with the claim, but the process itself could not be observed."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "No more than 8 issues are reported.",
+        "reason": "The run landed on exactly 8, so the cap is binding rather than slack. That is fine as a ceiling, but the assertion says nothing about whether those 8 are the right 8 \u2014 a report with 8 nitpicks and none of the seeds would pass. Consider pairing it with a floor on seed hits or a 'no S6 false positive' check (this run correctly treated the MAX_DISCOUNT_PERCENT 50->30 change as deliberate per FIN-88, which no assertion rewards)."
+      },
+      {
+        "assertion": "At least three of the planted correctness defects are caught: ... redemption race ...",
+        "reason": "The race (S4, the one seed intended to land as PLAUSIBLE rather than CONFIRMED) was the only defect not caught, and the assertion's 3-of-5 floor hides that. Since eval 3 is also meant to check that quick mode 'still verifies findings', it would be more discriminating to assert that at least one finding carries a PLAUSIBLE verdict, or to name the race separately."
+      },
+      {
+        "reason": "No assertion checks the fixture is left clean (branch unchanged, no stray worktree, no untracked files) even though the grading instructions ask for it and the report explicitly claims it. This run passed that check; a run that left a detached worktree behind would not be penalised by the current assertion set."
+      },
+      {
+        "reason": "The S5 float-tax seed (pre-existing \u00a72 violation on an unchanged line) was found, probed, and deliberately downgraded to a Known limitation with a REFUTED-candidate note. That is a defensible judgment call, but it is exactly the kind of quick-vs-full behaviour difference worth asserting on if the eval wants to pin down what quick mode is allowed to drop."
+      }
+    ],
+    "overall": "All seven assertions pass on genuine evidence \u2014 every factual claim in the report reproduced against the fixture. The assertion set is solid on mode/baseline/structure but thin on discrimination: the issue cap is a ceiling with no floor on quality, the S4 race miss is invisible under the 3-of-5 threshold, and cleanliness is unasserted."
+  }
+}

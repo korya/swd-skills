@@ -1,7 +1,7 @@
 # Anti-rationalization table and anti-patterns
 
-The full table. `SKILL.md` keeps the eight rows that bite most often; read this file when
-you catch yourself skipping a step and your reason isn't among those eight.
+The full table. Read this file when you catch yourself skipping a step — if your reason is
+below, do the step.
 
 | Rationalization | Why it fails here |
 |---|---|

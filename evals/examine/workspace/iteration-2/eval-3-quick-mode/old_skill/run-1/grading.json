@@ -1,0 +1,158 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 19584 bytes, 159 lines; begins '# Examine: Add discount codes with API validation (`feature/discounts` vs `main`, quick mode)' and contains a full structured review."
+    },
+    {
+      "text": "The report states it ran in quick mode (or names the mode and why).",
+      "passed": true,
+      "evidence": "Line 4: '**Mode:** **quick**, as requested. Note: the diff touches a migration and the money path, which would have auto-selected **full** \u2014 after reading the findings below I'd run a full pass before this merges anyway.' Title also says '(quick mode)'."
+    },
+    {
+      "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+      "passed": true,
+      "evidence": "Line 3: '**Target:** `git diff 3c9d83d..bed1927` (merge-base with `main`; no upstream configured; working tree clean, so nothing extra included). 8 files, +129/\u221214, one commit.' Verified: `git merge-base main feature/discounts` = 3c9d83d1..., HEAD of feature/discounts = bed1927; `git diff --shortstat 3c9d83d..bed1927` = 8 files changed, 129 insertions(+), 14 deletions(-). The report explicitly uses merge-base language rather than 'last commit'."
+    },
+    {
+      "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+      "passed": true,
+      "evidence": "4 of 5 caught. (1) Uncalled percent validation: C1 'discount_engine.validate_percent ... has zero callers ... percent=150 \u2192 {amount: -500, total: -525}'. (2) Swallowed redemption error: H1 'api_redeem itself takes the redeem branch when row is None, then swallows the resulting KeyError with except Exception: pass and reports redeemed: True ... api_redeem({\"code\": \"BOGUS\"}) \u2192 {redeemed: True}'. (3) Unfixed support.lookup: H2 'find_user_by_email now returns None, but support.lookup still catches NotFound ... support.lookup(\"nobody@x.y\") \u2192 TypeError'. (4) Dropped email normalization: H3 'normalize_email(email) replaced by email.strip(); util.normalize_email now has no callers'. NOT caught: the check-then-act redemption race (S4) \u2014 grep for 'race'/'check-then-act'/'concurren' in the report finds nothing; H1 notes uses/max_uses are never enforced on the charge path but does not identify the over-redemption race in api_redeem. All four caught findings independently reproduced by me against outputs/repo (percent=150 \u2192 amount -500; api_redeem BOGUS \u2192 redeemed True; support.lookup \u2192 TypeError; create_user('  A@B.c ') stores 'A@B.c')."
+    },
+    {
+      "text": "No more than 8 issues are reported.",
+      "passed": false,
+      "evidence": "The Issues section carries 11 tagged issues \u2014 C1, H1, H2, H3, H4, H5, M1, M2, L1, L2, L3 \u2014 plus a line 'Further Lows, rolled up:' listing three more (untrusted `source` string, lost \u00a74 comment pointer, `Optional[str]` typing), i.e. 14 issue-shaped findings under '## Issues'. The skill's own rule is 'at most 8 Issues. Never pad toward a cap.' Only the non-Low block count (8) fits the cap; the report exceeds it once Lows are counted, and Lows are explicitly Issues per references/report.md ('### Low (defer)' is a severity tier under Issues)."
+    },
+    {
+      "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+      "passed": true,
+      "evidence": "Line 156 under '## Not reviewed': 'Quick-mode skips: **5e** architecture ..., **5f** conventions beyond CLAUDE.md, **5g** security, **5h** data privacy (no docs/privacy.md; the diff adds a source field but no new PII), **5i** testing as a full axis ..., **5j** load-bearing assumptions ..., **5l** reversibility as a formal axis ..., **5m** dependencies (none added). Occam pass and host reviewers skipped; S2 is a suggestion, not an Occam finding.' Privacy, dependencies and Occam are all named."
+    },
+    {
+      "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "Every non-Low issue has a '**Verdict:**' line: C1 'CONFIRMED \u2014 verifier ran the same inputs independently'; H1 'CONFIRMED \u2014 verifier reproduced both'; H2 'CONFIRMED.'; H3 'CONFIRMED.'; H4 'CONFIRMED (static; deterministic).'; H5 'CONFIRMED.'; M1 'CONFIRMED.'; M2 'CONFIRMED.' 8/8 non-Low issues carry a verdict."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 1,
+    "total": 7,
+    "pass_rate": 0.86
+  },
+  "execution_metrics": {
+    "note": "No metrics.json or transcript in the run directory; only timing.json (total_tokens 102648) was available.",
+    "total_tokens": 102648,
+    "output_chars": 19584
+  },
+  "claims": [
+    {
+      "claim": "Target is git diff 3c9d83d..bed1927, the merge-base with main; 8 files, +129/\u221214, one commit",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git merge-base main feature/discounts = 3c9d83d; git diff --shortstat 3c9d83d..bed1927 = 8 files changed, 129 insertions(+), 14 deletions(-); one commit bed1927 on the branch."
+    },
+    {
+      "claim": "percent=150 on '10.00' yields amount -500, total -525; validate_percent has no callers",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced: billing.charge('a@b.c','10.00','X') with percent 150 \u2192 {'user_id': 1, 'amount': -500, 'total': -525}. validate_percent defined in app/discount_engine/__init__.py, not referenced in api.py or billing.py."
+    },
+    {
+      "claim": "api_redeem({'code':'BOGUS'}) on an empty store returns {'redeemed': True}",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced: {'redeemed': True}. Source confirms `if row is None or row['uses'] < row['max_uses']` then `except Exception: pass`."
+    },
+    {
+      "claim": "support.lookup on an unknown email raises TypeError",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced: TypeError 'NoneType' object is not subscriptable. app/support.py still has `except NotFound` and `u['id']`."
+    },
+    {
+      "claim": "create_user('  A@B.c ', 'A') stores 'A@B.c' (not lowercased)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced: stored email 'A@B.c'. app/users.py line: `\"email\": email.strip()`."
+    },
+    {
+      "claim": "Migration 002 has no down(); only 001_init.py defines down",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`'down' in dir(migrations.002_drop_plan)` \u2192 False; grep -n down migrations/*.py hits only migrations/001_init.py:8."
+    },
+    {
+      "claim": "api_apply_credit({'amount':'-5.00'}) appends {'user_id': None, 'amount': -500, 'total': -500}",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced exactly."
+    },
+    {
+      "claim": "Float tax math (L1) produces zero mismatches vs integer arithmetic for amount in [0, 2_000_000)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Exhaustive check int(a*(1+500/10_000)) vs a + a*500//10_000 for a in range(0, 2_000_000): 0 mismatches."
+    },
+    {
+      "claim": "Suite is 4/4 green on the branch",
+      "type": "factual",
+      "verified": true,
+      "evidence": "python3 -m unittest discover -s tests \u2192 Ran 4 tests, OK."
+    },
+    {
+      "claim": "Working tree was clean and the checkout untouched after the review",
+      "type": "process",
+      "verified": true,
+      "evidence": "git status --porcelain shows only untracked __pycache__ directories (ignored per instructions); branch is feature/discounts."
+    },
+    {
+      "claim": "Each Medium+ candidate went to an independent verifier subagent; all came back CONFIRMED",
+      "type": "process",
+      "verified": false,
+      "evidence": "Unverifiable: no transcript is present in the run directory. The findings themselves reproduce, but whether independent verifier subagents were actually spawned cannot be confirmed."
+    },
+    {
+      "claim": "Rule sources read in full: ~/.claude/CLAUDE.md, repo CLAUDE.md, docs/invariants.md, docs/testing.md",
+      "type": "process",
+      "verified": false,
+      "evidence": "Unverifiable without a transcript; the citations (\u00a71\u2013\u00a74, CLAUDE.md lines 3/5/6, testing.md lines 4\u20135) match the actual doc contents, which is consistent with having read them."
+    },
+    {
+      "claim": "The MAX_DISCOUNT_PERCENT 50\u219230 change is deliberate per FIN-88 (S6 trap)",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The report does not flag the cap change as a defect; it raises it as Q1 (asks for the FIN-88 link) and notes the cap is unenforced anyway (C1). The trap was not tripped."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "No user_notes.md present."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "No more than 8 issues are reported.",
+        "reason": "The assertion is ambiguous about whether Low-tier items count. This run has exactly 8 non-Low blocks and then 3 tagged Lows plus 3 rolled-up Lows. I graded it strictly (Lows are Issues per report.md), but the eval should say 'no more than 8 tagged issues including Lows' or 'no more than 8 non-Low issues' so grading is deterministic. Also consider a companion check that the report does not pad toward the cap \u2014 e.g., a Low that says 'pre-existing, no wrong output today' (L1) is arguably filler in quick mode."
+      },
+      {
+        "assertion": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+        "reason": "The fixture's feature/discounts branch has exactly one commit, so `git show HEAD` and `git diff $(git merge-base)` produce identical diffs \u2014 the assertion can only be satisfied by wording, not by outcome. Adding a second commit to the seeded branch would make this discriminating."
+      },
+      {
+        "reason": "No assertion covers the S6 trap (deliberate 50\u219230 cap change) in quick mode. This run handled it correctly (Q1, not an Issue), but a quick-mode run that flags it as a defect would pass every assertion here."
+      },
+      {
+        "reason": "No assertion checks the cleanliness of the checkout after the run (branch still feature/discounts, no tracked changes). The prompt instructions mention it but eval_metadata.json does not; this run was clean, but it is a cheap, discriminating check worth adding."
+      },
+      {
+        "reason": "The run took 324s and 102k tokens for a 'quick' review of an 8-file diff and spawned verifier subagents per Medium+ candidate. No assertion bounds cost or length; if quick mode is meant to be cheap, an upper bound on report length or token count would make the eval enforce that."
+      }
+    ],
+    "overall": "Assertions are mostly sound and the report is high quality on substance (4/5 seeds, all reproducible, S6 trap avoided). The one failure is the 8-issue cap, which the report exceeds via Lows; the assertion wording should settle whether Lows count. The merge-base assertion is currently satisfiable by wording alone because the branch has a single commit."
+  }
+}

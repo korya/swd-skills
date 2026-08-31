@@ -1,7 +1,46 @@
-# Audit axes 5e–5m
+# Audit axes 5a–5m and the Occam pass
 
-Loaded from `SKILL.md` step 5 when the diff touches the surface an axis covers. Each axis
-ends with its citation rule: what project document a finding on that axis must name.
+Loaded from `SKILL.md` step 5. Axes 5a–5d apply to every diff; 5e–5m when the diff touches
+the surface an axis covers, and each of those ends with its citation rule: what project
+document a finding on that axis must name. The Occam pass (step 6) closes the file.
+
+## 5a–5d. Alignment, problem, correctness, completeness
+
+Walk the diff against these axes. Track each axis in whatever task or plan tool your host
+provides, so none is silently dropped.
+
+- **5a. Alignment with the claimed approach.** Does the code do what the description says?
+  Common drift: "I added validation" — the diff adds a helper but never calls it.
+- **5b. Solves the stated problem under stated constraints.** Walk a representative failure
+  case from the problem statement through the new code. Would it fix it?
+- **5c. Correctness — five named angles**, each delegable to a read-only search subagent.
+  Every issue-shaped observation is recorded as a *candidate* with a one-line failure
+  scenario — finders that silently drop half-believed candidates bypass step 7's
+  verification.
+  1. **Line + enclosing function.** Read every hunk line by line, then the whole enclosing
+     function — bugs in unchanged lines of a touched function are in scope (the change
+     re-exposes or fails to fix them). For each line: what input, state, timing, or platform
+     makes it wrong? Off-by-one, inverted conditions, null/empty deref, silent truncation,
+     an error swallowed in a catch, wrong-variable copy-paste. Be especially skeptical of
+     code copied from existing patterns — the differences are where bugs live.
+  2. **Removed behavior.** For every line the diff deletes or replaces, name the invariant it
+     enforced, then find where the new code re-establishes it. Can't find it → candidate: a
+     dropped guard, a narrowed validation, a deleted test that covered a real case.
+  3. **Language pitfalls.** The classics of the diff's language and framework: falsy-zero and
+     loose-equality coercion, mutable default arguments, late-binding closures, captured
+     loop variables, nil-map writes, timezone/DST drift, float equality.
+  4. **Wrapper/proxy correctness.** A type that wraps another (cache, proxy, decorator,
+     adapter) must route every method through the wrapped instance — not back through a
+     registry or global that re-enters the wrapper — and forward everything callers use.
+  5. **Wasted work.** Redundant computation or repeated I/O, independent operations run
+     sequentially, blocking work added to startup or hot paths, long-lived objects capturing
+     an enclosing scope that holds large values.
+- **5d. Completeness — the cross-file tracer.** For each changed function, Grep for its
+  callers and check whether the change breaks any call site: a new precondition, a changed
+  return shape, a new exception, an ordering dependency. Check callees too — does a parallel
+  change in the same PR make a call unsafe? Sibling call sites the diff should have changed
+  count. The regression surface is the *unchanged* code around the diff.
+
 
 ## 5e. Architecture
 
@@ -105,3 +144,33 @@ years, a broad-looking semver range. Investigate; file an Issue only with eviden
 applicable CVE, an upstream EOL or deprecation notice, or a project dependency policy to
 cite. A stable library that hasn't needed a release is not a finding, and upgrading to the
 latest major is sometimes the riskier choice.
+
+## 6. The Occam pass — is this more solution than the problem needs?
+
+The audit asks "is it wrong?"; this pass asks "is it more than needed?" Walk the diff once
+more looking for:
+
+- **Premature optimization** — caching, pooling, batching, cleverness in a path with no
+  demonstrated need. The test: is there a measurement or stated scale requirement? No
+  evidence → finding.
+- **Speculative generality** — abstractions, flags, and extension points for futures nobody
+  scheduled. Interfaces with one implementation. YAGNI.
+- **Over-defensive code** — guards for states the type system or call graph already excludes,
+  catch-alls that swallow failures, fallbacks that mask the error they fall back from.
+  (Defensive code at trust boundaries is the opposite case — required; see 5g.)
+- **Reinvention** — does the repo already have a utility that does this? (5d looks for
+  siblings the diff should have *changed*; this looks for code it should have *used*.)
+- **Band-aids** — the inverse failure: a special case layered on shared infrastructure means
+  the fix is too *shallow*, not too elaborate. Prefer generalizing the underlying mechanism;
+  name the mechanism that should have changed.
+- **Deletion candidates** — for each new module or indirection: what breaks if it collapses
+  into its caller? If "nothing, it's just tidier," propose the collapse.
+
+Two calibration rules: **a simplification proposal must clear the same evidence bar as any
+other finding** — walk it against the constraints from steps 1–2 and state which you checked;
+and **less code is not the metric** — simplicity is fewest concepts and failure modes, and
+explicit parallel branches can beat a "unified" mechanism nobody can modify safely.
+
+**Severity:** over-engineering defaults to a **Suggestion**. Promote to an Issue (usually
+Medium) only with concrete, citable cost — a new moving part to operate, a pattern adjacent
+code will copy — ideally backed by the project's own conventions.
