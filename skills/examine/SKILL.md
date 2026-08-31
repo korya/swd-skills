@@ -19,7 +19,7 @@ the right, production-safe, right-sized change? Use the built-in for a defect sc
 eyes before merge. Do not invoke it for trivial typo fixes or doc-only changes.
 
 This file is the core. Three reference files live beside it and are **read at the step that
-needs them**, not up front: `references/axes.md` (audit axes 5e–5m), `references/verify.md`
+needs them**, not up front: `references/audit.md` (audit axes 5e–5m), `references/verify.md`
 (verdict rubric and gap sweep), `references/report.md` (locators, IDs, report template),
 `references/rationalizations.md` (the full anti-rationalization table and anti-patterns).
 
@@ -179,43 +179,11 @@ If the approach is wrong on its face, point the author at `/blueprint` for the r
 
 ### 5. Audit the diff
 
-Walk the diff against these axes. Track each axis in whatever task or plan tool your host
-provides, so none is silently dropped.
+**Read `references/audit.md` now** for axes 5a–5d.
 
-- **5a. Alignment with the claimed approach.** Does the code do what the description says?
-  Common drift: "I added validation" — the diff adds a helper but never calls it.
-- **5b. Solves the stated problem under stated constraints.** Walk a representative failure
-  case from the problem statement through the new code. Would it fix it?
-- **5c. Correctness — five named angles**, each delegable to a read-only search subagent.
-  Every issue-shaped observation is recorded as a *candidate* with a one-line failure
-  scenario — finders that silently drop half-believed candidates bypass step 7's
-  verification.
-  1. **Line + enclosing function.** Read every hunk line by line, then the whole enclosing
-     function — bugs in unchanged lines of a touched function are in scope (the change
-     re-exposes or fails to fix them). For each line: what input, state, timing, or platform
-     makes it wrong? Off-by-one, inverted conditions, null/empty deref, silent truncation,
-     an error swallowed in a catch, wrong-variable copy-paste. Be especially skeptical of
-     code copied from existing patterns — the differences are where bugs live.
-  2. **Removed behavior.** For every line the diff deletes or replaces, name the invariant it
-     enforced, then find where the new code re-establishes it. Can't find it → candidate: a
-     dropped guard, a narrowed validation, a deleted test that covered a real case.
-  3. **Language pitfalls.** The classics of the diff's language and framework: falsy-zero and
-     loose-equality coercion, mutable default arguments, late-binding closures, captured
-     loop variables, nil-map writes, timezone/DST drift, float equality.
-  4. **Wrapper/proxy correctness.** A type that wraps another (cache, proxy, decorator,
-     adapter) must route every method through the wrapped instance — not back through a
-     registry or global that re-enters the wrapper — and forward everything callers use.
-  5. **Wasted work.** Redundant computation or repeated I/O, independent operations run
-     sequentially, blocking work added to startup or hot paths, long-lived objects capturing
-     an enclosing scope that holds large values.
-- **5d. Completeness — the cross-file tracer.** For each changed function, Grep for its
-  callers and check whether the change breaks any call site: a new precondition, a changed
-  return shape, a new exception, an ordering dependency. Check callees too — does a parallel
-  change in the same PR make a call unsafe? Sibling call sites the diff should have changed
-  count. The regression surface is the *unchanged* code around the diff.
 - **5e–5m.** Architecture · conventions · security · data privacy · testing · load-bearing
   assumptions · risk coverage · reversibility · dependencies. **Read
-  `references/axes.md` now** and walk every axis whose surface the diff touches; list the
+  `references/audit.md` now** and walk every axis whose surface the diff touches; list the
   rest under **Not reviewed**. Security, reversibility (5l), risk coverage (5k), and
   load-bearing assumptions (5j) apply to any runtime change — skip them only for doc/test-only
   diffs.
@@ -228,33 +196,7 @@ trust-boundary surface. Skip in quick mode or when the user passes `--no-host-re
 
 ### 6. The Occam pass — is this more solution than the problem needs?
 
-The audit asks "is it wrong?"; this pass asks "is it more than needed?" Walk the diff once
-more looking for:
-
-- **Premature optimization** — caching, pooling, batching, cleverness in a path with no
-  demonstrated need. The test: is there a measurement or stated scale requirement? No
-  evidence → finding.
-- **Speculative generality** — abstractions, flags, and extension points for futures nobody
-  scheduled. Interfaces with one implementation. YAGNI.
-- **Over-defensive code** — guards for states the type system or call graph already excludes,
-  catch-alls that swallow failures, fallbacks that mask the error they fall back from.
-  (Defensive code at trust boundaries is the opposite case — required; see 5g.)
-- **Reinvention** — does the repo already have a utility that does this? (5d looks for
-  siblings the diff should have *changed*; this looks for code it should have *used*.)
-- **Band-aids** — the inverse failure: a special case layered on shared infrastructure means
-  the fix is too *shallow*, not too elaborate. Prefer generalizing the underlying mechanism;
-  name the mechanism that should have changed.
-- **Deletion candidates** — for each new module or indirection: what breaks if it collapses
-  into its caller? If "nothing, it's just tidier," propose the collapse.
-
-Two calibration rules: **a simplification proposal must clear the same evidence bar as any
-other finding** — walk it against the constraints from steps 1–2 and state which you checked;
-and **less code is not the metric** — simplicity is fewest concepts and failure modes, and
-explicit parallel branches can beat a "unified" mechanism nobody can modify safely.
-
-**Severity:** over-engineering defaults to a **Suggestion**. Promote to an Issue (usually
-Medium) only with concrete, citable cost — a new moving part to operate, a pattern adjacent
-code will copy — ideally backed by the project's own conventions.
+Rules in `references/audit.md` § 6.
 
 ### 7. Verify and sweep
 
@@ -273,34 +215,8 @@ Sweep additions get verified the same way. An empty sweep is a valid result — 
 
 ### 8. Synthesize — six signals, four severities
 
-The report carries six distinct signals: **What was done well** (concrete, `file:line`),
-**Gaps** (low-consequence absences only), **Issues** (verified candidates, severity by
-impact), **Questions** (doubts that survived your scrutiny but earned no verdict — the
-author can usually answer in a minute what would take the reviewer an hour to prove),
-**Suggestions** (offers, not orders), and **Known limitations** (real-but-accepted, each
-with the reason it doesn't warrant a fix — the dignified exit for findings that don't clear
-the Issue bar).
-
-The split rule for absences: if the author must address it before merge (or it changes the
-risk of merge), it's an **Issue** with a severity — a missing test for a stated risk is
-functionally a bug. If it's "nice to have noted," it's a **Gap**.
-
-| Severity | Definition |
-|---|---|
-| **Critical** | Cannot merge before fixing: breaks production on deploy, violates security or data-privacy rules, irreversibly damages data, or violates a critical project invariant. |
-| **High** | Serious failure mode on a reachable path — wrong data, outage, weakened security. Fix before merge. Includes an unverified load-bearing assumption the change rests on, a missing test for a named top-3 risk, an architecture violation others will copy. |
-| **Medium** | Moderate impact: wrong behavior on an edge path, a compliance drift, a maintenance trap with citable cost. Fix now; acceptable as a committed follow-up. |
-| **Low** | Real but minor: redundant code, small refactors. Defer freely. Naming and formatting are not Issues — Suggestion if the name obscures intent, otherwise drop. |
-
-**Severity encodes impact; the Verdict field encodes confidence.** A serious failure mode
-with a PLAUSIBLE verdict is still High; a confirmed nit is still Low. A concern that earned
-no verdict — you cannot name the mechanism — is a Question, not a Medium.
-
-**Critical and high are scarce.** If every review has three criticals, the scheme stops
-carrying information. "Uncomfortable" or "ugly" is not critical.
-
-**Read `references/report.md` now** for locators, stable IDs, block rendering, and the
-report template.
+**Read `references/report.md` now** for the six signals, the severity table, locators,
+stable IDs, block rendering, and the report template.
 
 ### 9. Report locally — findings first
 
@@ -337,46 +253,7 @@ When tempted to skip a step, check this list; the full table is in
 
 ## Definition of done
 
-Each item is answerable with evidence — a quote from the diff, a doc path, a CI line — not a
-vibe. If a checkbox cannot be ticked honestly, return to the step that produces it.
-
-- [ ] Target resolved per **Inputs**: the reviewed diff is the merge-base comparison (or the
-  explicit PR/range), working-tree changes included when present.
-- [ ] Mode stated — quick or full, with the blast-radius reason when auto-chosen. In quick
-  mode, every skipped axis is listed under **Not reviewed**.
-- [ ] Description read; problem, approach, constraints, non-obvious decisions extracted or
-  flagged as missing. Linked ticket read and reconciled.
-- [ ] Problem confirmed to exist in the base-snapshot code — or the report flags that it
-  doesn't / is already solved.
-- [ ] 2–3 obvious approaches sketched **before** the diff was read; the approach mapped or
-  the divergence diagnosed (constraint cited under Verified, or the open question is the
-  headline).
-- [ ] Rule sources read: applicable agent instruction files, and load-bearing project docs in
-  full. `references/axes.md` was read; every applicable axis walked, the rest listed under
-  **Not reviewed**.
-- [ ] The five 5c angles and the 5d tracer were each walked (or delegated); every candidate
-  carried a one-line failure scenario into verification.
-- [ ] `references/verify.md` was read. Every Medium+ Issue carries a Verdict (CONFIRMED or
-  PLAUSIBLE); REFUTED candidates appear under Verified with the disproving citation; the gap
-  sweep ran and its additions were verified (an empty sweep is fine, padding is not).
-- [ ] Findings on architecture, conventions, security, privacy, testing each cite the rule
-  (file + section or quoted line) or are downgraded / marked "no project rule; judged against
-  <named standard>".
-- [ ] At least one load-bearing assumption verified against an outside source — or the
-  absence of any is justified.
-- [ ] Top 3 production-risk failure modes named; for each, the covering test (or its absence)
-  identified.
-- [ ] Reversibility assessed; irreversible side effects flagged Critical or High.
-- [ ] Occam pass ran; every simplification proposal names the constraints it was walked
-  against.
-- [ ] `references/report.md` was read; report follows its template — six signals, stable
-  IDs, locators, block rendering with Evidence and Verdict fields on non-Low issues,
-  findings-first order, Verified and Not reviewed present.
-- [ ] Report printed to the terminal; posted to the PR only on explicit request.
-- [ ] No trace left: the primary checkout matches the recorded baseline (`git status`
-  compared) — experiments ran in a detached worktree or outside the repo, now removed;
-  nothing pushed, commented, triggered, or sent anywhere without approval obtained *during
-  this review*.
+The checklist lives in `references/report.md` § Definition of done.
 
 ## Relationship to other skills
 

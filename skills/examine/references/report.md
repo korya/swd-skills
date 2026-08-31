@@ -3,6 +3,34 @@
 Loaded from `SKILL.md` step 8 (synthesis). Covers locators, IDs, block rendering, and the
 report template.
 
+## Six signals, four severities
+
+The report carries six distinct signals: **What was done well** (concrete, `file:line`),
+**Gaps** (low-consequence absences only), **Issues** (verified candidates, severity by
+impact), **Questions** (doubts that survived your scrutiny but earned no verdict — the
+author can usually answer in a minute what would take the reviewer an hour to prove),
+**Suggestions** (offers, not orders), and **Known limitations** (real-but-accepted, each
+with the reason it doesn't warrant a fix — the dignified exit for findings that don't clear
+the Issue bar).
+
+The split rule for absences: if the author must address it before merge (or it changes the
+risk of merge), it's an **Issue** with a severity — a missing test for a stated risk is
+functionally a bug. If it's "nice to have noted," it's a **Gap**.
+
+| Severity | Definition |
+|---|---|
+| **Critical** | Cannot merge before fixing: breaks production on deploy, violates security or data-privacy rules, irreversibly damages data, or violates a critical project invariant. |
+| **High** | Serious failure mode on a reachable path — wrong data, outage, weakened security. Fix before merge. Includes an unverified load-bearing assumption the change rests on, a missing test for a named top-3 risk, an architecture violation others will copy. |
+| **Medium** | Moderate impact: wrong behavior on an edge path, a compliance drift, a maintenance trap with citable cost. Fix now; acceptable as a committed follow-up. |
+| **Low** | Real but minor: redundant code, small refactors. Defer freely. Naming and formatting are not Issues — Suggestion if the name obscures intent, otherwise drop. |
+
+**Severity encodes impact; the Verdict field encodes confidence.** A serious failure mode
+with a PLAUSIBLE verdict is still High; a confirmed nit is still Low. A concern that earned
+no verdict — you cannot name the mechanism — is a Question, not a Medium.
+
+**Critical and high are scarce.** If every review has three criticals, the scheme stops
+carrying information. "Uncomfortable" or "ugly" is not critical.
+
 ## Locators
 
 Every issue and suggestion needs a **locator** — something concrete enough that the reader can
@@ -174,3 +202,46 @@ gh pr comment <N> --body-file <review.md>
 For inline comments on specific lines, ask the user which findings to thread vs. summarize.
 PR comments are public, durable, and ration the author's attention — the user decides what
 makes it.
+
+## Definition of done
+
+Each item is answerable with evidence — a quote from the diff, a doc path, a CI line — not a
+vibe. If a checkbox cannot be ticked honestly, return to the step that produces it.
+
+- [ ] Target resolved per **Inputs**: the reviewed diff is the merge-base comparison (or the
+  explicit PR/range), working-tree changes included when present.
+- [ ] Mode stated — quick or full, with the blast-radius reason when auto-chosen. In quick
+  mode, every skipped axis is listed under **Not reviewed**.
+- [ ] Description read; problem, approach, constraints, non-obvious decisions extracted or
+  flagged as missing. Linked ticket read and reconciled.
+- [ ] Problem confirmed to exist in the base-snapshot code — or the report flags that it
+  doesn't / is already solved.
+- [ ] 2–3 obvious approaches sketched **before** the diff was read; the approach mapped or
+  the divergence diagnosed (constraint cited under Verified, or the open question is the
+  headline).
+- [ ] Rule sources read: applicable agent instruction files, and load-bearing project docs in
+  full. `references/axes.md` was read; every applicable axis walked, the rest listed under
+  **Not reviewed**.
+- [ ] The five 5c angles and the 5d tracer were each walked (or delegated); every candidate
+  carried a one-line failure scenario into verification.
+- [ ] `references/verify.md` was read. Every Medium+ Issue carries a Verdict (CONFIRMED or
+  PLAUSIBLE); REFUTED candidates appear under Verified with the disproving citation; the gap
+  sweep ran and its additions were verified (an empty sweep is fine, padding is not).
+- [ ] Findings on architecture, conventions, security, privacy, testing each cite the rule
+  (file + section or quoted line) or are downgraded / marked "no project rule; judged against
+  <named standard>".
+- [ ] At least one load-bearing assumption verified against an outside source — or the
+  absence of any is justified.
+- [ ] Top 3 production-risk failure modes named; for each, the covering test (or its absence)
+  identified.
+- [ ] Reversibility assessed; irreversible side effects flagged Critical or High.
+- [ ] Occam pass ran; every simplification proposal names the constraints it was walked
+  against.
+- [ ] `references/report.md` was read; report follows its template — six signals, stable
+  IDs, locators, block rendering with Evidence and Verdict fields on non-Low issues,
+  findings-first order, Verified and Not reviewed present.
+- [ ] Report printed to the terminal; posted to the PR only on explicit request.
+- [ ] No trace left: the primary checkout matches the recorded baseline (`git status`
+  compared) — experiments ran in a detached worktree or outside the repo, now removed;
+  nothing pushed, commented, triggered, or sent anywhere without approval obtained *during
+  this review*.
