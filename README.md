@@ -2,10 +2,11 @@
 
 ![The swd skills as six workbench stations covering the development cycle, with a /revise loop back](assets/hero.jpg)
 
-A plugin of skills covering the full development cycle — spec, plan, build, submit, review, test — eight shipped, two planned. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
+A plugin of skills covering the full development cycle — spec, plan, build, submit, review, test — nine shipped, one planned. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
 
 | Skill | What it does | When it triggers |
 | --- | --- | --- |
+| **[/spec](./skills/spec)** | Turns a fuzzy feature request into a reviewable product spec — goals, non-goals, testable acceptance criteria with stable IDs, invariants — that later skills cite by path and ID. | "/spec", "spec this out", "write a product spec", "turn this idea into requirements". |
 | **[/blueprint](./skills/blueprint)** | Validation-first planning: tests every load-bearing assumption against reality, cross-checks specs, architecture, and conventions, then delivers a plan a human can accept or reject from its first two sections. | "/blueprint", "blueprint this", "plan this thoroughly", "deep plan" — non-trivial changes where a wrong direction would burn meaningful time. |
 | **[/rca](./skills/rca)** | Root-cause analysis: repro, timeline, evidence-backed 5-whys chain, sibling sweep, then two fix proposals (symptom vs cause) plus prevention for the whole class. | "/rca", "root cause", "5 whys", "why is this failing" — failures you want to learn from, not just patch. |
 | **[/repo-docs](./skills/repo-docs)** | Bootstraps or extends `AGENTS.md` + `docs/` so coding agents find the project's real conventions instead of guessing. | "document the project for coding agents", "set up agent docs", "add AGENTS.md". |
@@ -14,10 +15,9 @@ A plugin of skills covering the full development cycle — spec, plan, build, su
 | **[/examine](./skills/examine)** | Production-risk-first holistic review of a PR, branch, or working tree; the host's built-in review is defect-first, this one also judges intent, approach, and right-sizing. | "/examine", "examine this PR", "review this PR", "review my branch", "check my PR before merge". |
 | **[/revise](./skills/revise)** | Answers PR review feedback instead of obeying it: cross-validates every claim against code, design, and specs; verdicts each finding ACCEPT/PARTIAL/REJECT/DEFER with evidence; fixes accepted items at the root; replies where the feedback lives; re-submits. | "/revise", "address the review", "here's feedback on your PR", "respond to the reviewer". |
 | **[/e2e-test](./skills/e2e-test)** | Tests the product the way its real user uses it — browser for a web app, binary for a CLI, consumer programs for a library — black-box from the change's blast radius, reporting PASS/FAILURE/BLOCKED per case, fixing nothing. | "/e2e-test", "e2e test this", "test it in the browser", "test it as the end user", "manual e2e testing". |
-| **/spec** | Turns a fuzzy feature request into a reviewable spec — goals, acceptance criteria, invariants, non-goals — that later skills cite by path. | Not implemented yet — [#26](https://github.com/korya/swd-skills/issues/26). |
 | **/implement** | Executes an approved blueprint plan with discipline: ordered steps, tests per step, deviations amend the plan instead of improvising. | Not implemented yet — [#27](https://github.com/korya/swd-skills/issues/27). |
 
-Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:blueprint`, `$swd:rca`, `$swd:submit`, `$swd:revise`, `$swd:examine`, `$swd:e2e-test`, `$swd:rebase`, `$swd:repo-docs`.
+Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:spec`, `$swd:blueprint`, `$swd:rca`, `$swd:submit`, `$swd:revise`, `$swd:examine`, `$swd:e2e-test`, `$swd:rebase`, `$swd:repo-docs`.
 
 ## Install (from GitHub)
 
