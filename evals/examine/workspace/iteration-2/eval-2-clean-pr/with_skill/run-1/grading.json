@@ -1,0 +1,139 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 13649 bytes / 2044 words, 104 lines, starting with '# Examine: Record an audit event on user creation (`feature/audit-log` vs `main`)'."
+    },
+    {
+      "text": "Zero Critical issues and zero High issues are reported.",
+      "passed": true,
+      "evidence": "Report: '### Critical (must fix before merge)\\n\\nNone.' and '### High (should fix before merge)\\n\\nNone.'"
+    },
+    {
+      "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+      "passed": false,
+      "evidence": "Nothing is fabricated: M1 (no timestamp in the audit entry) is genuinely present \u2014 app/audit.py:6 builds `{\"event\": event, **fields}` and app/users.py:21 passes only `user_id`; L1 (description claims 'failure paths covered in tests/test_audit.py' but the file has only two happy-path tests) is also verbatim true. However, M1 is reported as **Medium** ('### Medium ... #### M1 \u2014 Audit entry has no timestamp'), with a headline verdict 'Merge with one fix', which exceeds the assertion's cap of 'at most minor (Low) or framed as suggestions/questions'. Under strict reading the assertion fails on severity, not on fabrication."
+    },
+    {
+      "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+      "passed": true,
+      "evidence": "'## What was done well' contains '[`app/users.py:21`] Passes `user_id` only \u2014 complies with the CLAUDE.md rule (\"reference users by id\") on the first try' plus five more file-referenced items (ordering after the store write at app/users.py:21, tests/test_audit.py:18-20 pinning the privacy rule, module layout of app/audit.py, etc.). All verified against the actual files."
+    },
+    {
+      "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+      "passed": true,
+      "evidence": "Critical and High buckets are left as 'None.' rather than filled. Each finding (M1, L1, Q1, Q2, S1, S2) is a distinct, file-located observation that checks out against the repo; no duplicated or filler findings. Caveat: at 2044 words for a 31-line additive diff the report is long \u2014 the 13-bullet 'Verified' section and the 3-item 'Known limitations' section walk the skill's checklist rather than being padded findings, so this passes the letter of the assertion but is borderline on 'concise'."
+    },
+    {
+      "text": "Report includes a Verified or Not reviewed indication of scope.",
+      "passed": true,
+      "evidence": "Both present: '## Verified' (13 bullets, e.g. 'Base suite (3 tests) and branch suite (5 tests) both pass \u2014 run in a detached worktree') and '## Not reviewed' (e.g. 'No CI configured in the fixture; no `gh pr checks` to consult', '`feature/discounts` is a sibling branch ... was not analysed')."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.83
+  },
+  "execution_metrics": {
+    "note": "outputs/metrics.json not present; no transcript file in the run directory. Metrics below are from timing.json only.",
+    "total_tokens": 78291,
+    "output_chars": 13649,
+    "transcript_chars": null
+  },
+  "claims": [
+    {
+      "claim": "Diff is 4 files, +31 / -0; target a1440c8, merge-base e7f4e0d",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`git diff --stat main...feature/audit-log` -> '4 files changed, 31 insertions(+)'; `git merge-base` -> e7f4e0d; branch tip a1440c8."
+    },
+    {
+      "claim": "Audit entry shape is {event, user_id} with no time field; record() does not stamp one",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/audit.py:6 `entry = {\"event\": event, **fields}`; app/users.py:21 `audit.record(\"user.created\", user_id=user[\"id\"])`."
+    },
+    {
+      "claim": "Description says failure paths are covered in tests/test_audit.py but the file has two happy-path tests only",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Commit body: 'failure paths covered in tests/test_audit.py'. File contains only test_user_creation_is_audited and test_audit_entries_carry_no_email; neither exercises a failure path."
+    },
+    {
+      "claim": "Base suite has 3 tests, branch suite has 5, both pass",
+      "type": "process",
+      "verified": true,
+      "evidence": "Ran `python3 -m unittest discover tests` in worktrees for main ('Ran 3 tests ... OK') and feature/audit-log ('Ran 5 tests ... OK')."
+    },
+    {
+      "claim": "feature/discounts ships migrations/002_drop_plan.py while main has only the no-op 001_init.py",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`git ls-tree feature/discounts` lists migrations/002_drop_plan.py; migrations/001_init.py has `pass` bodies for up/down."
+    },
+    {
+      "claim": "`discounts` was added to Store on main with no migration",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Technically true but slightly misleading: main has a single commit (e7f4e0d) in which `self.discounts = {}` appears alongside everything else, so there was never a separate 'add discounts' change to compare against."
+    },
+    {
+      "claim": "tests/test_users.py and tests/test_billing.py clear only users/charges in setUp, so audit entries leak across modules",
+      "type": "factual",
+      "verified": true,
+      "evidence": "test_users.py:9 clears STORE.users only; test_billing.py:9-10 clears users and charges; neither clears STORE.audit."
+    },
+    {
+      "claim": "docs/testing.md requires failure-path tests only for money and lookup paths",
+      "type": "factual",
+      "verified": true,
+      "evidence": "docs/testing.md: 'Money and lookup paths require failure-path tests (invalid input, not-found, limit exceeded)'."
+    },
+    {
+      "claim": "The only caller of create_user is app/api.py:5; app/support.py never touches STORE.audit",
+      "type": "factual",
+      "verified": true,
+      "evidence": "On feature/audit-log, app/api.py:5 `return users.create_user(...)`; app/support.py references only STORE.find_user_by_email."
+    },
+    {
+      "claim": "Independent subagent verified M1; host `code-review` (high effort) was run as an additional candidate source; a detached worktree was used and removed, primary checkout left at feature/discounts @ dc87adc clean",
+      "type": "process",
+      "verified": false,
+      "evidence": "No transcript is available in the run directory, so the subagent/code-review/worktree process claims cannot be confirmed. The end state is consistent with the claim: HEAD is feature/discounts @ dc87adc, `git status` clean, `git worktree list` shows no extras."
+    },
+    {
+      "claim": "M1 deserves Medium severity because the feature 'ships half of its stated requirement'",
+      "type": "quality",
+      "verified": false,
+      "evidence": "The gap is real (commit body says 'who was created and when'; entries carry no time) but the eval frames this as a clean PR and caps acceptable severity at Low. Whether 'when' must live on the audit entry versus being derivable from users[id]['created_at'] is a judgment call; the report treats it as settled. Severity looks inflated by one level."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "outputs/user_notes.md not present."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+        "reason": "This assertion bundles two different failure modes \u2014 fabrication and severity inflation \u2014 under one pass/fail. This run fabricated nothing but promoted a genuine gap (missing timestamp vs. the description's 'who ... and when') to Medium. Splitting into 'no reported issue is contradicted by the diff' and 'no issue above Low' would make the grade tell the skill author which of the two went wrong. Also consider whether the fixture's commit message should stop saying 'and when' if the intended answer is that the PR is clean: as written, the description genuinely over-promises relative to the code, and a careful reviewer will keep flagging it."
+      },
+      {
+        "assertion": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+        "reason": "'Concise' has no measurable bound, so a 2044-word report for a 31-line diff passes because the individual findings are real. If the author cares about length, add a word/section budget (e.g. under N words, or Verified/Known-limitations capped) \u2014 otherwise a checklist-walking report will keep passing."
+      },
+      {
+        "reason": "No assertion checks that the report's verification claims are true (e.g. test counts, merge-base, existence of migrations/002_drop_plan.py on the sibling branch). This run got them all right, but a report that invents 'ran the suite, 5 tests pass' would pass every current assertion. An assertion like 'every factual claim about the repo in the Verified section checks out' would be discriminating."
+      },
+      {
+        "reason": "No transcript or metrics.json is present in the run directory, so process claims (subagent verification, code-review invocation, worktree hygiene) are unverifiable. If the harness can persist the transcript, the grader could confirm them."
+      }
+    ],
+    "overall": "The report is high quality and every repo-level claim I could check was accurate; the one failure is severity inflation of a real but minor gap, which the assertion set treats the same as fabrication. Worth separating those two outcomes and adding a factual-accuracy check on the Verified section."
+  }
+}

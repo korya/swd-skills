@@ -1,0 +1,152 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 13243 bytes. Begins '# Examine: feat(audit): Record an audit event on user creation (`feature/audit-log` vs `main`)' and contains Headline, Issues, Questions, Suggestions, Gaps, Known limitations, What was done well, Verified, and Not reviewed sections."
+    },
+    {
+      "text": "Zero Critical issues and zero High issues are reported.",
+      "passed": true,
+      "evidence": "The Issues section contains only '### Medium' (M1, M2) and '### Low (defer)' (L1, L2). No Critical or High heading or item appears anywhere in the report. The report explicitly says of M2: 'Not High because no violation ships in this diff.'"
+    },
+    {
+      "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+      "passed": false,
+      "evidence": "FAILS on the severity half, not the fabrication half. Nothing is fabricated: every listed issue was checked against `git diff main...feature/audit-log` and is real. M1 (no timestamp in audit entry) is PRESENT — app/audit.py:6 builds `{\"event\": event, **fields}` and app/users.py:21 passes only `user_id`, while the commit message promises 'who was created and when'. M2 (`**fields` accepts any key; test only asserts `\"email\" not in STORE.audit[0]`) is PRESENT — app/audit.py:4 and tests/test_audit.py:20. L1 (description overclaims 'failure paths covered') is PRESENT — both tests in test_audit.py are happy-path. L2 (`record()` returns the appended mutable dict) is PRESENT — app/audit.py:8. However, M1 and M2 are both rated **Medium** under '### Medium (worth fixing now; acceptable as a follow-up)', which is above Low and not framed as a suggestion or question. The report even concedes M2 is 'a guard-strength gap — the diff itself does not violate the rule' yet still files it as Medium. Verdict: present-but-rated-above-Low (x2); zero fabricated."
+    },
+    {
+      "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+      "passed": true,
+      "evidence": "'## What was done well' first bullet: '[`app/users.py:21`] Audit call placed *after* the store write and passes only `user[\"id\"]` — the CLAUDE.md id-not-email rule is honoured at the one call site that exists.' Confirmed against the diff: app/users.py:21 is `audit.record(\"user.created\", user_id=user[\"id\"])`. Five further bullets also carry file:line references (app/audit.py:5, tests/test_audit.py:18-20, tests/test_audit.py:8-10, app/users.py:4)."
+    },
+    {
+      "text": "The report is concise — no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+      "passed": false,
+      "evidence": "The empty-bucket half is satisfied (Critical/High are omitted, not filled). The concise half is not: the report is 13,243 characters (~2,000 words) across 11 top-level sections for a 4-file, +31-line diff. Each Medium issue carries seven sub-bullets (Locator/What/Evidence/Verdict/Why Medium/Fix/Cites). The '## Verified' section alone has 12 bullets, including padding such as 'Partial-write candidate REFUTED: ... `list.append` on CPython raises only `MemoryError`', 'Kwarg collision (language pitfall, 5c.3): `record(\"x\", event=\"y\")` raises `TypeError` ... checked against the Python 3.14 runtime', and a 'Verification process' paragraph describing subagent runs and a discarded wrong-repo invocation. '## Known limitations' spends two paragraphs on 'Unbounded growth' and 'Append-only by convention' for an in-memory list explicitly described as a stand-in. '## Not reviewed' cites GDPR Art. 5(1)(c) for a diff that stores an integer id. This is a wall of findings for a clean 31-line change."
+    },
+    {
+      "text": "Report includes a Verified or Not reviewed indication of scope.",
+      "passed": true,
+      "evidence": "Both sections are present: '## Verified' (12 bullets, e.g. '\"No behaviour change for existing callers\": ... full suite passes 5/5 on the PR branch (`python3 -m unittest discover tests -v` ...)') and '## Not reviewed' (6 bullets: 5e Architecture, 5g Security, 5h Data privacy, 5m Dependencies, CI, feature/discounts)."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 2,
+    "total": 6,
+    "pass_rate": 0.67
+  },
+  "execution_metrics": {
+    "note": "outputs/metrics.json not present; no transcript file found in the run directory. Only output_chars is measurable.",
+    "output_chars": 13243,
+    "transcript_chars": null,
+    "total_tokens_from_timing_json": 93608
+  },
+  "claims": [
+    {
+      "claim": "The diff is 4 files / +31 lines",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git diff main...feature/audit-log: app/audit.py +8, app/db.py +1, app/users.py +2, tests/test_audit.py +20 = 31 added lines, 4 files."
+    },
+    {
+      "claim": "Full suite passes 5/5 on the PR branch",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Re-ran `python3 -m unittest discover tests -v` in a worktree at feature/audit-log: 'Ran 5 tests ... OK' (2 audit, 2 billing, 1 users)."
+    },
+    {
+      "claim": "Persisted audit entry is exactly {'event': 'user.created', 'user_id': N}; no timestamp",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/audit.py:6 `entry = {\"event\": event, **fields}`; sole caller app/users.py:21 passes only `user_id=user[\"id\"]`."
+    },
+    {
+      "claim": "app/support.py never touches STORE.audit",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/support.py (10 lines) only calls STORE.find_user_by_email."
+    },
+    {
+      "claim": "app/billing.py:13 `charge(email, ...)` holds a raw email in scope",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/billing.py:13 `def charge(email: str, raw_amount: str) -> dict:`."
+    },
+    {
+      "claim": "docs/testing.md mandates failure-path tests only for money and lookup paths",
+      "type": "factual",
+      "verified": true,
+      "evidence": "docs/testing.md:4-5 'Money and lookup paths require failure-path tests'."
+    },
+    {
+      "claim": "No docs/architecture.md and no docs/privacy.md exist",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git ls-tree feature/audit-log shows only docs/invariants.md and docs/testing.md."
+    },
+    {
+      "claim": "tests/test_users.py and tests/test_billing.py setUp do not clear STORE.audit",
+      "type": "factual",
+      "verified": true,
+      "evidence": "test_users.py:9 clears only users; test_billing.py:9-10 clears users and charges."
+    },
+    {
+      "claim": "record() returns the same dict object it appended",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/audit.py:7-8 `STORE.audit.append(entry); return entry`."
+    },
+    {
+      "claim": "self.discounts = {} exists at the base commit with no migration; migrations/001_init.py up() is a no-op stub",
+      "type": "factual",
+      "verified": false,
+      "evidence": "Not independently checked (migrations/001_init.py not inspected); diff context shows `self.discounts = {}` at app/db.py:11 on both sides, so the first half is consistent with the diff."
+    },
+    {
+      "claim": "Two Medium candidates were verified by independent subagents; the host code-review skill ran in a subagent",
+      "type": "process",
+      "verified": false,
+      "evidence": "No transcript is present in the run directory, so this process claim cannot be verified."
+    },
+    {
+      "claim": "The commit message's 'failure paths covered in tests/test_audit.py' is an overclaim",
+      "type": "quality",
+      "verified": true,
+      "evidence": "tests/test_audit.py has two happy-path tests (creation recorded; 'email' key absent). No failure path is exercised."
+    },
+    {
+      "claim": "Merge with fixes (headline verdict)",
+      "type": "quality",
+      "verified": false,
+      "evidence": "For a PR the eval designates as clean, 'merge with fixes' driven by two Medium findings is a harsher verdict than the eval expects; the findings are real but over-weighted (see assertion 3)."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "outputs/user_notes.md not present."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+        "reason": "M1 is a defensible finding: the fixture's own commit message promises 'a trail of who was created and when' and the entry carries no timestamp. If the PR is meant to be clean, drop 'and when' (and the false 'failure paths covered' claim) from the fixture commit message; otherwise the eval penalizes an accurate reading of the description. As written, the eval's 'clean' premise and the fixture's commit message disagree."
+      },
+      {
+        "assertion": "The report is concise — no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+        "reason": "'Concise' has no threshold, so runs of 8 KB and 13 KB could be graded differently by different graders. Consider a concrete bound relative to diff size (e.g. under ~600 words or under N sections for a diff under 50 lines) so the assertion is discriminating and reproducible."
+      },
+      {
+        "assertion": "Zero Critical issues and zero High issues are reported.",
+        "reason": "Trivially satisfied by any report that avoids those two words; assertion 3 already subsumes it. Low value on its own."
+      },
+      {
+        "reason": "No assertion checks the headline verdict. This report says 'Merge with fixes' for a PR the eval treats as clean; a plain 'approve / merge' recommendation is the outcome that most directly signals the skill did not over-escalate, and it went unchecked."
+      }
+    ],
+    "overall": "Assertions cover the right outcomes but two are under-specified: the fixture commit message contradicts the 'clean PR' premise (it promises a timestamp the code does not deliver), and 'concise' needs a measurable bar. Add a verdict check."
+  }
+}

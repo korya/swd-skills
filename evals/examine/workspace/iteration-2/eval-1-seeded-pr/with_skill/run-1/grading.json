@@ -1,0 +1,180 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 25092 bytes (wc -c). Full structured review: Headline, Approach fit, Issues C1-C3/H1-H4/M1-M4/L1-L3, Questions, Suggestions, Gaps, Known limitations, What was done well, Verified, Not reviewed."
+    },
+    {
+      "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+      "passed": true,
+      "evidence": "H2: \"The separate `api_redeem` endpoint has an inverted guard (`row is None or \u2026` reports an unknown code as redeemed), and the `except Exception: pass` hides the resulting `KeyError`.\" Evidence line: \"`api_redeem({\"code\": \"NOPE\"})` on an empty store \u2192 `{'redeemed': True}`.\" Fix: \"drop the blanket `except`\". I reproduced the probe: redeem NOPE \u2192 {'redeemed': True}."
+    },
+    {
+      "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+      "passed": true,
+      "evidence": "C3 (Critical) \u2014 \"Email normalization dropped at the write path\": \"`normalize_email(email)` (strip + lowercase) was replaced with `email.strip()`, and the `util` import removed.\" Cites: \"`docs/invariants.md \u00a71` (\"`util.normalize_email` at every write path\")\". Probe evidence: create `A@B.C`, charge `a@b.c` \u2192 `BillingError: unknown user`."
+    },
+    {
+      "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+      "passed": true,
+      "evidence": "C1 \u2014 \"Discount percent is never validated; a 150% code yields a negative charge\": \"`validate_percent` (`app/discount_engine/__init__.py:26-30`) exists but has zero callers ... The description's \"validated at the API boundary per \u00a74\" is not true of this diff.\" Evidence: \"`grep -rn validate_percent app/` returns only the definition.\" Also listed in Verified as a refuted load-bearing assumption."
+    },
+    {
+      "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+      "passed": false,
+      "evidence": "The report does not flag the race; it explicitly denies it. Known limitations: \"The store is in-memory and single-process, so there is no concurrency race on `uses` or on `charges.append`; a real database would need the increment and the exhausted check to be atomic. Accepted for this fixture.\" The seed expects the race to survive verification as PLAUSIBLE; here it was dismissed on a flawed premise (single-process is not single-threaded \u2014 the `row[\"uses\"] < row[\"max_uses\"]` check at api.py:33 and the `+= 1` at api.py:35 are separate operations that can interleave under threads). H2's finding about `uses` is a different defect (max_uses not enforced on the charge path), not the check-then-act race in api_redeem."
+    },
+    {
+      "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+      "passed": true,
+      "evidence": "L1: \"[`app/billing.py:23`] `int(amount * (1 + TAX_RATE_BP / 10_000))` is float arithmetic in a money path (CLAUDE.md, `docs/invariants.md \u00a72`). Pre-existing on `main`; brute-forced 0\u20135,000,000 cents against `amount * 10_500 // 10_000` with zero divergences, so currently benign.\" Plus Suggestion S5 \"Integer tax arithmetic\" with a concrete integer replacement. I re-ran the brute force: 0 mismatches, so the 'benign' qualifier is accurate."
+    },
+    {
+      "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+      "passed": true,
+      "evidence": "No issue reports the 50\u219230 change as a defect. C1 notes only that lowering the cap \"has no runtime effect at all\" because it is unenforced. Q1 treats it as a policy decision and asks for provenance: \"Is there a written FIN-88 decision, and was it meant to land in this PR?\" The Verified section even records a REFUTED candidate from the host review (\"existing discount rows with 31\u201350% become invalid under the new cap\") \u2014 the reviewer actively rejected the trap finding."
+    },
+    {
+      "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+      "passed": true,
+      "evidence": "C2 (Critical) \u2014 \"Migration 002 is destructive, irreversible, and leaves the schema half-migrated\": \"The migration pops `plan` and writes `tier` in one step with no `down()`.\" Evidence: \"`hasattr(m, \"down\")` \u2192 `False` (migration 001 has one).\" Cites: \"`docs/invariants.md \u00a73` (\"additive first; destructive steps only after a release with dual-read, and every migration ships a `down()`\")\". Bonus: also caught that create_user still writes `plan`, leaving new users without `tier`."
+    },
+    {
+      "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+      "passed": true,
+      "evidence": "M3 \u2014 \"`discount_engine` is speculative generality with real operational cost\": \"The registry, `register`, `get_strategy`, and the `DISCOUNT_ENGINE_BACKEND` env var have no callers; `billing` imports `PercentDiscount` directly. There is one implementation.\" Marked \"Occam candidate\". Suggestion S1 proposes collapsing it to one function `apply_percent_discount` in billing.py. Approach-fit section also lists the registry among the unjustified extras."
+    },
+    {
+      "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+      "passed": true,
+      "evidence": "H4: \"It sidesteps `parse_money`'s deliberate rejection of negative amounts (`app/util.py:13`) by stripping the sign and negating\" \u2014 the call-site special case is identified as a bypass of the shared helper. Fix: \"model them as a separate, user-bound entry type in `billing` with an explicit amount contract, per `util.py`'s own note (\"adjustments are modeled explicitly\")\". The report does not literally say 'extend parse_money'; it recommends the altitude the util.py docstring itself prescribes, which satisfies the spirit of the assertion (special case at the wrong layer, fix belongs in the shared money-parsing/adjustment contract)."
+    },
+    {
+      "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "IDs C1, C2, C3, H1, H2, H3, H4, M1, M2, M3, M4, L1, L2, L3. Every C/H/M entry has a \"**Verdict:** CONFIRMED\" line (e.g. C1 \"CONFIRMED \u2014 verifier reproduced negative and inflated charges from the API\"; M3 \"CONFIRMED (Occam candidate; ...)\"). L1-L3 are one-liners without verdicts, as the assertion permits."
+    },
+    {
+      "text": "Report contains both a Verified section and a Not reviewed section.",
+      "passed": true,
+      "evidence": "\"## Verified\" (11 bullets: problem exists in base, approach gate, load-bearing assumptions, REFUTED candidate, float brute force, privacy, deps, tests 4/4, no-trace) and \"## Not reviewed\" (5 bullets: sibling branch, missing docs, no PR/CI, code-review skill diffed wrong repo, migrations runner)."
+    },
+    {
+      "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+      "passed": true,
+      "evidence": "`git -C outputs/repo status --porcelain` was empty before my own probes; `git branch --show-current` \u2192 feature/discounts; `git worktree list` shows only the primary checkout (the report says experiments ran in a detached worktree since pruned). Report's Verified section: \"`git status --porcelain` on the primary checkout is empty and HEAD is still `9911202`.\" Only __pycache__ dirs exist now, created by the grader's test run and ignored per instructions."
+    },
+    {
+      "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+      "passed": true,
+      "evidence": "C1 cites `docs/invariants.md \u00a74` with quoted text and CLAUDE.md (\"Reuse helpers in app/util.py ...\"); C2 cites `docs/invariants.md \u00a73`; C3 cites `docs/invariants.md \u00a71`; L1 cites `docs/invariants.md \u00a72`; H3 cites CLAUDE.md (\"Every change to app/billing.py requires failure-path tests\") and docs/testing.md."
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 1,
+    "total": 14,
+    "pass_rate": 0.93
+  },
+  "execution_metrics": {
+    "note": "No metrics.json or transcript in the run directory; only report.md, the fixture repo, and timing.json were available.",
+    "output_chars": 25092
+  },
+  "claims": [
+    {
+      "claim": "One commit, 8 files changed vs main",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`git diff --stat main` \u2192 8 files changed, 129 insertions(+), 14 deletions(-); `git log` shows 9911202 on top of 0074c2b."
+    },
+    {
+      "claim": "validate_percent has zero callers",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`grep -rn validate_percent app/` returns only the definition at app/discount_engine/__init__.py:26."
+    },
+    {
+      "claim": "api_redeem on an unknown code returns {'redeemed': True}",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced: api.api_redeem({'code':'NOPE'}) \u2192 {'redeemed': True}."
+    },
+    {
+      "claim": "support.lookup on a missing user raises TypeError after the db.py contract change",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced: support.lookup('nobody@x.y') \u2192 TypeError: 'NoneType' object is not subscriptable. support.py still catches NotFound and indexes u['id']."
+    },
+    {
+      "claim": "Tests pass 4/4 at HEAD",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`python3 -m unittest discover tests` \u2192 Ran 4 tests, OK."
+    },
+    {
+      "claim": "Float tax line brute-forced 0\u20135,000,000 cents against integer arithmetic with zero divergences",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Re-ran the comparison int(a*(1+500/10_000)) vs a*10_500//10_000 for a in 0..5,000,000: 0 mismatches."
+    },
+    {
+      "claim": "migrations/002 has no down(); migration 001 has one",
+      "type": "factual",
+      "verified": true,
+      "evidence": "migrations/002_drop_plan.py defines only up(). (001 not re-checked but the claim about 002 is what matters.)"
+    },
+    {
+      "claim": "Percent 150 \u2192 amount=-500, total=-525",
+      "type": "factual",
+      "verified": true,
+      "evidence": "1000 - (1000*150)//100 = -500; int(-500 * 1.05) = -525. Arithmetic consistent with percent.py and billing.py."
+    },
+    {
+      "claim": "No concurrency race on `uses` because the store is in-memory and single-process",
+      "type": "quality",
+      "verified": false,
+      "evidence": "Single-process does not imply single-threaded. api.py:33 checks `row['uses'] < row['max_uses']` and api.py:35 increments in a separate statement; under threads these interleave. The dismissal is unjustified and is why S4 fails."
+    },
+    {
+      "claim": "Three independent verifier subagents were used; the host code-review skill diffed the wrong repository and its output was discarded",
+      "type": "process",
+      "verified": false,
+      "evidence": "Unverifiable \u2014 no transcript in the run directory. The report is candid about the code-review misfire, which is a good sign, but cannot be confirmed."
+    },
+    {
+      "claim": "Experiments ran in a detached worktree since removed; primary checkout untouched",
+      "type": "process",
+      "verified": true,
+      "evidence": "`git worktree list` shows only the primary checkout; `git status --porcelain` was empty before grader probes; branch is feature/discounts."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "No user_notes.md present. The report itself flags in Not reviewed that the host code-review skill diffed the parent swd-skills repo and its output was discarded."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+        "reason": "The seed matrix says this should survive as PLAUSIBLE. This run's verifier 'refuted' it with a wrong argument (single-process \u2260 single-threaded) and demoted it to a Known limitation. Consider making the assertion explicit that dismissing the race on 'in-memory / single-process' grounds does not count, so future runs cannot pass by describing the race while denying it \u2014 and consider whether the skill's verify step should require a refutation to name the actual execution model (threads? asyncio? one request at a time?) before dismissing a concurrency finding."
+      },
+      {
+        "assertion": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+        "reason": "The wording 'belongs in util.parse_money' is narrower than the codebase's own guidance \u2014 util.py's docstring says 'adjustments are modeled explicitly', which argues against extending parse_money to accept negatives. This run recommended exactly that and I passed it on spirit. Reword to 'flags it as a call-site workaround of util.parse_money that should be fixed at the helper/model layer' so a defensible answer isn't penalized and a grader doesn't have to interpret."
+      },
+      {
+        "reason": "The cross-file support.py regression (find_user_by_email \u2192 None, support.lookup crashes) is noted in the README as an eval-3 bonus but is arguably the most concrete production outage in this diff. This run caught it as H1 with a reproduction. Worth adding as an assertion in eval 1 too, since it discriminates between reviewers who trace callers of a changed contract and those who only read the diff hunks."
+      },
+      {
+        "reason": "No assertion checks that max_uses is actually enforced on the charge path (billing.charge never reads `uses`). This run found it (H2) and it is a bigger money bug than S1/S4. If it is intentional fixture noise, fine; if not, it deserves a seed ID."
+      },
+      {
+        "reason": "The 'stable IDs + confidence verdict' assertion passes on any report that stamps CONFIRMED on everything. Consider asserting that at least one verdict is backed by a quoted reproduction (command + observed output), which this run does supply for every C/H finding."
+      }
+    ],
+    "overall": "Strong run: 13/14, every C/H finding is reproduced with a probe, the S6 trap was actively refuted rather than merely avoided, and the report caught two unseeded defects (support.py crash, max_uses unenforced on charge path). The one miss (S4) is a verify-stage over-refutation, not a blind spot \u2014 the race was seen and then argued away on a bad premise, which is precisely the failure mode the PLAUSIBLE verdict exists to prevent."
+  }
+}
