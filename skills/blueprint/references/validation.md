@@ -31,7 +31,7 @@ Write them down explicitly. An assumption is load-bearing if the plan **stops wo
 - "Library X exposes method Y that returns Z"
 - "The `customers` table has column `phone_e164` and it is unique per org"
 - "This endpoint is reachable from the agent server without new auth"
-- "The hatchet runner can hold this much state per task"
+- "The background-job runner can hold this much state per task"
 
 For each assumption, classify:
 

@@ -9,7 +9,7 @@ systemic conflicts.
 Locate the specs touched by this change (e.g. `docs/product-spec/*.md`, plus any invariants doc the project maintains). For each:
 
 - Does the proposed solution **satisfy** the relevant requirements?
-- Does it **violate** any explicit invariant? (Customer data isolation, org isolation, RLS, auth boundaries, channel rules, billing semantics — these are the usual landmines.)
+- Does it **violate** any explicit invariant? (Data isolation between customers or tenants, row-level security, auth boundaries, billing semantics — the usual landmines.)
 - Are there **acceptance criteria** the plan does not yet address?
 - Is the change **mentioned** in the spec? If so, does our approach match the documented intent? If not, should the spec be updated as part of this work?
 
@@ -21,11 +21,11 @@ Two failure modes this step catches: a plan that fights the architecture, and a 
 
 **6a. Architecture.** Check the proposed change against:
 
-- **High-level architecture** — does it respect component boundaries (agent vs. portal vs. marketing)? Does it route data through the documented seams, not around them?
+- **High-level architecture** — does it respect the documented component boundaries? Does it route data through the documented seams, not around them?
 - **Security** — authn/authz at the right layer, no secret leakage, no new attack surface, input validation at boundaries.
 - **Scalability & cost** — is the approach linear in the right dimension? Does it create N+1 queries, runaway fan-out, unbounded memory, or surprise cost?
 - **Observability** — can we tell when it breaks in prod? Logs, metrics, traces — does the plan include them where they're load-bearing?
-- **Background work** — anything async-and-retryable should run on Hatchet (or the project's equivalent), not as fire-and-forget.
+- **Background work** — anything async-and-retryable should run on the project's job platform, not as fire-and-forget.
 
 **6b. Project conventions — read, enumerate, cite, and link to plan lines.** This is a discipline check, not a judgment call. You **must produce evidence** that you read the project's conventions docs on `HEAD`, not relied on memory or sensible defaults.
 
