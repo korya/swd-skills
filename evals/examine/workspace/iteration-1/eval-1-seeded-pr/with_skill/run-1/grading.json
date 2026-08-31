@@ -1,0 +1,146 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 24555 chars. Full structured review with Headline, Issues, Questions, Suggestions, Gaps, Known limitations, Verified, Not reviewed sections."
+    },
+    {
+      "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+      "passed": true,
+      "evidence": "H3: 'the bare `except Exception: pass` swallows the resulting `KeyError`, so an **unknown code reports `{\"redeemed\": True}`**' with probe evidence '`api_redeem({\"code\": \"NOPE\"})` -> `{\"redeemed\": True}` for a code that was never created'. Grader reproduced: redeem of unknown code returns {'redeemed': True}."
+    },
+    {
+      "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+      "passed": true,
+      "evidence": "H2: '`create_user` dropped `normalize_email`: invariant \u00a71 violated' \u2014 quotes \u00a71 verbatim, names the removed `from .util import normalize_email`, and probes the mixed-case signup failure. Cites 'docs/invariants.md \u00a71'."
+    },
+    {
+      "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+      "passed": true,
+      "evidence": "C1: 'No validation exists on any path... `discount_engine.validate_percent` implements exactly the \u00a74 rule \u2014 and has **zero callers** (grep: only its definition)' and contrasts with the PR claim. Grader confirmed: grep shows validate_percent defined but never called; percent=150 yields amount=-500."
+    },
+    {
+      "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+      "passed": false,
+      "evidence": "The race is not flagged as a finding. Closest mentions: H3's fix says increment 'atomically with the charge append', and Known limitations says 'read-modify-write races on `uses` (once H3 wires it) weren't assessed \u2014 acceptable for this fixture'. The report explicitly declines to assess the concurrency race and never presents check-then-act over-redemption in api_redeem as a defect."
+    },
+    {
+      "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+      "passed": true,
+      "evidence": "L4: '`total = int(amount * (1 + TAX_RATE_BP / 10_000))` is float math in a money path (invariants \u00a72). Pre-existing and unchanged, but in a touched function' \u2014 plus a Verified-section probe bounding its current impact."
+    },
+    {
+      "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+      "passed": true,
+      "evidence": "The cap change is never listed as a defect. C1 notes only that the cap 'old 50 or new 30 \u2014 is enforced by nothing' (an enforcement gap, not the change itself); M3 enumerates it as '(2) the cap change 50\u219230 (declared, policy-driven \u2014 Q1)' inside a scope-splitting finding; Q1 asks to link FIN-88. Treated as deliberate policy throughout."
+    },
+    {
+      "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+      "passed": true,
+      "evidence": "C2 (Critical): 'pops `plan` from every user in a single forward step \u2014 no `down()`, not additive-first... irreversible with data loss', citing 'docs/invariants.md \u00a73' with the quoted clause. Grader confirmed hasattr(m002, 'down') == False."
+    },
+    {
+      "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+      "passed": true,
+      "evidence": "M2: 'The discount \"engine\" is dead machinery: registry, env-var backend, and ABC serve one strategy that billing imports directly... `get_strategy` / `STRATEGY_REGISTRY` have zero callers', with a probe showing DISCOUNT_ENGINE_BACKEND is ignored."
+    },
+    {
+      "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+      "passed": true,
+      "evidence": "M1: 'strips a leading `-` and negates \u2014 deliberately circumventing `parse_money`'s documented contract (\"Raises ValueError for ... negative input...\")', quoting util.py's contract and recommending explicit modeling. The special-casing around parse_money is flagged as the defect (report favors removal over patching parse_money, which addresses the same seeded flaw)."
+    },
+    {
+      "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "IDs C1-C2, H1-H4, M1-M3, L1-L4 under Critical/High/Medium/Low headings. Every Critical/High/Medium finding carries an explicit 'Verdict: CONFIRMED' line with the confirming method."
+    },
+    {
+      "text": "Report contains both a Verified section and a Not reviewed section.",
+      "passed": true,
+      "evidence": "'## Verified' (7 probe-backed entries) and '## Not reviewed' (architecture, privacy, dependency, CI, sibling branch) both present."
+    },
+    {
+      "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+      "passed": true,
+      "evidence": "git -C outputs/repo status --porcelain is empty; branch --show-current = feature/discounts. Report also states 'primary checkout left untouched (clean tree on `feature/discounts` @ `0bcf605`, verified before and after)'."
+    },
+    {
+      "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+      "passed": true,
+      "evidence": "C1 cites 'docs/invariants.md \u00a74' with quoted text plus the CLAUDE.md helper-reuse rule; C2 cites \u00a73; H2 cites \u00a71; H4 cites CLAUDE.md's failure-path-test rule. Many findings have an explicit 'Cites:' line."
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 1,
+    "total": 14,
+    "pass_rate": 0.929
+  },
+  "execution_metrics": {
+    "metrics_json": "not present in outputs dir",
+    "output_chars": 24555,
+    "total_tokens": 101761
+  },
+  "claims": [
+    {
+      "claim": "percent=150 accepted; charge('10.00') records amount=-500, total=-525",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Grader reproduced in the fixture: charge with percent=150 -> {'amount': -500, 'total': -525}."
+    },
+    {
+      "claim": "validate_percent has zero callers",
+      "type": "factual",
+      "verified": true,
+      "evidence": "grep -rn validate_percent app -> only its definition in app/discount_engine/__init__.py:26."
+    },
+    {
+      "claim": "support.lookup on unknown email raises TypeError under the new None contract",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Grader reproduced: support.lookup('ghost@x.y') raises TypeError: 'NoneType' object is not subscriptable."
+    },
+    {
+      "claim": "migration 002 has no down()",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Grader confirmed hasattr(m002, 'down') == False."
+    },
+    {
+      "claim": "Primary checkout left untouched, clean tree verified before and after",
+      "type": "process",
+      "verified": true,
+      "evidence": "git status --porcelain on outputs/repo is empty (not even __pycache__), despite the report describing executed probes \u2014 probes were evidently run without dirtying the checkout."
+    },
+    {
+      "claim": "An independent defect-first finder pass was run and deduped (11 candidates)",
+      "type": "process",
+      "verified": false,
+      "evidence": "Stated in the Verified section but no transcript is available in outputs to confirm the second pass occurred. Unverifiable, though its claimed outputs are consistent with the findings list."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "No user_notes.md in outputs dir."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+        "reason": "Both runs deliberately judged concurrency out of scope for a single-threaded in-memory fixture (arguably correct engineering judgment) and mentioned atomicity only in suggestions/limitations. As worded, S4 may be near-unsatisfiable; consider either accepting a limitations-level mention or reshaping the fixture so the race is actually reachable."
+      },
+      {
+        "assertion": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+        "reason": "The 'belongs in util.parse_money' clause bakes in one specific fix; both runs flagged the same seeded flaw but recommended removing the endpoint instead. Consider rewording to require only that the parse_money bypass is flagged."
+      },
+      {
+        "assertion": "The fixture repo is left clean...",
+        "reason": "Clarify whether untracked __pycache__ directories from running the test suite count as unclean; the without_skill run left them while this run did not, and the current wording ('no uncommitted modifications', 'stray edits') doesn't clearly cover untracked build artifacts."
+      }
+    ],
+    "overall": "Assertions are discriminating and probe-verifiable; S1-S3, S5-S9 all check real seeded defects the grader could reproduce. S4's concurrency framing and the cleanliness wording are the two soft spots."
+  }
+}

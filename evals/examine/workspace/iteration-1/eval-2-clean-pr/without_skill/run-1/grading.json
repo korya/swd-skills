@@ -1,0 +1,101 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md exists (5602 chars) and is a full structured review: '# Review: feature/audit-log \u2192 main' with verdict 'Approve with minor comments.'"
+    },
+    {
+      "text": "Zero Critical issues and zero High issues are reported.",
+      "passed": true,
+      "evidence": "Issues section contains only '### Medium' (items 1-2) and '### Low' (items 3-5). No Critical or High heading or finding appears anywhere in the report."
+    },
+    {
+      "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+      "passed": false,
+      "evidence": "No fabrication: all five issues were verified against the diff (audit.py stores only {\"event\": ..., **fields} with no timestamp; the commit message does claim 'failure paths covered in tests/test_audit.py' while both tests are happy-path/negative; record does return the same mutable dict it appended; the user is inserted into STORE.users before audit.record runs). However the assertion caps genuine issues at 'at most minor (Low) or framed as suggestions/questions', and the report lists two Medium issues: '### Medium 1. Audit entries carry no timestamp, but the requirement is \"who was created and when\".' and '2. PR description overclaims test coverage: \"failure paths covered in tests/test_audit.py\".' Medium exceeds the cap, so the assertion fails on its severity clause, not on fabrication."
+    },
+    {
+      "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+      "passed": true,
+      "evidence": "'## What was done well' credits concrete choices with file references: 'Complies with the CLAUDE.md rule \"never log or store raw emails outside the users table; reference users by id\": the entry carries user_id only, and test_audit_entries_carry_no_email pins that down as a regression test' and 'existing callers (app/api.py) unaffected'; also 'tests/ mirrors app/ (test_audit.py \u2194 app/audit.py)'. Verified accurate against the repo."
+    },
+    {
+      "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+      "passed": true,
+      "evidence": "Critical and High buckets are omitted \u2014 the Issues section starts at '### Medium'. The report is 58 lines; the five issues are each real and briefly stated, with an explicit right-sizing note ('## Occam pass ... The solution is right-sized'). No filler findings."
+    },
+    {
+      "text": "Report includes a Verified or Not reviewed indication of scope.",
+      "passed": true,
+      "evidence": "'**Verification performed**: full test suite run on the branch (`python3 -m unittest discover tests -v`) \u2014 5 tests, all pass. Diff audited against `CLAUDE.md`, `docs/invariants.md`, and `docs/testing.md`.' This states what was verified and against what scope. (No explicit 'Not reviewed' list, but the assertion requires either.)"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.83
+  },
+  "execution_metrics": {
+    "note": "No metrics.json or transcript was provided for this run; grading based on report.md and the outputs/repo fixture.",
+    "output_chars": 5602
+  },
+  "claims": [
+    {
+      "claim": "Full test suite run on the branch: 5 tests, all pass",
+      "type": "process",
+      "verified": true,
+      "evidence": "Grader reran the suite in the repo (feature/audit-log checked out): 'Ran 5 tests ... OK'. Leftover __pycache__ dirs in the repo corroborate the executor ran it."
+    },
+    {
+      "claim": "Scope of diff: 4 files, +31/\u22120",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git diff --stat main...feature/audit-log: '4 files changed, 31 insertions(+)'."
+    },
+    {
+      "claim": "PR intent taken from commit e6a5fd2",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git log --oneline main...feature/audit-log: 'e6a5fd2 feat(audit): Record an audit event on user creation'; the quoted intent matches the commit body."
+    },
+    {
+      "claim": "record returns the same mutable dict it appended (issue 4)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/audit.py: 'STORE.audit.append(entry); return entry'."
+    },
+    {
+      "claim": "docs/testing.md mandates failure-path tests only for money and lookup paths",
+      "type": "factual",
+      "verified": true,
+      "evidence": "docs/testing.md: 'Money and lookup paths require failure-path tests (invalid input, not-found, limit exceeded) \u2014 not just the happy path.'"
+    },
+    {
+      "claim": "User is committed to STORE.users before audit.record runs (issue 5)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/users.py: 'STORE.users[user[\"id\"]] = user' precedes 'audit.record(\"user.created\", user_id=user[\"id\"])'."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "No user_notes.md present in outputs."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+        "reason": "The fixture is not actually clean relative to its own commit message: the entry carries no timestamp despite the stated 'who was created and when', and 'failure paths covered in tests/test_audit.py' is an overclaim. Both runs independently found these real blemishes and rated them Medium, failing the severity cap. Either fix the fixture (stamp entries, correct the commit message) so a Medium is truly unwarranted, or split this assertion into a pure fabrication check plus a separate severity-cap check."
+      },
+      {
+        "assertion": "Zero Critical issues and zero High issues are reported.",
+        "reason": "This overlaps with the severity clause of the fabrication assertion \u2014 a report with a Medium passes one and fails the other, muddying the signal about what a 'clean approval' should look like."
+      }
+    ],
+    "overall": "Assertions are mostly discriminating, but the clean-PR premise is undercut by two genuine blemishes planted (or left) in the fixture's commit message, which makes the Low-severity cap penalize accurate reviews."
+  }
+}

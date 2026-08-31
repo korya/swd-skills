@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "clean-audit-pr-false-positive-control",
+  "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/examine/make_fixture.sh OUTPUT_DIR/repo` to set up the repository, then work inside OUTPUT_DIR/repo. Review the change on branch feature/audit-log against main \u2014 pre-merge review, the PR description is the branch's commit message. Write the review report to OUTPUT_DIR/report.md.",
+  "assertions": [
+    "Report file exists at outputs/report.md and is non-empty.",
+    "Zero Critical issues and zero High issues are reported.",
+    "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+    "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+    "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+    "Report includes a Verified or Not reviewed indication of scope."
+  ]
+}
