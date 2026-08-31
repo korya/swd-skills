@@ -75,7 +75,7 @@ This file is the skeleton; each reference holds a step's full rules. Read it **a
    (listed), or **Unconfirmed** — and unconfirmed means the plan is not ready.
 9. **Write the plan** per `plan.md` § 9: headline (1–3 sentences), approach summary
    (3–10 sentences of prose), out of scope, ordered steps with file paths, assumptions
-   with evidence, risks and mitigations, test plan, open questions last. The first two
+   with evidence, test plan, risks and mitigations, open questions last. The first two
    sections let a human accept or reject the shape before reading further; the whole
    is as long as it needs to be and no longer.
 10. **Present and gate.** Ask open questions and wait. An architectural deviation, spec

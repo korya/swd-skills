@@ -22,8 +22,8 @@ Structure (inverted pyramid):
 3. **Out of scope** — what we're explicitly *not* doing, right after the approach so the boundary is read together with the shape, and to prevent scope drift later
 4. **Plan** — ordered, concrete steps with file paths and the specific changes per step
 5. **Assumptions validated** — bullet list with the evidence (file:line citation, experiment result, doc link)
-6. **Risks & mitigations** — what could still go wrong; what we'll do if it does
-7. **Test plan** — unit, integration, e2e, manual — what each covers and which scenarios
+6. **Test plan** — unit, integration, e2e, manual — what each covers and which scenarios
+7. **Risks & mitigations** — what could still go wrong after the tests pass; what we'll do if it does
 8. **Open questions** — anything the user still needs to decide *before* implementation. Last, so the reader arrives with the whole picture; a question that blocks the plan is also named in the headline.
 
 The headline and approach summary are written for a human skimming the plan, not for the model executing it: full sentences, named things, no shorthand or step numbers that only make sense after reading the rest. The cryptic version of a plan is the one nobody can review.
@@ -42,7 +42,7 @@ The skill is complete when **all** of these are true. Each item should be answer
 - [ ] Project-conventions cross-validation: each universal category (root + per-component conventions, package manager, build/test/run entry points, test framework + mocking policy, lint/format, migration tooling if schema is touched, ports/URLs, async machinery if relevant, reuse patterns) enumerated with `file:line` citations inside the plan, **and each bullet links to the plan step it shapes** (or is marked `Doesn't constrain this plan` with a reason). No defaults from training data — yours or the population's — sneaking in.
 - [ ] Codebase conflict sweep performed: in-flight work, shadow duplication, caller-side drift (if signatures/schemas change), and test-infrastructure gaps all checked, with any findings reflected in the plan. (File-existence and signature checks live in the assumption list, not here.)
 - [ ] Plan-vs-success-criteria counterfactual recorded as **Confirmed**, **Confirmed-with-gaps** (gaps listed), or **Unconfirmed** — and **Unconfirmed means the plan is not ready**.
-- [ ] Plan document contains, in order: headline, approach summary, out-of-scope, ordered steps with file paths, validated assumptions with evidence, risks & mitigations, test plan, open questions. Headline and approach summary read as plain prose to someone outside the investigation.
+- [ ] Plan document contains, in order: headline, approach summary, out-of-scope, ordered steps with file paths, validated assumptions with evidence, test plan, risks & mitigations, open questions. Headline and approach summary read as plain prose to someone outside the investigation.
 - [ ] Open questions surfaced to the user. None silently answered.
 - [ ] If validation killed the hypothesis: the deliverable is the negative result and the reframing, not a salvaged plan.
 
