@@ -46,13 +46,13 @@ definition of done checks against; the budgets keep the layout navigable.
 
 ### docs/product-specs/invariants.md
 - [ ] Brief intro: what an invariant is, why it's not testable-in-isolation
-- [ ] Each invariant: `### INV-N: Short title` + 1–3 sentence body
+- [ ] Each invariant: `### INV-NNN: Short title` + 1–3 sentence body
 
 ### docs/product-specs/<feature>.md
 - [ ] Brief intro paragraph
 - [ ] `Prefix: \`XXX\`.` line
 - [ ] `---` separator
-- [ ] Each spec: `### XXX-N: Short title` + 1–3 sentence body that's precise enough to derive a test from
+- [ ] Each spec: `### XXX-NNN: Short title` + 1–3 sentence body that's precise enough to derive a test from
 
 ### docs/README.md
 - [ ] What lives in `docs/` (table)

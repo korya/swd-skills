@@ -1,6 +1,6 @@
 ---
 name: repo-docs
-description: Bootstrap or extend a repo's documentation for coding agents. Creates AGENTS.md + docs/ structure (architecture, guidelines, product-specs with stable IDs and invariants). Use when the user asks to "document the project for coding agents", "set up agent docs", "add AGENTS.md", "create docs/ structure", or asks to add a new feature spec / invariant in a repo that already follows this pattern.
+description: Bootstrap or extend a repo's documentation for coding agents. Creates AGENTS.md + docs/ structure (architecture, guidelines, product-specs with stable IDs and invariants). Use when the user asks to "document the project for coding agents", "set up agent docs", "add AGENTS.md", "create docs/ structure".
 ---
 
 # Repo docs for coding agents
@@ -21,8 +21,7 @@ This file is the skeleton; each reference holds a step's full rules. Read it **a
 
 - "Document the project for coding agents" / "set up agent docs"
 - "Add AGENTS.md" / "create docs/ structure"
-- "Add a feature spec" / "add an invariant" — when the repo already follows this pattern
-- Any time a repo lacks structured agent documentation and would benefit from one
+- Extending the *layout* in a repo that already follows it — individual specs are `/spec`'s job
 
 Do **not** invoke for one-off README edits or for repos that already have a different doc convention without confirming with the user.
 
@@ -50,12 +49,12 @@ Do **not** invoke for one-off README edits or for repos that already have a diff
 | `docs/architecture.md` | High-level architecture, layer boundaries, important technical assumptions, migration paths | Implementation tutorials |
 | `docs/guidelines.md` | Process rules: lint/test policy, planning, regression CRA (5-whys), doc-update protocol | Product behavior |
 | `docs/product-specs/README.md` | Spec format requirements (testability, ID rules) + index of feature spec files | Feature behavior |
-| `docs/product-specs/invariants.md` | Conditions that hold across the system. Prefix `INV`. Don't have to be testable in isolation. | Feature-level behavior |
-| `docs/product-specs/<feature>.md` | Testable behaviors for one feature area. Each has a unique `PREFIX-NUM` ID. | Implementation details |
+| `docs/product-specs/invariants.md` | Cross-cutting conditions that hold across the system. Prefix `INV`. Don't have to be testable in isolation. | Feature behavior, feature-local invariants |
+| `docs/product-specs/<feature>.md` | Testable behaviors for one feature area. Each has a unique `PREFIX-NNN` ID; feature-local invariants live here as prose contracts. | Implementation details |
 
 ## Spec format — the three rules
 
-Each feature spec is **behavioral** (what the system does, never how), **self-evidently testable** (precise enough to derive a test from the body — no separate `**Testable:**` line; rewrite the body instead), and **identified** (`### PREFIX-NUM: Short title`, prefix shared per file, numbers never reused or renumbered). Invariants share the ID format (`INV-N`) but describe system-wide properties and need not be testable in isolation. **Read `references/spec-format.md`** for the full rules and anti-patterns before writing any spec.
+Each feature spec is **behavioral** (what the system does, never how), **self-evidently testable** (precise enough to derive a test from the body — no separate `**Testable:**` line; rewrite the body instead), and **identified** (`### PREFIX-NNN: Short title` — zero-padded three-digit numbers, prefix shared per file, never reused or renumbered). Cross-cutting invariants get `INV-NNN` in `invariants.md` and need not be testable in isolation; feature-local ones stay in the feature file as prose contracts, no numeric ID. **Read `references/spec-format.md`** for the full rules and anti-patterns before writing any spec.
 
 ## Workflow when invoked
 
@@ -97,7 +96,7 @@ See `templates/` in this skill directory for ready-to-fill skeletons. They embed
 
 - `AGENTS.md` indexes every other doc with a one-line summary and a "load when…" hint
 - `docs/product-specs/README.md` indexes every spec file with prefix + summary
-- Specs reference invariants by ID where relevant (e.g., "see INV-3")
+- Specs reference invariants by ID where relevant (e.g., "see INV-003")
 
 ## Definition of done
 
@@ -108,8 +107,8 @@ The skill is complete when **all** of these are true. Each item is answerable wi
 - [ ] No spec describes implementation. Re-read each spec body: if it names a function, class, schema, or file, rewrite it behaviorally.
 - [ ] No spec carries a separate `**Testable:**` line. If the body isn't self-evidently testable, the body is rewritten — not annotated.
 - [ ] Every spec ID is unique within its file. Deletions leave holes; no renumbering.
-- [ ] Every invariant has an `INV-N` ID. Invariants live in `invariants.md`, not scattered into feature specs.
-- [ ] Cross-links resolve: `AGENTS.md` indexes every file under `docs/`; `docs/product-specs/README.md` indexes every feature spec; every `see INV-N` / `see XXX-N` reference points to something that exists.
+- [ ] Every cross-cutting invariant has an `INV-NNN` ID in `invariants.md`; feature-local invariants stay in their feature file as prose contracts.
+- [ ] Cross-links resolve: `AGENTS.md` indexes every file under `docs/`; `docs/product-specs/README.md` indexes every feature spec; every `see INV-NNN` / `see XXX-NNN` reference points to something that exists.
 - [ ] Sizes within budget: `AGENTS.md` ~150 lines, each feature spec 5–15 items at 1–3 sentences, architecture 1–3 pages. Over-budget files are split or trimmed.
 - [ ] If the repo already had docs in this pattern, only the requested files were touched — no silent rewrites of existing structure.
 - [ ] User has been shown the final layout and asked to confirm before the skill closes.

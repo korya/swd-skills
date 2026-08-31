@@ -41,7 +41,7 @@ See [`docs/architecture.md`](docs/architecture.md) for the full picture.
 
 Read these before working on related areas. **`docs/product-specs/invariants.md` is the floor** — anything that breaks an invariant needs explicit user confirmation.
 
-Each product spec has a stable, globally unique ID (`PREFIX-NUM`, e.g., `<CMP-9>`). Reference these IDs in code comments, tests, and PRs for durable traceability.
+Each product spec has a stable, globally unique ID (`PREFIX-NNN`, e.g., `<CMP-009>`). Reference these IDs in code comments, tests, and PRs for durable traceability.
 
 | When you're… | Read |
 |--------------|------|

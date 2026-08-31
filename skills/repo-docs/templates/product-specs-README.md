@@ -8,15 +8,15 @@ Every feature spec is:
 
 - **Behavioral.** Describes what the system does, not how it's implemented.
 - **Self-evidently testable.** Written precisely enough that a tester (human or agent) can derive a verification path without further explanation. The goal isn't to enumerate every test case — it's to make the spec unambiguous enough to apply to the product.
-- **Identified.** Each item has a globally unique ID `PREFIX-NUM`:
+- **Identified.** Each item has a globally unique ID `PREFIX-NNN`:
   - All specs in one file share the prefix (e.g., `<XXX>` in `<feature>.md`).
-  - `NUM` is unique within the file and never reused (deleted specs leave a hole rather than getting reassigned).
+  - `NNN` is a zero-padded three-digit number, unique within the file and never reused (deleted specs leave a hole rather than getting reassigned). Sub-cases sharing preconditions may take a letter suffix (`<XXX>-012A`).
   - IDs are stable references — cite them in code comments, tests, PRs, and other docs.
 
 Example:
 
 ```
-### <XXX>-3: Lifecycle stage values
+### <XXX>-003: Lifecycle stage values
 Lifecycle stage is one of: `Lead`, `MQL`, `SQL`, `Customer`, `Lost`, `Disqualified`.
 Configurable via `settings.lifecycle_stages`. Values outside this list are
 rejected at validation.
@@ -35,7 +35,7 @@ If you can read a spec and immediately picture how to write a test for it, the s
 
 ### Invariants are different
 
-[`invariants.md`](invariants.md) (`INV-*`) describes conditions that hold across the system — properties of the architecture and process, not feature behaviors. **Invariants don't have to be testable in isolation.** They're upheld by code reviews, architectural boundaries, and process rules together.
+[`invariants.md`](invariants.md) (`INV-*`) describes conditions that hold across the system — properties of the architecture and process, not feature behaviors. Feature-local invariants — rules enforced only inside one feature — stay in that feature's file as prose contracts without numeric IDs. **Invariants don't have to be testable in isolation.** They're upheld by code reviews, architectural boundaries, and process rules together.
 
 ## Prefix table
 
@@ -49,7 +49,7 @@ If you can read a spec and immediately picture how to write a test for it, the s
 
 - **Before changing product behavior** (a feature or a user-visible bug fix): read the relevant spec file. If your change contradicts an item, stop and surface it for discussion.
 - **In doubt:** [`invariants.md`](invariants.md) is the floor. Anything that breaks an invariant requires explicit user confirmation.
-- **In tests and PRs:** reference spec IDs (e.g., "implements <XXX>-5", "regression of <XXX>-9") so traceability is durable.
+- **In tests and PRs:** reference spec IDs (e.g., "implements <XXX>-005", "regression of <XXX>-009") so traceability is durable.
 
 ## Index
 

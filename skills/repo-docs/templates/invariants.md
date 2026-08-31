@@ -8,11 +8,11 @@ Prefix: `INV`.
 
 ---
 
-### INV-1: <Short title>
+### INV-001: <Short title>
 
 <1–3 sentence description of the condition. Examples: "All writes append to change_log", "Storage adapter is the only Sheets-aware code", "No raw cell writes from agents or UI".>
 
-### INV-2: <Short title>
+### INV-002: <Short title>
 
 <...>
 
