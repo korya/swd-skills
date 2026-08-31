@@ -2,13 +2,13 @@
 
 A plugin bundling five skills for serious software work. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
 
-| Skill | When it triggers |
-| --- | --- |
-| **blueprint** | "/blueprint", "blueprint this", "plan this thoroughly", "deep plan" — non-trivial changes where a wrong direction would burn meaningful time. |
-| **rca** | "/rca", "root cause", "5 whys", "why is this failing" — failures you want to learn from, not just patch. |
-| **repo-docs** | "document the project for coding agents", "set up agent docs", "add AGENTS.md" — bootstrap or extend `AGENTS.md` + `docs/`. |
-| **rebase** | "rebase this branch on X", "move these commits onto the new base" — keep the original spec, invariants, and conventions intact. |
-| **examine** | "/examine", "examine this PR", "review this PR", "review my branch", "check my PR before merge" — production-risk-first holistic review of a PR, branch, or working tree; the host's built-in review is defect-first, this one also judges intent, approach, and right-sizing. |
+| Skill | What it does | When it triggers |
+| --- | --- | --- |
+| **[/blueprint](./skills/blueprint)** | Validation-first planning: tests every load-bearing assumption against reality, cross-checks specs, architecture, and conventions, then delivers a plan a human can accept or reject from its first two sections. | "/blueprint", "blueprint this", "plan this thoroughly", "deep plan" — non-trivial changes where a wrong direction would burn meaningful time. |
+| **[/rca](./skills/rca)** | Root-cause analysis: repro, timeline, evidence-backed 5-whys chain, sibling sweep, then two fix proposals (symptom vs cause) plus prevention for the whole class. | "/rca", "root cause", "5 whys", "why is this failing" — failures you want to learn from, not just patch. |
+| **[/repo-docs](./skills/repo-docs)** | Bootstraps or extends `AGENTS.md` + `docs/` so coding agents find the project's real conventions instead of guessing. | "document the project for coding agents", "set up agent docs", "add AGENTS.md". |
+| **[/rebase](./skills/rebase)** | Spec-aware rebasing: replays commits onto a new base while keeping the original intent, invariants, and conventions intact — not just resolving conflicts. | "rebase this branch on X", "move these commits onto the new base". |
+| **[/examine](./skills/examine)** | Production-risk-first holistic review of a PR, branch, or working tree; the host's built-in review is defect-first, this one also judges intent, approach, and right-sizing. | "/examine", "examine this PR", "review this PR", "review my branch", "check my PR before merge". |
 
 Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:blueprint`, `$swd:rca`, `$swd:examine`, `$swd:rebase`, `$swd:repo-docs`.
 
@@ -95,6 +95,8 @@ skills/
   <name>/
     SKILL.md         # core: under 8 KB, read whole by every host
     references/      # depth, read at the step that needs it
+scripts/validate.py  # manifest + budget checks CI runs on every push
+tests/               # unit tests for the validator
 LICENSE              # AGPL-3.0-or-later
 ```
 
@@ -104,7 +106,10 @@ Two manifests, one package. Claude Code reads `marketplace.json` and ignores `pl
 
 ```sh
 python3 scripts/validate.py
+python3 -m unittest discover -s tests
 ```
+
+The first command validates both manifests and every skill; the second runs the validator's own unit tests. CI runs both, plus each host's native validator.
 
 Skill budgets: Codex loads at most **8,000 bytes** of a `SKILL.md` — raw file, frontmatter included — and silently drops the rest, and shortens descriptions past **1,024 characters** in the catalog ([#10](https://github.com/korya/swd-skills/issues/10)). The validator prints every skill's budget, warns from 90% of either limit, and fails the build past either cap. Keep the core a step skeleton and move depth into `references/` files the skill reads at the step that needs them.
 
