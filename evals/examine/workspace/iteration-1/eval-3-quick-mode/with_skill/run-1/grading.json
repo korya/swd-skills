@@ -1,0 +1,113 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 16,538 chars, a fully structured Examine report starting '# Examine: feat(discounts) \u2014 discount codes with API validation (`feature/discounts` vs `main`)'."
+    },
+    {
+      "text": "The report states it ran in quick mode (or names the mode and why).",
+      "passed": true,
+      "evidence": "Header block: '**Mode:** quick (user-requested). Reviewed diff: ... Verification was single-context (adversarial self-review plus executable probes; no verifier subagents).' \u2014 names the mode, the reason, and what the lighter scope means."
+    },
+    {
+      "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+      "passed": true,
+      "evidence": "Header: 'Reviewed diff: `git diff 835e88d..e09c41e` (merge-base of `feature/discounts` and `main`; working tree clean, nothing uncommitted).' Verified against the run's repo: HEAD is e09c41e on feature/discounts, and the repo's object store contains both 835e88d and e09c41e."
+    },
+    {
+      "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+      "passed": true,
+      "evidence": "Four of five caught as issues: uncalled percent validation \u2014 C1 'validate_percent ... is defined but called from nowhere'; unfixed support.lookup caller \u2014 H1 'support.lookup(\"ghost@x.y\") \u2192 TypeError'; dropped email normalization \u2014 H2 'create_user now stores email.strip() instead of normalize_email(email)'; swallowed redemption error \u2014 H4 'the except Exception: pass at app/api.py:36-37 swallows the resulting KeyError'. All four verified against the fixture source. The redemption race is only deferred in Known limitations ('no concurrency/atomicity review of the read-modify-write on uses'), not caught as an issue \u2014 still 4 >= 3."
+    },
+    {
+      "text": "No more than 8 issues are reported.",
+      "passed": false,
+      "evidence": "The Issues section contains 9 entries carrying Critical/High/Medium/Low severity: C1; H1, H2, H3, H4, H5; M1, M2; L1. Questions (Q1, Q2) and Suggestion S1 excluded per the counting rule; 9 > 8."
+    },
+    {
+      "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+      "passed": true,
+      "evidence": "'## Not reviewed' section: 'Quick mode \u2014 skipped per skill definition: axes 5e (architecture), 5f (conventions sweep ...), 5g (security), 5h (data privacy ...), 5i (testing axis beyond H5), 5j (load-bearing assumptions sweep), 5l (reversibility sweep ...), 5m (dependency hygiene ...), the Occam pass ..., and host reviewers.' Covers privacy, dependencies, and Occam explicitly."
+    },
+    {
+      "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "Every Critical/High/Medium issue carries a Verdict line: C1, H1, H2, H3 'CONFIRMED \u2014 executed against the branch'; H4 'CONFIRMED \u2014 executed against the branch'; H5 'CONFIRMED \u2014 test files read in full; suite run'; M1 'CONFIRMED \u2014 executed and grepped'; M2 'CONFIRMED (behavior as described)'."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 1,
+    "total": 7,
+    "pass_rate": 0.86
+  },
+  "execution_metrics": {
+    "note": "No metrics.json or transcript was produced for this run; metrics below derived from available artifacts.",
+    "output_chars": 16538,
+    "total_tokens": 87423
+  },
+  "claims": [
+    {
+      "claim": "validate_percent is defined but called from nowhere in app/ or tests/",
+      "type": "factual",
+      "verified": true,
+      "evidence": "grep over the fixture finds only the definition at app/discount_engine/__init__.py:26; api_create_discount stores int(payload['percent']) with no range check."
+    },
+    {
+      "claim": "Percent 150 on a 10.00 charge yields amount -500, total -525",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Arithmetic from source: 1000 - (1000*150)//100 = -500; int(-500 * 1.05) = -525. charge() applies any stored percent unchecked."
+    },
+    {
+      "claim": "find_user_by_email has exactly two production callers: billing.charge (updated) and support.lookup (not updated); lookup of unknown email raises TypeError",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/billing.py checks 'if user is None' (new contract); app/support.py still catches NotFound and then subscripts u \u2014 None for unknown emails."
+    },
+    {
+      "claim": "create_user stores email.strip() instead of normalize_email; migration 002 has no down() and create_user still writes plan, never tier",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/users.py: '\"email\": email.strip()' and '\"plan\": \"free\"' with no tier key; migrations/002_drop_plan.py defines only up()."
+    },
+    {
+      "claim": "Existing suite passes 4/4 on the branch",
+      "type": "process",
+      "verified": true,
+      "evidence": "Ran 'python3 -m unittest discover tests' in the run's repo: 'Ran 4 tests ... OK'."
+    },
+    {
+      "claim": "Float-tax mispricing refuted: zero divergences between the float expression and integer bp math for amounts 1..199,999 cents at 500bp",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Re-ran the probe: 0 divergences over the full range."
+    },
+    {
+      "claim": "Working tree left untouched; git status clean, still on feature/discounts at e09c41e",
+      "type": "process",
+      "verified": true,
+      "evidence": "git rev-parse confirms feature/discounts @ e09c41e; only __pycache__ dirs present, created by the grader's own test run (absent in the pre-grading file listing)."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "No user_notes.md was produced."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "No more than 8 issues are reported.",
+        "reason": "This cap is in tension with the fixture: it plants at least 9 genuine defects (both the with-skill and without-skill runs independently found 9+ real issues, all verified against source). As written, the assertion penalizes completeness \u2014 this run failed it only by adding a Low housekeeping entry on top of 8 substantive findings. Either raise the cap, restrict the count to Critical/High, or make the fixture's defect count fit under the cap."
+      },
+      {
+        "assertion": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+        "reason": "The fixture branch is exactly one commit ahead of main, so 'last commit alone' and 'branch vs main' produce identical diffs \u2014 the assertion cannot discriminate the failure mode it names. A two-commit feature branch would make it a real test."
+      }
+    ],
+    "overall": "Assertions are mostly well-targeted and verifiable from the report alone; the issue-count cap conflicts with the planted-defect count and the 1-commit fixture weakens the baseline-selection check."
+  }
+}
