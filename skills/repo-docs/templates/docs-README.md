@@ -19,7 +19,7 @@ Reference material for humans and coding agents working on this repo.
 Product specs follow a strict format (see [`product-specs/README.md`](product-specs/README.md) for examples and rationale):
 
 - **Each spec describes a single, observable, deterministic behavior.** Written precisely enough that a tester can derive a verification path directly from the text — no separate "Testable:" appendix needed. If a spec needs a footnote to explain how to test it, rewrite the body.
-- **Each spec has a globally unique ID** of the form `PREFIX-NUM` (e.g., `<XXX>-3`).
+- **Each spec has a globally unique ID** of the form `PREFIX-NNN` (e.g., `<XXX>-003`).
 - **All specs in one file share a prefix.** `NUM` is unique within the file.
 - **IDs are stable.** Don't renumber. Deleted specs leave a hole; new specs get the next free number.
 

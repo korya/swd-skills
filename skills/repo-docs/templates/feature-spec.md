@@ -6,15 +6,15 @@ Prefix: `<XXX>`.
 
 ---
 
-### <XXX>-1: <Short title>
+### <XXX>-001: <Short title>
 
 <1–3 sentence behavioral description. Precise enough that a test falls out of it directly. No "Testable:" appendix — if the body needs one, rewrite the body.>
 
-### <XXX>-2: <Short title>
+### <XXX>-002: <Short title>
 
 <...>
 
-### <XXX>-3: <Short title>
+### <XXX>-003: <Short title>
 
 <...>
 
@@ -24,7 +24,7 @@ Prefix: `<XXX>`.
   - Use exact value lists when defining enums ("one of: A, B, C").
   - Reference settings/config keys when behavior is configurable
     ("Configurable via `settings.foo`").
-  - Cross-reference other specs by ID where relevant ("see XXX-5").
+  - Cross-reference other specs by ID where relevant ("see XXX-005").
   - Don't include implementation details (function names, schema names).
   - Avoid future-tense or aspirational language. Specs describe current
     expected behavior, not roadmap.
