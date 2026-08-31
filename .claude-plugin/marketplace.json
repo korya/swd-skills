@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Software development skills: product specs, deep planning, root-cause analysis, agent-oriented repo docs, spec-aware rebasing, PR review, PR submission, review revision, and end-user e2e testing.",
-    "version": "0.6.0"
+    "version": "0.7.0"
   },
   "plugins": [
     {
       "name": "swd",
       "description": "Software development skills bundle: spec, blueprint, rca, repo-docs, rebase, examine, submit, revise, e2e-test.",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "license": "AGPL-3.0-or-later",
       "source": "./",
       "strict": false,
