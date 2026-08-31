@@ -33,7 +33,8 @@ This file is the skeleton; each reference holds a step's full rules. Read it **a
 - **Cheap experiments beat confident reasoning.** A 10-line script that proves an API
   behaves as expected outranks a paragraph asserting it.
 - **Read the source on `HEAD`, not from memory.** APIs change, specs evolve; verify *now*.
-- **Inverted pyramid for the user.** Recommendation, blockers, open questions first.
+- **Inverted pyramid for the user.** Recommendation and blockers first; detail unfolds
+  below, and the decisions the user still owes close the document.
 - **Loop until convergent.** A refuted assumption sends you back to the hypothesis; never
   paper over it.
 
@@ -72,9 +73,10 @@ This file is the skeleton; each reference holds a step's full rules. Read it **a
 8.5. **Counterfactual.** **Read `references/plan.md` now.** Map every step-1 success
    criterion to the plan step that satisfies it: **Confirmed**, **Confirmed with gaps**
    (listed), or **Unconfirmed** — and unconfirmed means the plan is not ready.
-9. **Write the plan** per `plan.md` § 9: headline, approach, ordered steps with file
-   paths, assumptions with evidence, risks and mitigations, out of scope, open questions,
-   test plan. As long as it needs to be and no longer.
+9. **Write the plan** per `plan.md` § 9: headline (1–3 sentences), approach summary
+   (3–10 sentences of prose), out of scope, ordered steps with file paths, assumptions
+   with evidence, risks and mitigations, test plan, open questions last. The first two
+   sections are written for a human skimming; as long as it needs to be and no longer.
 10. **Present and gate.** Ask open questions and wait. An architectural deviation, spec
     change, or risky migration needs explicit approval before implementation — never
     proceed on auto mode. Approved → normal implementation rules apply.
