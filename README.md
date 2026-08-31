@@ -2,7 +2,7 @@
 
 ![The swd skills as six workbench stations covering the development cycle, with a /revise loop back](assets/hero.jpg)
 
-A plugin of skills covering the full development cycle — spec, plan, build, submit, review, test — five shipped, five planned. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
+A plugin of skills covering the full development cycle — spec, plan, build, submit, review, test — six shipped, four planned. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
 
 | Skill | What it does | When it triggers |
 | --- | --- | --- |
@@ -10,14 +10,14 @@ A plugin of skills covering the full development cycle — spec, plan, build, su
 | **[/rca](./skills/rca)** | Root-cause analysis: repro, timeline, evidence-backed 5-whys chain, sibling sweep, then two fix proposals (symptom vs cause) plus prevention for the whole class. | "/rca", "root cause", "5 whys", "why is this failing" — failures you want to learn from, not just patch. |
 | **[/repo-docs](./skills/repo-docs)** | Bootstraps or extends `AGENTS.md` + `docs/` so coding agents find the project's real conventions instead of guessing. | "document the project for coding agents", "set up agent docs", "add AGENTS.md". |
 | **[/rebase](./skills/rebase)** | Spec-aware rebasing: replays commits onto a new base while keeping the original intent, invariants, and conventions intact — not just resolving conflicts. | "rebase this branch on X", "move these commits onto the new base". |
+| **[/submit](./skills/submit)** | Ships finished work as a reviewable draft PR: feature branch, well-formed Conventional Commits, pre-push checks, an honest what/why/how description, and CI gated green. | "/submit", "submit this", "open a PR", "create a pull request", "push this up". |
 | **[/examine](./skills/examine)** | Production-risk-first holistic review of a PR, branch, or working tree; the host's built-in review is defect-first, this one also judges intent, approach, and right-sizing. | "/examine", "examine this PR", "review this PR", "review my branch", "check my PR before merge". |
 | **/spec** | Turns a fuzzy feature request into a reviewable spec — goals, acceptance criteria, invariants, non-goals — that later skills cite by path. | Not implemented yet — [#26](https://github.com/korya/swd-skills/issues/26). |
 | **/implement** | Executes an approved blueprint plan with discipline: ordered steps, tests per step, deviations amend the plan instead of improvising. | Not implemented yet — [#27](https://github.com/korya/swd-skills/issues/27). |
-| **/submit** | Gets work onto GitHub: branch, well-formed commits, pre-push checks, draft PR with an honest description, CI gating. | Not implemented yet — [#25](https://github.com/korya/swd-skills/issues/25). |
 | **/revise** | Addresses review findings without scope creep: triage must-fix vs opinion, fix at the root, respond to each finding, re-submit. | Not implemented yet — [#28](https://github.com/korya/swd-skills/issues/28). |
 | **/e2e-test** | Validates the product as the end user — browser for a web app, binary for a CLI, SDK for a library — from the spec's acceptance criteria, black-box. | Not implemented yet — [#29](https://github.com/korya/swd-skills/issues/29). |
 
-Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:blueprint`, `$swd:rca`, `$swd:examine`, `$swd:rebase`, `$swd:repo-docs`.
+Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:blueprint`, `$swd:rca`, `$swd:submit`, `$swd:examine`, `$swd:rebase`, `$swd:repo-docs`.
 
 ## Install (from GitHub)
 
