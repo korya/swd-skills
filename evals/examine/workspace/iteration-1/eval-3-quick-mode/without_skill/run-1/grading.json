@@ -1,0 +1,111 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 5,469 chars, starting '# Quick review: `feature/discounts` (1 commit, 8 files)' with a verdict and severity-grouped findings."
+    },
+    {
+      "text": "The report states it ran in quick mode (or names the mode and why).",
+      "passed": true,
+      "evidence": "Title line: '# Quick review: `feature/discounts` (1 commit, 8 files)' \u2014 an explicit statement that this is a quick review, satisfying the assertion's primary clause. Marginal pass: it is title-only; no reasoning is given and nothing in the body says what the lighter scope included or excluded."
+    },
+    {
+      "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+      "passed": true,
+      "evidence": "No merge-base/'against main' language appears; the header says '(1 commit, 8 files)'. However, git in the run's repo shows feature/discounts is exactly one commit (7621f5b) ahead of main (bab50e6), and 'git show --stat' of that commit lists exactly 8 files \u2014 so the reviewed diff is materially identical to branch-vs-main, and the findings' before-states (e.g. 'replaced normalize_email(email) with email.strip()', 'now returns None instead of raising NotFound') are drawn from main's versions. Correct baseline in substance; see eval_feedback on this assertion's discriminating power."
+    },
+    {
+      "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+      "passed": true,
+      "evidence": "Four of five caught: swallowed redemption error \u2014 Critical 1 'the KeyError from STORE.discounts[code] is swallowed by the bare except Exception: pass'; uncalled percent validation \u2014 Critical 2 'the validate_percent helper ... is never called'; dropped email normalization \u2014 Critical 3 'create_user replaced normalize_email(email) with email.strip()'; unfixed support.lookup caller \u2014 Critical 4 'app/support.py::lookup still catches NotFound ... crashes with TypeError'. All four verified against the fixture source. The redemption race is not mentioned \u2014 still 4 >= 3."
+    },
+    {
+      "text": "No more than 8 issues are reported.",
+      "passed": false,
+      "evidence": "Nine entries are presented under Critical/High/Medium severity headings: Critical 1-4, High 5-6, Medium 7-9. (Item 10 under 'Occam / design' is excluded per the counting rule; the count exceeds 8 either way.)"
+    },
+    {
+      "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+      "passed": false,
+      "evidence": "No 'Not reviewed' (or equivalent skipped-scope) section exists anywhere in the report. Sections are: Critical, High, Medium, Occam / design, Done well, Suggested before opening the PR. Nothing states which review axes were skipped."
+    },
+    {
+      "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": false,
+      "evidence": "No issue carries a CONFIRMED or PLAUSIBLE verdict; neither word (nor any equivalent confidence label) appears in the report."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 3,
+    "total": 7,
+    "pass_rate": 0.57
+  },
+  "execution_metrics": {
+    "note": "No metrics.json or transcript was produced for this run; metrics below derived from available artifacts.",
+    "output_chars": 5469,
+    "total_tokens": 49487
+  },
+  "claims": [
+    {
+      "claim": "api_redeem's guard is 'if row is None or row[\"uses\"] < row[\"max_uses\"]' and an unknown code returns {\"redeemed\": True} via the swallowed KeyError",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/api.py matches verbatim: the inverted condition, 'STORE.discounts[code][\"uses\"] += 1' inside try, and 'except Exception: pass'."
+    },
+    {
+      "claim": "validate_percent is never called and charge ignores uses/max_uses entirely",
+      "type": "factual",
+      "verified": true,
+      "evidence": "grep finds no call sites for validate_percent or get_strategy; app/billing.py charge() applies row['percent'] with no usage check or increment."
+    },
+    {
+      "claim": "create_user replaced normalize_email with email.strip(); support.lookup still catches NotFound and crashes on None",
+      "type": "factual",
+      "verified": true,
+      "evidence": "app/users.py stores email.strip(); app/support.py catches NotFound then subscripts u, while the new contract returns None (billing checks 'if user is None')."
+    },
+    {
+      "claim": "migrations/002 ships no down() and create_user still writes plan=\"free\" with nothing writing tier",
+      "type": "factual",
+      "verified": true,
+      "evidence": "migrations/002_drop_plan.py defines only up(); app/users.py writes '\"plan\": \"free\"' and no tier key."
+    },
+    {
+      "claim": "Tests pass (4/4) but only cover the happy path",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Ran 'python3 -m unittest discover tests': 'Ran 4 tests ... OK'; tests/test_discounts.py contains a single happy-path test."
+    },
+    {
+      "claim": "The branch is 1 commit touching 8 files",
+      "type": "factual",
+      "verified": true,
+      "evidence": "'git show --stat' of 7621f5b: '8 files changed, 129 insertions(+), 14 deletions(-)'; main..feature/discounts contains exactly that commit."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "No user_notes.md was produced."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The report states it ran in quick mode (or names the mode and why).",
+        "reason": "This passed on a two-word title ('Quick review:') that merely echoes the user's request \u2014 weakly discriminating on its own. Consider requiring the report to say what the quick scope included/excluded (assertion 6 partially covers this and did discriminate here)."
+      },
+      {
+        "assertion": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+        "reason": "With a fixture branch exactly one commit ahead of main, 'last commit alone' and 'branch vs main' are indistinguishable, so the assertion cannot catch the wrong-baseline failure it names. A multi-commit feature branch would make it a real test."
+      },
+      {
+        "assertion": "No more than 8 issues are reported.",
+        "reason": "The fixture plants at least 9 genuine defects (all findings in this run verified against source), so a complete review naturally exceeds the cap \u2014 both runs failed this assertion. Raise the cap, count only Critical/High, or trim the planted-defect count."
+      }
+    ],
+    "overall": "The mode/scope, Not-reviewed, and confidence-verdict assertions discriminated skill vs baseline well; the issue-count cap and the 1-commit baseline check need adjustment."
+  }
+}

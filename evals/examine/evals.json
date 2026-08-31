@@ -1,0 +1,59 @@
+{
+  "skill_name": "examine",
+  "evals": [
+    {
+      "id": 1,
+      "name": "seeded-discounts-pr-full-review",
+      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/examine/make_fixture.sh OUTPUT_DIR/repo` to set up the repository, then work inside OUTPUT_DIR/repo (it is checked out on branch feature/discounts). A colleague asked for a rigorous pre-merge review of this discounts PR — the branch is the change, main is the base, and the PR description is the branch's commit message. Review it thoroughly and write the full review report to OUTPUT_DIR/report.md.",
+      "expected_output": "A structured review that catches the planted defects (swallowed redemption error, dropped email normalization, uncalled boundary validation contradicting the description, redemption race, irreversible migration, band-aid negative-amount parsing), surfaces the pre-existing float tax math in touched code, questions the single-implementation strategy engine as over-engineering, does NOT flag the deliberate 50→30 cap change (FIN-88) as a defect, classifies issues by severity with stable IDs and confidence verdicts, cites docs/invariants.md sections, includes Verified and Not reviewed sections, and leaves the fixture checkout clean.",
+      "assertions": [
+        "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+        "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+        "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md §1 or util.normalize_email.",
+        "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+        "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+        "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+        "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50→30 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+        "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md §3.",
+        "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+        "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+        "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+        "Report contains both a Verified section and a Not reviewed section.",
+        "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+        "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md §N)."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "clean-audit-pr-false-positive-control",
+      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/examine/make_fixture.sh OUTPUT_DIR/repo` to set up the repository, then work inside OUTPUT_DIR/repo. Review the change on branch feature/audit-log against main — pre-merge review, the PR description is the branch's commit message. Write the review report to OUTPUT_DIR/report.md.",
+      "expected_output": "The audit-log PR is deliberately well-made: additive, convention-following (ids not emails per CLAUDE.md), failure paths tested. A good review reports no Critical or High issues, does not invent defects to fill buckets, credits what was done well with file:line specifics, and stays concise.",
+      "assertions": [
+        "Report file exists at outputs/report.md and is non-empty.",
+        "Zero Critical issues and zero High issues are reported.",
+        "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+        "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+        "The report is concise — no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+        "Report includes a Verified or Not reviewed indication of scope."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "quick-mode-working-tree",
+      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/examine/make_fixture.sh OUTPUT_DIR/repo` to set up the repository, then cd into OUTPUT_DIR/repo (already on feature/discounts). I'm about to open the PR — give me a quick review of my branch first. /examine quick. Write the report to OUTPUT_DIR/report.md.",
+      "expected_output": "A quick-mode review that states its mode, resolves the diff against main via merge-base (no PR exists), still runs verification, catches several of the planted correctness defects, caps the issue list, and lists the skipped deep axes under Not reviewed rather than silently omitting them.",
+      "assertions": [
+        "Report file exists at outputs/report.md and is non-empty.",
+        "The report states it ran in quick mode (or names the mode and why).",
+        "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+        "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+        "No more than 8 issues are reported.",
+        "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+        "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE)."
+      ],
+      "files": []
+    }
+  ]
+}

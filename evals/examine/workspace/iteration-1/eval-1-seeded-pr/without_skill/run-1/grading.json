@@ -1,0 +1,146 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 13377 chars. Structured review with Critical/High/Medium/Low sections, done-well, suggestions, limitations, and an author summary."
+    },
+    {
+      "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+      "passed": true,
+      "evidence": "C4: 'redeeming a **nonexistent** code returns `{\"redeemed\": True}` \u2014 the `row is None` arm triggers a `KeyError` that the bare `except Exception: pass` swallows, then the function reports success.' Grader reproduced the behavior."
+    },
+    {
+      "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+      "passed": true,
+      "evidence": "H1: '`users.create_user` replaced `normalize_email(email)` (strip + lowercase) with bare `email.strip()`... \u00a71 warns precisely about this: \"a non-canonical write breaks every reader.\" Restore `normalize_email` at the write path.'"
+    },
+    {
+      "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+      "passed": true,
+      "evidence": "C1: 'the headline claim of the PR is untrue... defines `validate_percent()` (the \u00a74 check), but **no code path calls it**' with live-run evidence (percent=150 -> negative charge). Grader confirmed both the missing call site and the negative charge."
+    },
+    {
+      "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+      "passed": false,
+      "evidence": "Not flagged. Closest mentions: the suggestion 'Make charge-time discount application atomic: validate percent, check `uses < max_uses`, apply, increment' and Known limitations 'the `uses` increment will need atomicity only when a real DB arrives.' No finding presents check-then-act over-redemption under concurrency in api_redeem as a defect."
+    },
+    {
+      "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+      "passed": false,
+      "evidence": "Never mentioned; the report asserts the opposite in 'What was done well': 'Money stays in integer cents throughout the new code (no floats) \u2014 \u00a72 upheld.' The float expression `int(amount * (1 + TAX_RATE_BP / 10_000))` sits in billing.charge (grader confirmed) and goes unremarked."
+    },
+    {
+      "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+      "passed": false,
+      "evidence": "The cap change is listed as a Medium Issue: 'M3. The FIN-88 cap change (50 \u2192 30) is bundled and, as shipped, has no effect... the PR bullet claiming the lowered cap is live is misleading until validation exists.' Per the grading rule, listing the cap change as an Issue fails, even though M3's complaint is bundling/enforcement rather than the new value itself."
+    },
+    {
+      "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+      "passed": true,
+      "evidence": "H2 (High): 'Destructive with no `down()` \u2014 \u00a73 requires \"additive first; destructive steps only after a release with dual-read, and every migration ships a `down()`.\" This one pops `plan` immediately and is irreversible.' Grader confirmed no down()."
+    },
+    {
+      "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+      "passed": true,
+      "evidence": "M1: 'The pluggable engine is speculative and mostly dead code (Occam pass)... an ABC, a decorator-based `STRATEGY_REGISTRY`, and env-var backend selection... `get_strategy` and the registry have **zero callers**.'"
+    },
+    {
+      "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+      "passed": true,
+      "evidence": "C3: 'strips a leading `-` and negates, deliberately bypassing `parse_money`'s rejection of negative amounts (its docstring: \"money enters the system as a non-negative amount; adjustments are modeled explicitly\")'. The special-casing around parse_money is flagged as the defect (report recommends pulling the endpoint rather than patching parse_money)."
+    },
+    {
+      "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": false,
+      "evidence": "Severity IDs exist for C1-C5, H1-H3, M1-M5 (Lows are unnumbered bullets), but no finding carries a CONFIRMED/PLAUSIBLE confidence verdict. The report uses informal 'Verified:' prose on some findings, which is not the required verdict labeling and is absent from others (e.g., M3, M4, M5)."
+    },
+    {
+      "text": "Report contains both a Verified section and a Not reviewed section.",
+      "passed": false,
+      "evidence": "Neither section exists. Verification claims appear inline ('All findings below marked \"verified\" were reproduced by executing the branch') and there is a 'Known limitations' section, but no dedicated Verified section and no Not reviewed section anywhere in the report."
+    },
+    {
+      "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+      "passed": true,
+      "evidence": "git -C outputs/repo branch --show-current = feature/discounts; status --porcelain shows only untracked __pycache__/ directories (bytecode from executing the test suite/probes) \u2014 no modifications to any tracked file and no stray edits. Judged clean under the assertion's 'no uncommitted modifications' wording; see eval_feedback."
+    },
+    {
+      "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+      "passed": true,
+      "evidence": "H1 cites \u00a71 with quoted text and CLAUDE.md's helper-reuse rule; H2 quotes \u00a73; H3 quotes CLAUDE.md ('Every change to app/billing.py requires failure-path tests') and docs/testing.md."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 5,
+    "total": 14,
+    "pass_rate": 0.643
+  },
+  "execution_metrics": {
+    "metrics_json": "not present in outputs dir",
+    "output_chars": 13377,
+    "total_tokens": 58048
+  },
+  "claims": [
+    {
+      "claim": "percent=150 -> amount=-500, total=-525 (negative charge)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Grader reproduced exactly this result in the fixture repo."
+    },
+    {
+      "claim": "support.lookup('ghost@x.y') raises TypeError: 'NoneType' object is not subscriptable",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Grader reproduced the exact exception."
+    },
+    {
+      "claim": "Creating 'Bob@X.COM' stores it verbatim and later charge by lowercase email fails",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Grader confirmed stored email 'Bob@X.COM' (stripped but not lowercased)."
+    },
+    {
+      "claim": "A max_uses=1 code discounted three consecutive charges and uses stayed 0",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Consistent with code read: billing.charge neither checks nor increments uses; api_redeem has no callers."
+    },
+    {
+      "claim": "All findings marked 'verified' were reproduced by executing the branch",
+      "type": "process",
+      "verified": true,
+      "evidence": "The __pycache__ directories left in the repo corroborate code execution, and grader spot-checks of four 'verified' findings all reproduced."
+    },
+    {
+      "claim": "Money stays in integer cents throughout the new code (no floats) \u2014 \u00a72 upheld",
+      "type": "quality",
+      "verified": false,
+      "evidence": "billing.charge computes `total = int(amount * (1 + TAX_RATE_BP / 10_000))` \u2014 float math in the money path of a touched function. The claim is only defensible for strictly new lines; as a \u00a72 endorsement it papers over the seeded S5 violation."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [],
+    "note": "No user_notes.md in outputs dir."
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+        "reason": "Both runs deliberately judged concurrency out of scope for a single-threaded in-memory fixture and mentioned atomicity only in suggestions/limitations. As worded, S4 may be near-unsatisfiable; consider accepting a limitations-level mention or reshaping the fixture so the race is reachable."
+      },
+      {
+        "assertion": "S6 (trap, inverted)",
+        "reason": "This run's M3 fails on the letter of the rule ('listing it as an Issue fails') although its substance \u2014 bundling and the misleading 'cap is live' bullet \u2014 is legitimate review feedback that treats the 50\u219230 value itself as policy. If the trap is meant to catch reports calling the new cap wrong, consider tightening the assertion to that."
+      },
+      {
+        "assertion": "The fixture repo is left clean...",
+        "reason": "This run left untracked __pycache__ directories from executing the code. Graded PASS because they are neither 'uncommitted modifications' nor 'stray edits', but the assertion should state explicitly whether untracked build artifacts count."
+      }
+    ],
+    "overall": "Seeded-defect assertions discriminate well (this run caught 7 of 9 seeds and missed S5 outright while asserting its opposite). The format assertions (IDs+confidence verdicts, Verified/Not-reviewed sections) cleanly separate skill from no-skill output, as intended."
+  }
+}
