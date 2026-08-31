@@ -18,7 +18,7 @@ A plan whose own success criteria don't all map to plan steps is a list of activ
 Structure (inverted pyramid):
 
 1. **Headline** — 1–3 sentences a reader with no context understands: what we're building, why this approach over the obvious alternative, and — if one exists — the single blocker or decision that stands in the way.
-2. **Approach summary** — 3–10 sentences of plain prose, not bullets: the shape of the change, the components it touches and how they interact, what stays untouched, and the main trade-off that shaped it. A reader should be able to explain the plan to a colleague after this paragraph alone.
+2. **Approach summary** — 3–10 sentences of plain prose, not bullets: the high-level design (the components it touches and how they interact, what stays untouched), the one or two assumptions the whole approach stands on, and the main trade-off that shaped it — what was given up and why. This is the go/no-go gate: a reader who finishes it should either see that the approach is wrong for them and stop, or accept its shape and go on to check the details against their constraints. High level, not a novel; the full assumption list and the alternatives considered live in the sections below.
 3. **Out of scope** — what we're explicitly *not* doing, right after the approach so the boundary is read together with the shape, and to prevent scope drift later
 4. **Plan** — ordered, concrete steps with file paths and the specific changes per step
 5. **Assumptions validated** — bullet list with the evidence (file:line citation, experiment result, doc link)
