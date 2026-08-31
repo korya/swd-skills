@@ -1,5 +1,7 @@
 # swd — software development skills
 
+![The swd skills as six workbench stations covering the development cycle, with a /revise loop back](assets/hero.jpg)
+
 A plugin of skills covering the full development cycle — spec, plan, build, submit, review, test — five shipped, five planned. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
 
 | Skill | What it does | When it triggers |
