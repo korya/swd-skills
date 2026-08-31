@@ -54,4 +54,4 @@ Before committing to the plan, cross-check the riskiest assumptions:
 - Re-read invariants files on `new_base`
 - For any "I assume X is still true" — verify by reading current code
 
-For non-trivial rebases, run three explicit validation passes (mirroring `feedback_plan_validation_passes`): assumption pass, spec+architecture pass, edge-case pass.
+For non-trivial rebases, run three explicit validation passes: assumption pass, spec+architecture pass, edge-case pass.

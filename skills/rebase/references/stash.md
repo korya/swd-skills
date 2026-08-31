@@ -25,7 +25,7 @@ Do this:
    git stash push --include-untracked --message "$STASH_LABEL"
    ```
 
-3. **Remember the label** for step 10.5. If the agent context might compact mid-rebase, write it somewhere durable (a scratch note in the conversation, a plan entry).
+3. **Remember the label** for step 9.5. If the agent context might compact mid-rebase, write it somewhere durable (a scratch note in the conversation, a plan entry).
 
 After this step, the working tree is clean and the rest of the workflow runs unchanged.
 

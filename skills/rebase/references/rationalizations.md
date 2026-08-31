@@ -13,7 +13,7 @@ Read this when you catch yourself skipping a step — if your reason is below, d
 | "The original spec still applies." | Re-read it on `new_base`. Specs evolve in `delta` more often than agents assume; "still applies" should be a finding, not an assumption. |
 | "`-X theirs` / `-X ours` will clear this conflict fast." | These options hide semantic divergence in a hunk-shaped blindspot. Resolve by reading both sides. |
 | "This commit looks redundant — I'll drop it silently." | Dropping a commit is a user-visible scope decision. Surface it, get the nod, then drop. |
-| "I'll bundle the rebase-fix into the original commit." | If the fix is preserving the original intent, bundle. If it's a *new* bug fix you discovered during rebase, split — per the project's split-move-and-fix rule. |
+| "I'll bundle the rebase-fix into the original commit." | If the fix is preserving the original intent, bundle. If it's a *new* bug fix you discovered during rebase, split it into its own commit. |
 | "Lint/tests aren't needed; rebase didn't touch logic." | Rebase always touches logic — replaying a change against new code *is* a logic change. Run them. |
 | "Three iterations of conflict resolution is enough — push it." | If you've fought the same hunk three times, the approach itself is probably wrong on `new_base`. Stop and reframe with the user. |
 | "The working tree was dirty; I'll just `git stash` and `git stash pop` without telling the user." | The stashed work is the most fragile state in this workflow — if `pop` conflicts and the agent silently drops it, real work disappears. Label the stash, surface it, restore explicitly, handle pop conflicts visibly. |
