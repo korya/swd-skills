@@ -92,9 +92,9 @@ CODEX_METADATA_CHARS = 8_000
 # over between two CI runs.
 BUDGET_HEADROOM = 0.9
 
-# Every skill is over the prompt budget today (#10). Size violations are warnings until the
-# last core is under budget; then this flips to True and they fail the build.
-ENFORCE_PROMPT_BYTES = False
+# Every core is under budget since #10 was closed; a skill that grows past the cut fails the
+# build rather than shipping a silently truncated prompt to Codex users.
+ENFORCE_PROMPT_BYTES = True
 
 
 def parse_frontmatter(skill_md: Path) -> tuple[dict | None, str]:

@@ -92,15 +92,13 @@ plugin.json          # Agent Plugins 1.0.0 manifest (Codex + other AP clients)
 .claude-plugin/
   marketplace.json   # marketplace manifest + plugin definition (Claude Code)
 skills/
-  blueprint/
-  rca/
-  repo-docs/
-  rebase/
-  examine/           # SKILL.md core + references/ loaded per step
+  <name>/
+    SKILL.md         # core: under 8 KB, read whole by every host
+    references/      # depth, read at the step that needs it
 LICENSE              # AGPL-3.0-or-later
 ```
 
-Two manifests, one package. Claude Code reads `marketplace.json` and ignores `plugin.json`; Codex resolves `plugin.json` first and validates its `$schema` strictly — a wrong value makes `codex plugin add` fail outright. CI runs both hosts' native validators to keep them honest, plus `scripts/validate.py` for the checks neither host makes (version agreement across manifests, marketplace ↔ `skills/` symmetry, and skills naming no host-specific tool).
+Two manifests, one package. Claude Code reads `marketplace.json` and ignores `plugin.json`; Codex resolves `plugin.json` first and validates its `$schema` strictly — a wrong value makes `codex plugin add` fail outright. CI runs both hosts' native validators to keep them honest, plus `scripts/validate.py` for the checks neither host makes (version agreement across manifests, marketplace ↔ `skills/` symmetry, skills naming no host-specific tool, and every `SKILL.md` inside Codex's prompt budget).
 
 ## Development
 
@@ -108,6 +106,6 @@ Two manifests, one package. Claude Code reads `marketplace.json` and ignores `pl
 python3 scripts/validate.py
 ```
 
-Skill budgets: Codex loads at most **8,000 bytes** of a `SKILL.md` — raw file, frontmatter included — and silently drops the rest, and shortens descriptions past **1,024 characters** in the catalog ([#10](https://github.com/korya/swd-skills/issues/10)). The validator prints every skill's budget, warns from 90% of either limit, and fails on a description over the cap; size overruns become failures once every core is under budget. Keep the core a step skeleton and move depth into `references/` files the skill reads at the step that needs them.
+Skill budgets: Codex loads at most **8,000 bytes** of a `SKILL.md` — raw file, frontmatter included — and silently drops the rest, and shortens descriptions past **1,024 characters** in the catalog ([#10](https://github.com/korya/swd-skills/issues/10)). The validator prints every skill's budget, warns from 90% of either limit, and fails the build past either cap. Keep the core a step skeleton and move depth into `references/` files the skill reads at the step that needs them.
 
 Bump the version in **both** `plugin.json` and `.claude-plugin/marketplace.json` (`metadata.version` and the plugin entry). The validator fails if they disagree — Codex derives the installed version from `plugin.json`, so a stale value stalls updates for Codex users.
