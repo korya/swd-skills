@@ -7,6 +7,16 @@ description: Bootstrap or extend a repo's documentation for coding agents. Creat
 
 This skill bootstraps a documentation layout designed for LLM-assisted development: every project area has a stable, addressable home, every product behavior has a unique ID, and every change has a clear consultation path.
 
+## Required references
+
+This file is the skeleton; each reference holds a step's full rules. Read it **at that step**.
+
+| File | Read at | Holds |
+|---|---|---|
+| `references/spec-format.md` | before writing any spec or invariant | the non-negotiable format rules, ID stability, anti-patterns |
+| `references/checklist.md` | step 3, before creating files | required content per file, size budgets |
+| `templates/` | step 4 | ready-to-fill skeletons that embed the format rules |
+
 ## When to invoke
 
 - "Document the project for coding agents" / "set up agent docs"
@@ -43,9 +53,9 @@ Do **not** invoke for one-off README edits or for repos that already have a diff
 | `docs/product-specs/invariants.md` | Conditions that hold across the system. Prefix `INV`. Don't have to be testable in isolation. | Feature-level behavior |
 | `docs/product-specs/<feature>.md` | Testable behaviors for one feature area. Each has a unique `PREFIX-NUM` ID. | Implementation details |
 
-## Spec format
+## Spec format — the three rules
 
-**Read `references/spec-format.md`** before writing any spec or invariant.
+Each feature spec is **behavioral** (what the system does, never how), **self-evidently testable** (precise enough to derive a test from the body — no separate `**Testable:**` line; rewrite the body instead), and **identified** (`### PREFIX-NUM: Short title`, prefix shared per file, numbers never reused or renumbered). Invariants share the ID format (`INV-N`) but describe system-wide properties and need not be testable in isolation. **Read `references/spec-format.md`** for the full rules and anti-patterns before writing any spec.
 
 ## Workflow when invoked
 
@@ -69,6 +79,8 @@ Ask before creating. The user's preferred granularity matters more than your gue
 
 ### 3. Create files in this order
 
+**Read `references/checklist.md` now** — the required content per file and the size budgets.
+
 1. `docs/product-specs/invariants.md` — the floor; everything else references it
 2. `docs/product-specs/<feature>.md` files — one per feature area
 3. `docs/product-specs/README.md` — index + format rules
@@ -87,16 +99,12 @@ See `templates/` in this skill directory for ready-to-fill skeletons. They embed
 - `docs/product-specs/README.md` indexes every spec file with prefix + summary
 - Specs reference invariants by ID where relevant (e.g., "see INV-3")
 
-## Required content
-
-Per `references/checklist.md`, read at step 3.
-
 ## Definition of done
 
 The skill is complete when **all** of these are true. Each item is answerable with evidence — a file path, a grep result, a user confirmation — not a vibe.
 
 - [ ] Scope confirmed with the user *before* file creation: list of feature spec files, their prefixes, any unusual splits/combines.
-- [ ] Every file in the "Required content checklist" exists and ticks every box in its own checklist. Missing items get a TODO with a reason, not silent omission.
+- [ ] Every file in `references/checklist.md` exists and ticks every box in its own checklist. Missing items get a TODO with a reason, not silent omission.
 - [ ] No spec describes implementation. Re-read each spec body: if it names a function, class, schema, or file, rewrite it behaviorally.
 - [ ] No spec carries a separate `**Testable:**` line. If the body isn't self-evidently testable, the body is rewritten — not annotated.
 - [ ] Every spec ID is unique within its file. Deletions leave holes; no renumbering.
