@@ -1,7 +1,7 @@
 # Report format
 
-Loaded from `SKILL.md` step 8 (synthesis). Covers locators, IDs, block rendering, and the
-report template.
+Loaded from `SKILL.md` step 8 (synthesis). Covers the six signals and severities, locators,
+IDs, block rendering, the report template, and the definition of done.
 
 ## Six signals, four severities
 
@@ -208,7 +208,7 @@ makes it.
 Each item is answerable with evidence — a quote from the diff, a doc path, a CI line — not a
 vibe. If a checkbox cannot be ticked honestly, return to the step that produces it.
 
-- [ ] Target resolved per **Inputs**: the reviewed diff is the merge-base comparison (or the
+- [ ] Target resolved per **Target and mode**: the reviewed diff is the merge-base comparison (or the
   explicit PR/range), working-tree changes included when present.
 - [ ] Mode stated — quick or full, with the blast-radius reason when auto-chosen. In quick
   mode, every skipped axis is listed under **Not reviewed**.
@@ -220,7 +220,7 @@ vibe. If a checkbox cannot be ticked honestly, return to the step that produces 
   the divergence diagnosed (constraint cited under Verified, or the open question is the
   headline).
 - [ ] Rule sources read: applicable agent instruction files, and load-bearing project docs in
-  full. `references/axes.md` was read; every applicable axis walked, the rest listed under
+  full. `references/audit.md` was read; every applicable axis walked, the rest listed under
   **Not reviewed**.
 - [ ] The five 5c angles and the 5d tracer were each walked (or delegated); every candidate
   carried a one-line failure scenario into verification.
