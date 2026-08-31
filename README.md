@@ -108,4 +108,6 @@ Two manifests, one package. Claude Code reads `marketplace.json` and ignores `pl
 python3 scripts/validate.py
 ```
 
+Skill budgets: Codex loads at most **8,000 bytes** of a `SKILL.md` — raw file, frontmatter included — and silently drops the rest, and shortens descriptions past **1,024 characters** in the catalog ([#10](https://github.com/korya/swd-skills/issues/10)). The validator prints every skill's budget, warns from 90% of either limit, and fails on a description over the cap; size overruns become failures once every core is under budget. Keep the core a step skeleton and move depth into `references/` files the skill reads at the step that needs them.
+
 Bump the version in **both** `plugin.json` and `.claude-plugin/marketplace.json` (`metadata.version` and the plugin entry). The validator fails if they disagree — Codex derives the installed version from `plugin.json`, so a stale value stalls updates for Codex users.
