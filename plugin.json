@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "swd",
   "version": "0.6.0",
-  "description": "Software development skills: deep planning, root-cause analysis, agent-oriented repo docs, spec-aware rebasing, PR review, and PR submission.",
+  "description": "Software development skills: deep planning, root-cause analysis, agent-oriented repo docs, spec-aware rebasing, PR review, PR submission, and end-user e2e testing.",
   "author": {
     "name": "korya"
   },
@@ -15,6 +15,7 @@
     "code-review",
     "rebase",
     "documentation",
-    "pull-request"
+    "pull-request",
+    "e2e-testing"
   ]
 }

@@ -2,7 +2,7 @@
 
 ![The swd skills as six workbench stations covering the development cycle, with a /revise loop back](assets/hero.jpg)
 
-A plugin of skills covering the full development cycle — spec, plan, build, submit, review, test — six shipped, four planned. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
+A plugin of skills covering the full development cycle — spec, plan, build, submit, review, test — seven shipped, three planned. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
 
 | Skill | What it does | When it triggers |
 | --- | --- | --- |
@@ -12,12 +12,12 @@ A plugin of skills covering the full development cycle — spec, plan, build, su
 | **[/rebase](./skills/rebase)** | Spec-aware rebasing: replays commits onto a new base while keeping the original intent, invariants, and conventions intact — not just resolving conflicts. | "rebase this branch on X", "move these commits onto the new base". |
 | **[/submit](./skills/submit)** | Ships finished work as a reviewable draft PR: feature branch, well-formed Conventional Commits, pre-push checks, an honest what/why/how description, and CI gated green. | "/submit", "submit this", "open a PR", "create a pull request", "push this up". |
 | **[/examine](./skills/examine)** | Production-risk-first holistic review of a PR, branch, or working tree; the host's built-in review is defect-first, this one also judges intent, approach, and right-sizing. | "/examine", "examine this PR", "review this PR", "review my branch", "check my PR before merge". |
+| **[/e2e-test](./skills/e2e-test)** | Tests the product the way its real user uses it — browser for a web app, binary for a CLI, consumer programs for a library — black-box from the change's blast radius, reporting PASS/FAILURE/BLOCKED per case, fixing nothing. | "/e2e-test", "e2e test this", "test it in the browser", "test it as the end user", "manual e2e testing". |
 | **/spec** | Turns a fuzzy feature request into a reviewable spec — goals, acceptance criteria, invariants, non-goals — that later skills cite by path. | Not implemented yet — [#26](https://github.com/korya/swd-skills/issues/26). |
 | **/implement** | Executes an approved blueprint plan with discipline: ordered steps, tests per step, deviations amend the plan instead of improvising. | Not implemented yet — [#27](https://github.com/korya/swd-skills/issues/27). |
 | **/revise** | Addresses review findings without scope creep: triage must-fix vs opinion, fix at the root, respond to each finding, re-submit. | Not implemented yet — [#28](https://github.com/korya/swd-skills/issues/28). |
-| **/e2e-test** | Validates the product as the end user — browser for a web app, binary for a CLI, SDK for a library — from the spec's acceptance criteria, black-box. | Not implemented yet — [#29](https://github.com/korya/swd-skills/issues/29). |
 
-Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:blueprint`, `$swd:rca`, `$swd:submit`, `$swd:examine`, `$swd:rebase`, `$swd:repo-docs`.
+Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:blueprint`, `$swd:rca`, `$swd:submit`, `$swd:examine`, `$swd:e2e-test`, `$swd:rebase`, `$swd:repo-docs`.
 
 ## Install (from GitHub)
 
