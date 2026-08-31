@@ -79,8 +79,9 @@ and synthesis.
    angles · 5d cross-file tracer · 5e–5m architecture, conventions, security, privacy,
    testing, load-bearing assumptions, risk coverage, reversibility, dependencies. Every
    issue-shaped observation becomes a *candidate* with a one-line failure scenario, never
-   dropped silently. Full mode: the host's built-in review runs in a subagent as one more
-   candidate source, never as the report (`--no-host-reviewers` skips it).
+   dropped silently. Full mode: the host's built-in review runs in a subagent, pointed at the
+   reviewed checkout, as one more candidate source, never as the report
+   (`--no-host-reviewers` skips it).
 6. **Occam pass** (full mode; rules in `audit.md` § 6): premature optimization, speculative
    generality, over-defence, reinvention, band-aids, deletion candidates. Simplifications
    clear the same evidence bar and default to Suggestion.
@@ -94,7 +95,7 @@ and synthesis.
    an Issue, a nice-to-note one a Gap; a doubt with no named mechanism is a Question.
 9. **Report locally**, findings first, per the template. If the host has a structured
    findings tool, call it once with the Issues; the terminal report is the deliverable.
-10. **Post to the PR only if asked.** Comments are public and durable; the user decides.
+10. **Post to the PR only if asked.** Comments are public and durable.
 
 ## Done when
 
