@@ -4,13 +4,13 @@
     "name": "korya"
   },
   "metadata": {
-    "description": "Software development skills: deep planning, root-cause analysis, agent-oriented repo docs, spec-aware rebasing, PR review, PR submission, and end-user e2e testing.",
+    "description": "Software development skills: deep planning, root-cause analysis, agent-oriented repo docs, spec-aware rebasing, PR review, PR submission, review revision, and end-user e2e testing.",
     "version": "0.6.0"
   },
   "plugins": [
     {
       "name": "swd",
-      "description": "Software development skills bundle: blueprint, rca, repo-docs, rebase, examine, submit, e2e-test.",
+      "description": "Software development skills bundle: blueprint, rca, repo-docs, rebase, examine, submit, revise, e2e-test.",
       "version": "0.6.0",
       "license": "AGPL-3.0-or-later",
       "source": "./",
@@ -22,7 +22,8 @@
         "./skills/rebase",
         "./skills/examine",
         "./skills/submit",
-        "./skills/e2e-test"
+        "./skills/e2e-test",
+        "./skills/revise"
       ]
     }
   ]
