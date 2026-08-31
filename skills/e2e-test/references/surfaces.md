@@ -53,6 +53,9 @@ surface the change touches, as its own persona.
   would; undocumented behavior needed to succeed is a finding.
 - Check contracts, not just 200s: response shapes, error bodies, status codes, auth
   failures.
+- [`http-assert`](https://github.com/korya/http-assert) automates this persona well:
+  curl-style requests with built-in assertions, scriptable per case, and usable to wait
+  for the service to come up ready — without hand-rolling a client.
 
 ## Readiness and fail-fast
 
