@@ -1,6 +1,15 @@
 ---
 name: examine
-description: Review a code change rigorously — a PR, branch, commit range, or the working tree. Confirm the problem is real, sketch the obvious solutions before reading the diff, then audit it for correctness, completeness, architecture, conventions, security, privacy, testing, reversibility, and dependencies, judge whether it is right-sized, and verify every significant finding independently. Returns a six-signal report: done well, gaps, issues rated Critical to Low with a separate confidence verdict, questions, suggestions, known limitations. Use when the user says "/examine", "examine this PR", "review this PR", "review pr #N", "review my branch", "look over my pull request", "check my PR before merge", or asks for a deep code review. Holistic where the host's built-in review is defect-first.
+description: >-
+  Review a code change rigorously — a PR, branch, commit range, or the working tree. Confirm the
+  problem is real, sketch the obvious solutions before reading the diff, then audit it for
+  correctness, completeness, architecture, conventions, security, privacy, testing, reversibility,
+  and dependencies, judge whether it is right-sized, and verify every significant finding
+  independently. Returns a six-signal report: done well, gaps, issues rated Critical to Low with a
+  separate confidence verdict, questions, suggestions, known limitations. Use when the user says
+  "/examine", "examine this PR", "review this PR", "review pr #N", "review my branch", "look over
+  my pull request", "check my PR before merge", or asks for a deep code review. Holistic where the
+  host's built-in review is defect-first.
 ---
 
 # Examine: production-risk-first code review
