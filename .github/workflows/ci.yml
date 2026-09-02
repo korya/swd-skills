@@ -29,6 +29,8 @@ jobs:
       - uses: korya/askl@v0
         with:
           dialect: spec,claude,codex
+          strict: "true"
+          pedantic: "true"
 
   hosts:
     name: Host validators (${{ matrix.host }})
