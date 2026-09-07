@@ -11,7 +11,7 @@ A plugin of skills covering the full development cycle — spec, plan, build, su
 | **[/rca](./skills/rca)** | Root-cause analysis: repro, timeline, evidence-backed 5-whys chain, sibling sweep, then two fix proposals (symptom vs cause) plus prevention for the whole class. | "/rca", "root cause", "5 whys", "why is this failing" — failures you want to learn from, not just patch. |
 | **[/repo-docs](./skills/repo-docs)** | Bootstraps or extends `AGENTS.md` + `docs/` so coding agents find the project's real conventions instead of guessing. | "document the project for coding agents", "set up agent docs", "add AGENTS.md". |
 | **[/rebase](./skills/rebase)** | Spec-aware rebasing: replays commits onto a new base while keeping the original intent, invariants, and conventions intact — not just resolving conflicts. | "rebase this branch on X", "move these commits onto the new base". |
-| **[/submit](./skills/submit)** | Ships finished work as a reviewable draft PR: feature branch, well-formed Conventional Commits, pre-push checks, an honest what/why/how description, and CI gated green. | "/submit", "submit this", "open a PR", "create a pull request", "push this up". |
+| **[/submit](./skills/submit)** | Ships finished work as a reviewable draft PR: feature branch, well-formed Conventional Commits, pre-push checks, an honest what/why/how description, and CI gated green. | Whenever completed changes need to become a PR — before any `git push` or `gh pr create` of your own, once per PR in a stack; also "/submit", "open a PR", "push this up". |
 | **[/examine](./skills/examine)** | Production-risk-first holistic review of a PR, branch, or working tree; the host's built-in review is defect-first, this one also judges intent, approach, and right-sizing. | "/examine", "examine this PR", "review this PR", "review my branch", "check my PR before merge". |
 | **[/revise](./skills/revise)** | Answers PR review feedback instead of obeying it: cross-validates every claim against code, design, and specs; verdicts each finding ACCEPT/PARTIAL/REJECT/DEFER with evidence; fixes accepted items at the root; replies where the feedback lives; re-submits. | "/revise", "address the review", "here's feedback on your PR", "respond to the reviewer". |
 | **[/e2e-test](./skills/e2e-test)** | Tests the product the way its real user uses it — browser for a web app, binary for a CLI, consumer programs for a library — black-box from the change's blast radius, reporting PASS/FAILURE/BLOCKED per case, fixing nothing. | "/e2e-test", "e2e test this", "test it in the browser", "test it as the end user", "manual e2e testing". |
@@ -102,10 +102,15 @@ skills/
   <name>/
     SKILL.md         # core: under 8 KB, read whole by every host
     references/      # depth, read at the step that needs it
+hooks/
+  hooks.json         # Claude Code hooks the plugin installs with itself
+  guard-pr.py        # PreToolUse: a bare `gh pr create` is refused unless /submit is running
 scripts/validate.py  # manifest + budget checks CI runs on every push
 tests/               # unit tests for the validator
 LICENSE              # AGPL-3.0-or-later
 ```
+
+One hook, Claude Code only. `/submit` owns the PR body, the screenshots for rendered changes, and the CI gate — and an agent that knows the `gh pr create` pattern will skip all three unless something stops it. `hooks/guard-pr.py` is that something: it refuses `gh pr create` unless `/submit` has left its marker (`$GIT_DIR/swd-submit`, set in phase 0, removed in phase 6, ignored after four hours) and tells the agent to invoke the skill instead. Hosts without hooks get the description alone, which names the same rule.
 
 Two manifests, one package. Claude Code reads `marketplace.json` and ignores `plugin.json`; Codex resolves `plugin.json` first and validates its `$schema` strictly — a wrong value makes `codex plugin add` fail outright. CI runs both hosts' native validators to keep them honest, plus `scripts/validate.py` for the checks neither host makes (version agreement across manifests, marketplace ↔ `skills/` symmetry, skills naming no host-specific tool, and every `SKILL.md` inside Codex's prompt budget).
 

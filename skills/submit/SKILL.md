@@ -1,6 +1,6 @@
 ---
 name: submit
-description: Submit finished work for review — feature branch, well-formed Conventional Commits, pre-push checks, a draft PR whose description explains the what, why, and how, then CI gated green with root-cause fixes. Use when the user says "/submit", "submit this", "open a PR", "create a pull request", "push this up", "get this reviewed", or whenever completed changes need to leave the working tree and become a reviewable pull request.
+description: Open every pull request through this skill — invoke it the moment completed changes need to become a PR, before any `git push` or `gh pr create` of your own, and once per PR in a stack. Never open a PR by hand while this skill is installed: it owns the branch and commit shape (Conventional Commits), the pre-push checks, the draft PR body (what, why, how), the mandatory screenshots for anything rendered, and the CI gate with root-cause fixes. Also triggers on "/submit", "submit this", "open a PR", "create a pull request", "push this up", "get this reviewed".
 ---
 
 # Submit: from working tree to reviewable PR
@@ -47,7 +47,9 @@ pushing to the default branch, force-pushing, or marking a draft PR ready for re
 
 ## Workflow
 
-0. **Orient.** `git status` (uncommitted? untracked?), current branch,
+0. **Orient.** `touch "$(git rev-parse --git-dir)/swd-submit"` — the plugin's guard
+   refuses `gh pr create` without this fresh marker. Then `git status`
+   (uncommitted? untracked?), current branch,
    `git log @{u}..HEAD` (unpushed?), and
    `gh pr view --json number,title,body,state,isDraft,baseRefName` (does a PR exist? was
    it merged while you worked?). State what you found in a sentence or two — the evidence
@@ -83,7 +85,8 @@ pushing to the default branch, force-pushing, or marking a draft PR ready for re
    flight. On failure: pull the failing logs, find the root cause in the diff, fix, and
    re-enter at phase 3 → 4 → 5b → 6. A failure that is clearly flaky or infra-side gets
    flagged to the user instead of burning retries. Close with the status: "all N required
-   checks green" or what failed and which commit fixed it.
+   checks green" or what failed and which commit fixed it. Then
+   `rm -f "$(git rev-parse --git-dir)/swd-submit"`.
 
 ## Definition of done
 
@@ -98,6 +101,7 @@ pushing to the default branch, force-pushing, or marking a draft PR ready for re
 - [ ] On re-invocation: title and body revalidated, outcome stated either way.
 - [ ] All required CI checks green, or the specific flaky/infra failure flagged.
 - [ ] Nothing marked ready, force-pushed, or merged — those need fresh consent.
+- [ ] The `swd-submit` marker is removed; the guard is armed for the next PR.
 
 ## Related skills
 
