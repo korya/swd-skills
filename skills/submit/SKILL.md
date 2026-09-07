@@ -1,6 +1,6 @@
 ---
 name: submit
-description: Open every pull request through this skill — invoke it the moment completed changes need to become a PR, before any `git push` or `gh pr create` of your own, and once per PR in a stack. Never open a PR by hand while this skill is installed — it owns the branch and commit shape (Conventional Commits), the pre-push checks, the draft PR body (what, why, how), the mandatory screenshots for anything rendered, and the CI gate with root-cause fixes. Also triggers on "/submit", "submit this", "open a PR", "create a pull request", "push this up", "get this reviewed".
+description: Open every pull request through this skill — invoke it the moment completed changes need to become a PR, instead of running `git push` or `gh pr create` yourself, and once per PR in a stack. Never open a PR by hand while this skill is installed — it owns the branch and commit shape (Conventional Commits), the pre-push checks, the draft PR body (what, why, how), the mandatory screenshots for anything rendered, and the CI gate with root-cause fixes. Also triggers on "/submit", "submit this", "open a PR", "create a pull request", "push this up", "get this reviewed".
 ---
 
 # Submit: from working tree to reviewable PR
