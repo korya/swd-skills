@@ -19,14 +19,14 @@ jobs:
       - name: Test the validator's budget thresholds
         run: python3 -m unittest discover -s tests -v
 
-  askl:
-    name: askl (spec + cross-runtime lint)
+  avocetta:
+    name: avocetta (spec + cross-runtime lint)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       # Deterministic compliance check against the agentskills.io / agent-plugins.org
       # specs plus Claude Code and Codex enforcement — no host CLIs needed.
-      - uses: korya/askl@v1
+      - uses: korya/avocetta@v2
         with:
           dialect: spec,claude,codex
           strict: "true"
