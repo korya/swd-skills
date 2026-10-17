@@ -47,7 +47,11 @@ Even a *valid* proposal is not automatically implemented. Ask, in order:
    PARTIAL: fix the problem, decline the ceremony, say so.
 4. **Is it practical or theoretical?** Optimizations for loads that don't exist, races
    that can't occur in this deployment, generality nobody asked for: premature. REJECT
-   with the reasoning, or DEFER with a ticket if the day may realistically come.
+   with the reasoning, or DEFER with a ticket if the day may realistically come. Guards
+   for inputs the type system, the call graph or a single trusted writer already exclude,
+   and fallbacks that mask a failure the same path already surfaces, are theoretical too:
+   failing loud there is correct. The carve-out is a trust boundary, where defensive code
+   is required.
 
 ## Verdict discipline
 
