@@ -45,7 +45,7 @@ explicitly and hold that item — never guess a verdict, never silently drop the
 - **Burden of proof is on the change.** If the current code violates no guideline, no
   security or architectural constraint, and no spec, "it would be nicer" is not a reason
   to touch it. The simplest solution satisfying all constraints stays.
-- **No scope creep, no premature optimization.** The PR's stated intent is the fence;
+- **No scope creep, no premature optimization, no speculative guards.** The PR's stated intent is the fence;
   theoretical performance and "while we're here" work are deferred or rejected, not done.
 - **Silence is not a response.** Every finding gets a verdict and a justification —
   including, and especially, the rejected ones.
