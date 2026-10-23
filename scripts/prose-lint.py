@@ -9,6 +9,7 @@ Rules (all hard, exit 1 on any finding):
   long-sentence   a sentence over MAX_SENTENCE words
   long-lead       the first sentence of a paragraph over MAX_LEAD words
   long-paragraph  a paragraph with more than MAX_PARAGRAPH sentences
+  teaser-lead     a paragraph lead that announces a count of things without naming them
   semicolon       any semicolon outside code
   dash            an em dash, a spaced en dash, or a spaced double hyphen outside code
 
@@ -58,6 +59,13 @@ IMAGE_ONLY = re.compile(r"^\s*!\[[^\]]*\]\([^)]*\)\s*$")
 MAX_SUBJECT = 72
 SUBJECT = re.compile(r"^(?:feat|fix|chore|refactor|test|docs|perf|build|ci|style|revert)(?:\([^)]+\))?!?: [A-Z]")
 TRAILER = re.compile(r"^[A-Za-z-]+: \S")
+
+# "Two things went wrong." as a paragraph opener: a count of unnamed things is not a claim.
+TEASER = re.compile(
+    r"^(?:Two|Three|Four|Five|Several|A few|Some|Multiple|Many)\s+"
+    r"(?:things|designs|principles|reasons|factors|causes|changes|points|problems|issues|"
+    r"parts|decisions|behaviou?rs|rules|forces|ideas|effects|concerns|aspects|observations)\b"
+    r"[^.!?]{0,60}[.!?]$", re.I)
 
 SEMICOLON = re.compile(r";")
 DASH = re.compile(r"—|(?<=\s)–(?=\s)|(?<=\s)--(?=\s)")
@@ -129,6 +137,10 @@ class Block:
 
         for i, (start, end) in enumerate(spans):
             n = count_words(joined[start:end])
+            if i == 0 and self.kind == "paragraph" and TEASER.match(joined[start:end].strip()):
+                out.append(finding(filename, line_of(start), "teaser-lead",
+                                   "Lead announces a count of things without naming them. "
+                                   "State the claim instead."))
             if i == 0 and self.kind == "paragraph" and n > MAX_LEAD:
                 out.append(finding(filename, line_of(start), "long-lead",
                                    f"Paragraph lead has {n} words (max {MAX_LEAD}). "
