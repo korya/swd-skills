@@ -6,7 +6,8 @@ Operating manual for coding agents and humans working on this repo.
 
 **<PROJECT NAME>** is <one paragraph: what it does, who it is for, current stage>.
 
-<Optional: one or two design principles that drive everything>
+<Optional: the design principles that drive everything, each stated as a rule, such as
+"The event log is the only source of truth." Do not open with a count of them.>
 
 ## Tech stack
 
