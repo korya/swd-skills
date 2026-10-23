@@ -21,7 +21,7 @@ This file is the skeleton; each reference holds a phase's full rules and example
 | File | Read at | Holds |
 |---|---|---|
 | `references/commits.md` | phase 2 | subject and body rules, staging discipline, trailers |
-| `references/pr-description.md` | phase 5, before drafting or validating a description | what/why/how structure, ledes, visualization, justification-not-journal |
+| `references/pr-description.md` | phase 5, before drafting or validating a description | the glance test, what/why/how structure, ledes, side effects, visualization, justification-not-journal |
 | `references/screenshots.md` | when the branch changes anything rendered | mandatory screenshots; hosting images from the CLI |
 | `references/rationalizations.md` | when tempted to skip a phase | why each shortcut fails |
 
@@ -73,14 +73,16 @@ pushing to the default branch, force-pushing, or marking a draft PR ready for re
 5. **PR.** **Read `references/pr-description.md` now.**
    - **5a — no PR exists.** Draft the title (same rules as a commit subject) and the
      body: the repo's own PR template when one exists, else the what/why/how structure
-     from the reference. A change to anything rendered → **read
+     from the reference, each section opening with its glance block (a plain lede, then
+     the side effects with numbers), details after. A change to anything rendered → **read
      `references/screenshots.md`**; screenshots are mandatory or the gap declared.
      Create as a **draft** (`gh pr create --draft`), body via heredoc.
    - **5b — a PR exists.** Mandatory even when the user only said "push", and even with
      nothing new pushed. Fetch the live title and body plus `git log <base>..HEAD`; check
      the title still covers *all* the work and the body still tells the truth — scope,
-     claims ("no new dependencies"), screenshots still current. Stale → `gh pr edit` and
-     say what changed; not stale → state "title and body still match the branch".
+     claims ("no new dependencies"), the glance blocks' numbers and side effects,
+     screenshots still current. Stale → `gh pr edit` and say what changed; not stale →
+     state "title and body still match the branch".
 6. **CI.** `gh pr checks` — wait out pending checks; never declare success with checks in
    flight. On failure: pull the failing logs, find the root cause in the diff, fix, and
    re-enter at phase 3 → 4 → 5b → 6. A failure that is clearly flaky or infra-side gets
@@ -96,7 +98,8 @@ pushing to the default branch, force-pushing, or marking a draft PR ready for re
   unrelated or sensitive files staged.
 - [ ] Format, lint, and tests pass locally for every touched area before every push.
 - [ ] Draft PR exists; description follows the repo template or the what/why/how
-  structure, with a visualization where prose alone is weak; rendered changes carry
+  structure, each section opening with its glance block (plain lede, then side effects
+  with numbers), with a visualization where prose alone is weak; rendered changes carry
   screenshots or a declared capture gap.
 - [ ] On re-invocation: title and body revalidated, outcome stated either way.
 - [ ] All required CI checks green, or the specific flaky/infra failure flagged.

@@ -11,6 +11,7 @@ already cost someone a bad merge, a leaked file, or a reviewer's trust.
 | "The lint rule is wrong anyway, disable it." | The rule encodes a lesson the repo already paid for. If it is truly wrong, that is its own PR with its own justification — not a drive-by in this one. |
 | "Push straight to the default branch, it's tiny." | Size is not the criterion — review is. Tiny changes break production precisely because nobody looked. |
 | "The PR body can stay as-is, I only pushed a commit." | New commits change scope; a stale description makes the reviewer review the wrong PR. Revalidation (5b) is mandatory, and "nothing stale" must be said aloud. |
+| "The trade-offs are in the details, the summary can stay short." | The summary *is* where trade-offs go: a reviewer decides in the first fifteen seconds, and a slowdown or a cost buried in paragraph six is a surprise after approval. Lede, then the side effects, good and bad, with their numbers. |
 | "The diff speaks for itself, skip the description." | The diff shows how. Only the description can say why, what was assumed, and what was deliberately not done — the three things reviews actually argue about. |
 | "Mark it ready, the user probably wants that." | Ready-for-review pings humans. The user decides when to spend reviewer attention, never the workflow. Same for force-pushes and merges. |
 | "CI is red but it looks flaky, rerun until green." | Rerunning until green is how real failures ship. Read the logs first; call it flaky only when the evidence says infra, then flag it to the user. |
