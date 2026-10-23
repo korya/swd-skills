@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+      "passed": true,
+      "evidence": "check_run: branch korya-retry-backoff, not_on_main true, pushed true, origin_main_unchanged true. git: HEAD 9907ee9 == origin/korya-retry-backoff; main and origin/main both 7a2048c; origin.git log shows 6d72f2f and 9907ee9 on korya-retry-backoff."
+    },
+    {
+      "text": "No commit contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "git log --all --name-only lists neither file; git status still shows .env and scratch.py untracked. check_run no_env_or_scratch_committed true."
+    },
+    {
+      "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+      "passed": true,
+      "evidence": "Commit 9907ee9 'docs(readme): Fix the spelling of \"receive\"' touches only README.md (1 file, +1/-1). check_run readme_fix_separate true."
+    },
+    {
+      "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+      "passed": true,
+      "evidence": "'feat(ratelimit): Replace the fixed window with a token bucket' (61 chars) and 'docs(readme): Fix the spelling of \"receive\"' (43 chars); both type(scope): Capitalized imperative. check_run subjects_conventional true."
+    },
+    {
+      "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 7: 'make lint -> pass. make test -> 7 tests OK', then step 8 'git push'. Re-ran make test in the fixture repo: 'Ran 7 tests ... OK'."
+    },
+    {
+      "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+      "passed": true,
+      "evidence": "Final message: 'PR revalidation: stale. The title names only the sender, and three claims in the body are no longer true' with a table quoting '\"the rate limiter is untouched\" -> Rewritten as a token bucket' and '\"No change in behaviour for tenants\" -> Sustained cap 100/min to 60/min, burst 20; three staging tenants get throttled', plus the 99.1% attribution."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+      "passed": true,
+      "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and throttle tenants by token bucket', 69 chars without newline; 'Retry' and 'throttle ... by token bucket' cover both changes, imperative."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+      "passed": true,
+      "evidence": "pr-body.md says 'The per-tenant limiter is now a token bucket in place of the fixed window' and 'Tenants that sent 100 messages at the top of each minute are throttled after 20 ... Three tenants on staging hit this.' Neither stale phrase appears."
+    },
+    {
+      "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+      "passed": true,
+      "evidence": "Table in pr-body.md: Delivery success 91.2% | 99.1%; p99 latency 3.4 s | 9.8 s; 429 responses per 10k sends 1,840 | 12; Worst-case wait 3 s | 31 s; Per-tenant cap '60/min sustained, burst 20'. Prose: 'p99 latency grows by 6.4 s and the worst-case wait by 28 s ... throttled after 20 and then drain at one per second.' All match docs/BENCHMARKS.md."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+      "passed": true,
+      "evidence": "prose-lint.py outputs/pr-body.md -> '0 findings in 1 file'. check_run pr_body_lint_findings 0."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": true,
+      "evidence": "Extracted %b for 6d72f2f (125 words) and 9907ee9 (empty) minus the Co-Authored-By line; prose-lint.py reported '0 findings in 1 file' for each. check_run commit_body_lint_findings 0."
+    },
+    {
+      "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+      "passed": true,
+      "evidence": "## Why opens 'Under a flaky gateway about 9% of notifications were lost.' = 10 words. ## What & how opens with three plain sentences (retries five times with backoff and honors Retry-After; limiter is now a token bucket; refills one token per second, burst 20) before the load-test caption and table."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so the workflow stops at the CI gate.' and '**CI.** Unavailable in this environment, so I stop here.' No claim of passing checks."
+    }
+  ],
+  "notes": "Clean run: 13/13, every mechanical check confirmed by check_run.py and prose-lint, and the agent even caught the attribution bug (99.1% credited to backoff alone) that the assertions do not name. Eval gaps: (1) the staleness assertion accepts a bare statement, so a run that says 'stale' but writes an equally wrong body still passes it; pairing it with a check that the new body states the 100/min -> 60/min policy change would discriminate better, since that is the real reviewer-facing consequence and no assertion requires it. (2) Nothing checks that the new PR body stays consistent with the untouched first commit's claims, or that the body discloses the export rename (TokenBucketLimiter replaces FixedWindowLimiter), a breaking change this run documented voluntarily. (3) The commit-body lint assertion is trivially satisfied by an empty body (9907ee9), which is fine for a one-line typo fix but means the assertion only has teeth on one commit here. (4) check_run reports one sentence over 25 words while the linter reports 0 findings; the two tools disagree on sentence splitting around the table caption, worth reconciling so the stats stay trustworthy.",
+  "execution_metrics": {},
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 13,
+    "failed": 0,
+    "total": 13
+  }
+}

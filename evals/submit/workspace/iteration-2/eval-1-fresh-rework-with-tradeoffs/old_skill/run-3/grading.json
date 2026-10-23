@@ -1,0 +1,87 @@
+{
+  "expectations": [
+    {
+      "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+      "passed": true,
+      "evidence": "check_run: branch=fixture-retry-backoff-token-bucket, not_on_main=true, origin_main_unchanged=true; `git -C origin.git rev-parse main` = 7553fb7 = root commit."
+    },
+    {
+      "text": "No commit on the feature branch contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "check_run no_env_or_scratch_committed=true; `git log main..HEAD --name-only` lists only README.md, docs/BENCHMARKS.md, notify/__init__.py, notify/ratelimit.py, notify/sender.py, tests/*.py. `.env` and `scratch.py` remain untracked (`git status --short`)."
+    },
+    {
+      "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+      "passed": true,
+      "evidence": "Commit 348ef15 `docs(readme): Fix spelling of \"receive\"` touches README.md only; check_run readme_fix_separate=true."
+    },
+    {
+      "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects (lengths 66/62/71/39): `feat(notify): Retry with exponential backoff and honor Retry-After`, `feat(notify): Replace fixed-window limiter with a token bucket`, `docs(benchmarks): Record load-test results for backoff and token bucket`, `docs(readme): Fix spelling of \"receive\"`. All type(scope): Capital imperative, max 71 chars; check_run subjects_conventional=true."
+    },
+    {
+      "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+      "passed": true,
+      "evidence": "9f00ceb body (after blank line): 'Previously Sender retried three times with a fixed one-second delay and only on 5xx ... Now each retry waits base * 2**attempt seconds (default 0.5 s, capped at 16 s) plus optional jitter, and a Retry-After header ... overrides the computed delay.' 493818f likewise: 'Previously FixedWindowLimiter allowed 100 sends ... Now TokenBucketLimiter refills ...'."
+    },
+    {
+      "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+      "passed": false,
+      "evidence": "Transcript step 13: `make lint && make test | tail -3 && git push -u origin ...` -> 'test printed FAILED (errors=2) but the `| tail` masked the exit code and the push proceeded'. The last test run before the push failed (stale __pycache__ ImportError); the passing runs (steps 16-17, including a fresh clone) came after the push. The executor itself flags this as 'The pre-push gate slipped'."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+      "passed": true,
+      "evidence": "pr-title.txt = `feat(notify): Retry with backoff and rate-limit with a token bucket` (68 chars, no trailing newline). Imperative ('Retry ... and rate-limit ...'); names both the retry change and the rate-limit change."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+      "passed": false,
+      "evidence": "Lede under '## Why': 'Under gateway trouble, nearly one in ten notifications is lost, and tenants that burst get a wall of 429s every minute.' Hand count = 21 words (Under/gateway/trouble/nearly/one/in/ten/notifications/is/lost/and/tenants/that/burst/get/a/wall/of/429s/every/minute); `wc -w` = 21; prose-lint line 3: 'Paragraph lead has 21 words (max 20)'. Content is right (lost messages + 429s, no fix, no teaser) but it exceeds the 20-word cap."
+    },
+    {
+      "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+      "passed": true,
+      "evidence": "'## What & how' opens with one sentence: 'Retries now back off exponentially and honor `Retry-After`, and the per-tenant limiter is a token bucket (sustained 60/min, burst 20) instead of a fixed window.' Followed by the table: Delivery success 91.2% -> 99.1%, p99 latency 3.4 s -> 9.8 s, Worst-case wait 3 s -> 31 s, then 'The trade: ... tail latency roughly triples and the worst case grows tenfold.' Numbers match docs/BENCHMARKS.md."
+    },
+    {
+      "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+      "passed": true,
+      "evidence": "'Who feels it: three staging tenants send their whole minute's quota in the first second; they are now throttled after 20 and drain at one per second.' plus 'token bucket (sustained 60/min, burst 20)' and table row 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'. check_run: 60/min=true, three tenants=true."
+    },
+    {
+      "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+      "passed": true,
+      "evidence": "No diff hunks or pasted source; the only code block is a hand-written mermaid flowchart of the retry decision. check_run pr_body_journal_words=false; no 'first I tried'/'then I' phrasing. The '## Other changes' bullets describe secondary changes (benchmarks column, README spelling, test coverage) rather than enumerating paths, so they are not a changed-file list."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "`prose-lint.py outputs/pr-body.md` -> 18 findings: 5 long-lead (lines 3, 5, 9, 20, 42: 21-25 words), 4 long-sentence (33, 27, 27, 28 words), 9 semicolons (lines 5, 20, 36-40). No em dashes. check_run pr_body_lint_findings=18."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": false,
+      "evidence": "Linting each body with the Co-Authored-By line stripped: 9f00ceb 3 findings (lead 33 words, sentence 28 words, semicolon '429 joins 500/502/503/504 as retryable; other 4xx ...'), 493818f 2 findings (lead 36 words, semicolon 'removed rather than kept alongside; the package export ...'), 262aa2b 1 finding (lead 42 words), 348ef15 0 (no body). Total 6; check_run commit_body_lint_findings=6."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+      "passed": true,
+      "evidence": "First sentences in order: 'Under gateway trouble, nearly one in ten notifications is lost, and tenants that burst get a wall of 429s every minute.' (what broke) / 'The sender retried three times, one second apart, and only on 5xx; ...' (cause) / 'Retries now back off exponentially and honor Retry-After, and the per-tenant limiter is a token bucket ...' (what changed) / 'The trade: messages that used to fail fast now wait and get delivered, so the tail latency roughly triples and the worst case grows tenfold.' (cost) / 'Decisions a reviewer should weigh:' (list label, colon before a list) / 'Out of scope: ...'. The argument survives on first sentences alone; none starts with 'Because', none is a qualifier chain or a 'two things went wrong' teaser. The list label is the weakest link but introduces a list rather than withholding a claim."
+    },
+    {
+      "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable in this environment, so the workflow stops here; the `swd-submit` marker is removed.' No claim that checks passed in CI; local lint/test results are reported as local."
+    }
+  ],
+  "notes": "The run is honest and the output is strong on substance (trade-off table, reviewer decisions, Retry-After edge cases flagged), yet it fails 4 of 15, and three of those are the prose constraints the old skill never states (20-word lead, 25-word sentences, no semicolons): 18 pr-body findings and 6 commit-body findings, with 9 semicolons in the body alone. The lede fails by exactly one word (21), which shows the assertion is discriminating but also brittle; it would be worth pairing the hard count with the linter's long-lead rule so the two never disagree. The test-gate failure is a genuine catch the eval author should like: the executor piped `make test | tail -3`, which swallowed a FAILED exit, and pushed anyway; the assertion caught it only because the transcript self-reported. Nothing mechanical inspects the push-time test result, so a less candid transcript would pass; consider having the fixture's Makefile write a test-result marker file the checker can read. Assertion 11 (no file list) is loosely satisfied by an '## Other changes' section that names two files per bullet; the assertion should say whether a short per-file bullet summary counts as a file list. The branch name `fixture-retry-backoff-token-bucket` (derived from git user 'Fixture Bot') is unchecked and harmless, but no assertion checks that the PR body references the three tenants as a pre-deploy action item, which the body does well.",
+  "execution_metrics": {},
+  "summary": {
+    "pass_rate": 0.7333,
+    "passed": 11,
+    "failed": 4,
+    "total": 15
+  }
+}

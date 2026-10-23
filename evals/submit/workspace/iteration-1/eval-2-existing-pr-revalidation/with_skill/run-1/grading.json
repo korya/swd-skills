@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+      "passed": true,
+      "evidence": "check_run.py: not_on_main=true, pushed=true, origin_main_unchanged=true. git: HEAD abc17f6 == origin/korya-retry-backoff; main == origin/main == ffe7720. Branch has 2 commits over main (8914936 fixture, abc17f6 new)."
+    },
+    {
+      "text": "No commit contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "check_run.py no_env_or_scratch_committed=true; `git log --all --name-only` grep for .env/scratch.py returns none. Both remain untracked in the working tree."
+    },
+    {
+      "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+      "passed": true,
+      "evidence": "Final message: 'Left out of the commit, on purpose: README.md (\"recieve\" typo fix). Unrelated to this PR. Say the word and I\\'ll commit it separately, or it rides the next PR.' README.md still shows as ' M' in git status."
+    },
+    {
+      "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+      "passed": true,
+      "evidence": "One new subject: 'feat(ratelimit)!: Replace the fixed window limiter with a token bucket' (70 chars, imperative 'Replace', capitalized). The '!' is the spec's breaking-change marker and the body carries a matching 'BREAKING CHANGE:' footer. check_run.py reports subjects_conventional=false only because its SUBJECT regex (line 20) omits the optional '!', a checker gap rather than a commit defect."
+    },
+    {
+      "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript cmd 5: 'make lint; make test' -> 'Both pass. 7 tests OK.' Cmd 8: 'make lint >/dev/null && make test | tail -1 && git push' -> 'Checks pass on the committed tree. Pushed 8914936..abc17f6'. Re-running make test on the pushed tree: 'Ran 7 tests ... OK'. Caveat: in cmd 8 the && chain gates on tail's exit status, not make's, so the push was gated by the agent reading the OK line rather than by the shell."
+    },
+    {
+      "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+      "passed": true,
+      "evidence": "Final message heading 'PR revalidation (5b): stale, both title and body.' with reasons: 'Body claimed \"the rate limiter is untouched\". It is now replaced.'; 'Body credited 91.2% to 99.1% to the backoff alone. BENCHMARKS measures backoff and token bucket together.'; 'Body hid every downside ... three staging tenants now throttled'. The 'tenant behaviour unchanged' claim is refuted via the throttling point rather than quoted verbatim."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+      "passed": true,
+      "evidence": "pr-title.txt: 'feat(notify)!: Retry with backoff and throttle tenants by token bucket' (70 chars). 'Retry with backoff' = retry change; 'throttle tenants by token bucket' = rate-limit change; imperative verbs. check_run.py pr_title_ok=true."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+      "passed": true,
+      "evidence": "grep -i 'untouched|no change in behaviour|unchanged' on pr-body.md: no matches. Body instead says 'The per-tenant limiter is now a token bucket' and 'Tenant behaviour changes. A tenant that sent 100 messages in the first second of each minute is now throttled after 20'."
+    },
+    {
+      "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+      "passed": true,
+      "evidence": "pr-body.md table: 'Delivery success | 91.2% | 99.1%', 'p99 latency | 3.4 s | 9.8 s', '429 responses per 10k sends | 1,840 | 12', 'Worst-case wait per message | 3 s | 31 s', 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'; prose: 'is now throttled after 20 and drains at one per second. Three staging tenants hit this.' All match docs/BENCHMARKS.md."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+      "passed": true,
+      "evidence": "Ran prose-lint.py on outputs/pr-body.md: '0 findings in 1 file', exit 0. check_run.py pr_body_lint_findings=0."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": true,
+      "evidence": "Extracted %b of abc17f6 minus the Co-Authored-By line to a scratch file and ran prose-lint.py: '0 findings in 1 file', exit 0. check_run.py commit_body_lint_findings=0 (max sentence 20 words)."
+    },
+    {
+      "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+      "passed": true,
+      "evidence": "Under '## Why' the first paragraph is one sentence: 'Under a flaky gateway about 9% of notifications were lost.' = 10 words. Under '## What & how' two plain sentences (sender retries with backoff; limiter is now a token bucket) and a one-sentence table preamble precede the benchmark table."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so the workflow stops before the CI gate.' and '**CI.** Unavailable in this environment, so I stop here. With a real forge I would wait on `gh pr checks`'. No claim that checks passed."
+    }
+  ],
+  "notes": "Solid run; every assertion passes on real evidence, not surface compliance. Two things for the eval author: (1) check_run.py's SUBJECT regex rejects the valid Conventional Commits breaking marker 'feat(scope)!:', so subjects_conventional=false here is a false negative and will misfire on any run that correctly flags the removed FixedWindowLimiter export; add '!?' before the colon. (2) The test-gate assertion is satisfied by transcript narration ('Checks pass'), but the agent's actual push command gated on `make test | tail -1`, whose exit status is tail's, so a failing suite would not have blocked the push mechanically. No assertion distinguishes 'agent read the OK line' from 'shell enforced the gate'; if that matters, assert on the command shape or require tests to run as a separate step before push. Minor: the staleness assertion's parenthetical names two stale claims, but the agent only quoted the rate-limiter one verbatim and refuted the tenant-behaviour one indirectly; the assertion as worded passes either way, so consider whether both must be named explicitly. Also unchecked: the agent flagged the breaking change with '!' and a BREAKING CHANGE footer, a good outcome no assertion rewards.",
+  "execution_metrics": {},
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 13,
+    "failed": 0,
+    "total": 13
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+      "passed": true,
+      "evidence": "check_run.py: branch korya-retry-backoff, not_on_main=true, pushed=true, origin_main_unchanged=true. git: korya-retry-backoff and origin/korya-retry-backoff both at 9bc93b1; main and origin/main both at 7553fb7; two new commits 3d9a5dd and 9bc93b1 on top of fixture commit 784c5d7."
+    },
+    {
+      "text": "No commit contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "check_run.py no_env_or_scratch_committed=true; git log --name-status for the two new commits lists only docs/BENCHMARKS.md, notify/__init__.py, notify/ratelimit.py, tests/test_ratelimit.py and README.md. git status still shows '?? .env' and '?? scratch.py' untracked."
+    },
+    {
+      "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+      "passed": true,
+      "evidence": "Separate commit 9bc93b1 'docs(readme): Fix \"recieve\" typo' touching only README.md; check_run.py readme_fix_separate=true."
+    },
+    {
+      "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects: 'feat(ratelimit): Replace fixed-window limiter with a token bucket' (65 chars) and 'docs(readme): Fix \"recieve\" typo' (32 chars). Both type(scope): Capitalized imperative verb; check_run.py subjects_conventional=true."
+    },
+    {
+      "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 9 '`make lint && make test` -- compileall clean; 7 tests passed' immediately precedes step 10 '`git push ...` -- pushed 784c5d7..9bc93b1'. No code changes between the test run and the push."
+    },
+    {
+      "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+      "passed": true,
+      "evidence": "Final message: 'PR revalidation: stale. The old title covers only the backoff commit, and the old body claims \"the rate limiter is untouched\" and \"no change in behaviour for tenants\", both false now; it also credits the 99.1% to backoff alone, whereas BENCHMARKS.md measures backoff plus token bucket together.'"
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+      "passed": true,
+      "evidence": "pr-title.txt: 'feat(notify): Add retry backoff and a token-bucket tenant limiter' -- 65 characters (66 bytes with trailing newline), imperative 'Add', names both retry backoff and the token-bucket limiter."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+      "passed": true,
+      "evidence": "pr-body.md exists (1967 bytes). grep for 'untouched' and 'No change in behaviour' finds nothing; instead it says 'The per-tenant limiter is a token bucket (60/min sustained, burst of 20) instead of a fixed 100/min window' and 'Tenants that relied on bursting 100 messages per minute are now throttled after 20'."
+    },
+    {
+      "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+      "passed": true,
+      "evidence": "pr-body.md table rows: 'Delivery success | 91.2% | 99.1%', 'p99 latency | 3.4 s | 9.8 s', '429 responses per 10k sends | 1,840 | 12', 'Worst-case wait per message | 3 s | 31 s', 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'; prose: 'The sustained cap also drops from 100/min to 60/min. Tenants that relied on bursting 100 messages per minute are now throttled after 20 and drain at one per second; three staging tenants hit this today'. All match docs/BENCHMARKS.md."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+      "passed": false,
+      "evidence": "prose-lint.py pr-body.md: '7 findings in 1 file' (exit 1) -- line 3 long-lead 23 words; line 8 long-sentence 29 words; line 23 long-lead 37 words, long-sentence 33 words, two semicolons; line 25 long-lead 28 words. check_run.py agrees: pr_body_lint_findings=7."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": false,
+      "evidence": "Body of 3d9a5dd (Co-Authored-By stripped): '3 findings in 1 file' -- line 1 long-lead 35 words ('Previously FixedWindowLimiter let a tenant send its whole 100/min quota ... (1,840 per 10k sends).'), line 3 long-sentence 34 words, line 7 long-lead 34 words ('Trade-off: p99 latency rises ... queue behind the bucket.'). Body of 9bc93b1 is empty after stripping the trailer: 0 findings. check_run.py commit_body_lint_findings=3."
+    },
+    {
+      "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+      "passed": false,
+      "evidence": "First sentence under '## Why' is 23 words: 'Under a flaky gateway about 9% of notifications were lost, and tenants that front-loaded their quota triggered 429 storms that hurt everyone else.' (counted with wc -w; prose-lint also flags it as long-lead 23 > 20). The solution half passes: '## What & how' opens with two sentences before the table. The lede half fails, so the assertion fails."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI. CI is unavailable in this environment, so I stop here; the swd-submit marker has been removed.' No claim that checks passed."
+    }
+  ],
+  "notes": "The mechanics are solid and the judgment assertions pass on real substance: the agent correctly reads BENCHMARKS.md, names the stale claims verbatim, keeps secrets out, splits the typo fix, tests before pushing. What fails is prose discipline, and all three failures are the same root cause: the old skill never asks the writer to keep leads under 20 words or sentences under 25, so both the commit body and the PR body are dense 30+ word sentences with semicolons. Eval critique: the lede assertion bundles two independent checks (problem lede length AND solution opening shape); splitting them would show that only the lede side is weak. The 'last test run passed' assertion is graded from the agent's own transcript summary, which a fabricating agent could satisfy; a check that the Makefile test target was invoked (e.g. a stamp file or __pycache__ mtime vs push time) would make it discriminating. Nothing covers whether the PR body's 'FixedWindowLimiter is removed' claim was verified (the agent did grep for it, step 6), nor whether the agent noticed the stale body attributes 99.1% to backoff alone -- it did, and that is a good catch worth an assertion since the scenario's trap is attribution, not just the 'untouched' sentence.",
+  "execution_metrics": {},
+  "summary": {
+    "pass_rate": 0.7692,
+    "passed": 10,
+    "failed": 3,
+    "total": 13
+  }
+}
