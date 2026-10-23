@@ -1,0 +1,127 @@
+{
+  "expectations": [
+    {
+      "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+      "passed": true,
+      "evidence": "check_run: branch=fixture-retry-backoff-token-bucket, not_on_main=true, origin_main_unchanged=true. git log in origin.git: 063f6bc (HEAD -> main) 'feat(notify): Initial sender with fixed retries and window limiter'; the four new commits are only on origin/fixture-retry-backoff-token-bucket."
+    },
+    {
+      "text": "No commit on the feature branch contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "git log --all --name-only | grep -E '\\.env|scratch' returns nothing; git status still shows '?? .env' and '?? scratch.py' untracked. check_run no_env_or_scratch_committed=true."
+    },
+    {
+      "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+      "passed": true,
+      "evidence": "Commit ecb523e 'docs(readme): Fix the spelling of \"receive\"' touches only README.md (1 file changed, 1 insertion, 1 deletion). Sender change is b70e291, limiter change is 5444ba7."
+    },
+    {
+      "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects and lengths: 66 'feat(notify): Retry with exponential backoff and honor Retry-After'; 66 'feat(notify): Replace the fixed-window limiter with a token bucket'; 67 'docs(benchmarks): Record the load test for backoff and token bucket'; 43 'docs(readme): Fix the spelling of \"receive\"'. All imperative (Retry, Replace, Record, Fix), capitalized, check_run subjects_conventional=true."
+    },
+    {
+      "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+      "passed": true,
+      "evidence": "b70e291 body (after blank line): 'Previously the sender retried three times with a fixed one second wait and retried every 5xx. Now it retries five times with a delay that doubles from 0.5 s and caps at 16 s, with optional jitter.' 5444ba7 likewise: 'Previously FixedWindowLimiter allowed 100 sends per tenant per minute ... Now TokenBucketLimiter allows a sustained rate of one send per second with a burst of 20'."
+    },
+    {
+      "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 7: 'make lint && make test && git push -u origin fixture-retry-backoff-token-bucket' -- checks green, branch pushed. The && chain means the push could only run after a passing test. Re-running make test in outputs/fx/repo now: 'Ran 7 tests ... OK'."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+      "passed": true,
+      "evidence": "pr-title.txt = 'feat(notify): Retry with backoff and throttle tenants by token bucket' (69 chars without newline). Imperative 'Retry'/'throttle'; names backoff retry and token-bucket throttling."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+      "passed": true,
+      "evidence": "First sentence under '## Why': 'Under a flaky gateway the sender drops about one message in eleven, and bursty tenants trigger thousands of 429 rejections.' wc -w = 20 (exactly at the limit). States lost messages and 429s, no fix, no teaser."
+    },
+    {
+      "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+      "passed": true,
+      "evidence": "'## What & how' opens with two sentences: 'The sender retries with exponential backoff and honors Retry-After. The limiter becomes a token bucket at 60 per minute sustained with a burst of 20.' Then a before/after table: Delivery success 91.2% -> 99.1%, p99 latency 3.4 s -> 9.8 s, Worst-case wait 3 s -> 31 s, 429s 1,840 -> 12. Followed by 'The trade is a slower tail.' and a side-effects list."
+    },
+    {
+      "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+      "passed": true,
+      "evidence": "'Three staging tenants that send 100 messages in the first second of each minute are now throttled after 20 and drain at one per second.' Table row: 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'."
+    },
+    {
+      "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+      "passed": true,
+      "evidence": "No file list (only one 'Other changes' bullet naming README.md with its change), no diff hunks, the only code block is a mermaid flowchart written for the reader. check_run pr_body_journal_words=false; no first-person narration anywhere in the body."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py outputs/pr-body.md -> '0 findings in 1 file', exit 0. check_run pr_body_lint_findings=0. (check_run's over_25=1 stat is an artefact of its splitter joining the label 'Side effects beyond the table:' with the first bullet; the bullet itself is 25 words.)"
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": true,
+      "evidence": "git log --format=%b origin/main..HEAD | grep -v Co-Authored-By written to a scratch file and linted -> '0 findings in 1 file'. check_run commit_body_lint_findings=0, max_words=22."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+      "passed": true,
+      "evidence": "First sentences: 'Under a flaky gateway the sender drops about one message in eleven, and bursty tenants trigger thousands of 429 rejections.' / 'The load test in docs/BENCHMARKS.md runs 10,000 sends against the staging gateway.' / 'The old retry policy and the old limiter each cause part of the loss.' / 'The sender retries with exponential backoff and honors Retry-After.' / 'The trade is a slower tail.' / 'Details a reviewer should weigh:' (structural list label). Each is a claim; the chain gives broke -> changed -> cost. None starts with 'Because'."
+    },
+    {
+      "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so the workflow stops before the CI gate.' It reports local make lint/make test as passing but makes no CI claim."
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 15,
+    "failed": 0,
+    "total": 15
+  },
+  "claims": [
+    {
+      "claim": "Every commit body and the PR body pass prose-lint.py with no findings",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Both lint runs reproduced at grading time: 0 findings each."
+    },
+    {
+      "claim": "make lint and make test pass (7 tests)",
+      "type": "process",
+      "verified": true,
+      "evidence": "make test re-run in the fixture repo: Ran 7 tests, OK."
+    },
+    {
+      "claim": "Retry-After is honored verbatim and not capped by max_delay",
+      "type": "factual",
+      "verified": false,
+      "evidence": "Not independently checked against notify/sender.py; stated in both the body and the final message. Flagged as unverified rather than wrong."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words ...",
+        "reason": "The lede landed at exactly 20 words, and the longest body sentences at exactly 25. The run is clearly steering to the limit rather than well under it; the assertion still discriminates, but the author may want to know the skill produces boundary-hugging prose rather than short prose."
+      },
+      {
+        "reason": "No assertion checks that the PR body's technical claims about the diff are true (Retry-After uncapped, jitter default 0.0, FixedWindowLimiter removed from __init__). A body that invents reviewer-facing caveats would pass every current assertion. A check that each named parameter/default exists in the committed source would make the 'details a reviewer should weigh' section hard to fake."
+      },
+      {
+        "reason": "The test-before-push assertion is graded from a transcript summary line. The && chain is good evidence here, but a transcript that merely said 'tests passed' would be indistinguishable from an unread result. Having the executor record the raw make test tail in the transcript would make this verifiable rather than trusted."
+      }
+    ],
+    "overall": "Clean run, 15/15. Assertions are well targeted at structure and prose mechanics; the gap is correctness of the body's statements about the code, which nothing checks."
+  },
+  "notes": "All 15 assertions pass on reproduced evidence (check_run.py, both prose-lint runs, git inspection, make test rerun). Two things worth the eval author's attention: the writing hugs the limits exactly (20-word lede, 25-word sentences), so the thresholds are doing work but the skill is optimizing to them rather than below them; and no assertion verifies the PR body's claims about the code itself (uncapped Retry-After, jitter default, removed export), so a body that fabricated plausible caveats would also score 15/15. The test-before-push assertion rests on the transcript's '&&' chain rather than a captured test result; still convincing here, but a looser transcript would make it untestable.",
+  "execution_metrics": {}
+}

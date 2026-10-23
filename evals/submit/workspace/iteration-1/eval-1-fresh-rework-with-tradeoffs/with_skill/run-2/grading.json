@@ -1,0 +1,87 @@
+{
+  "expectations": [
+    {
+      "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+      "passed": true,
+      "evidence": "check_run: branch fixture-backoff-token-bucket, not_on_main true, origin_main_unchanged true; git log shows origin/main and main both at 93e803b (fixture initial commit), two new commits 9874131 and 74617b2 pushed to origin."
+    },
+    {
+      "text": "No commit on the feature branch contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "git log --name-only over origin/main..HEAD lists only README.md, docs/BENCHMARKS.md, notify/__init__.py, notify/ratelimit.py, notify/sender.py, tests/test_ratelimit.py, tests/test_sender.py; .env and scratch.py remain untracked (git status '??'). check_run no_env_or_scratch_committed true."
+    },
+    {
+      "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+      "passed": true,
+      "evidence": "74617b2 'docs(readme): Fix the spelling of \"receive\"' touches only README.md; the feature commit 9874131 does not touch README.md. check_run readme_fix_separate true."
+    },
+    {
+      "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+      "passed": false,
+      "evidence": "Subject of 9874131 is 76 characters: 'feat(notify): Replace fixed retries and window with backoff and token bucket' (awk length = 76). check_run subjects_conventional false. Format, imperative mood and capitalisation are fine; the length limit is exceeded by 4 characters. 74617b2 (43 chars) is fine."
+    },
+    {
+      "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+      "passed": true,
+      "evidence": "9874131 body follows a blank line after the subject and opens: 'Previously the sender retried three times with a fixed one-second delay, and only on 5xx. Now it retries up to five times with exponential backoff capped at 16 s and optional jitter.' and 'Previously the limiter allowed 100 sends per tenant in each fixed minute. Now a token bucket allows a sustained 60 per minute with a burst of 20.'"
+    },
+    {
+      "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 7: 'make lint && make test && git push -u origin fixture-backoff-token-bucket' with note 'checks pass on the committed tree, branch pushed'. The && chain means the push could only run after a passing test; step 4 also reports 7 tests passing on the working tree."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+      "passed": true,
+      "evidence": "pr-title.txt = 'feat(notify): Retry with backoff and limit tenants with a token bucket' (70 chars via wc -c without newline). Imperative; 'Retry with backoff' names the retry change and 'limit tenants with a token bucket' names the rate-limit change."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+      "passed": true,
+      "evidence": "First sentence under '## Why': 'When the gateway is flaky, about one message in eleven never arrives, and tenants still trigger 429 storms.' = 18 words (wc -w). States lost messages and 429 storms, no fix described, no teaser."
+    },
+    {
+      "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+      "passed": true,
+      "evidence": "'## What & how' opens with two plain sentences: 'The sender now retries on 429 and 5xx with exponential backoff, and a Retry-After header overrides the computed delay. The per-tenant limiter becomes a token bucket, which smooths each tenant to a sustained rate with a bounded burst.' Followed by a before/after table with 'Delivery success | 91.2% | 99.1%', 'p99 latency | 3.4 s | 9.8 s', 'Worst-case wait per message | 3 s | 31 s', and a prose paragraph 'The p99 nearly triples and the worst case for one message grows from 3 s to 31 s.'"
+    },
+    {
+      "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+      "passed": true,
+      "evidence": "pr-body.md: 'Three staging tenants burst 100 sends in the first second of each minute. They are now cut off after 20 and drain at one per second. The sustained cap also drops from 100 to 60 per minute' and table row 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'."
+    },
+    {
+      "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+      "passed": true,
+      "evidence": "No changed-files list, no diff hunks, no pasted source; the mermaid flowchart is a reader-facing diagram. check_run pr_body_journal_words false; grep finds no 'first I', 'then I', 'I tried'. The '## Other changes' section names docs/BENCHMARKS.md and README with what changed, which is a description of changes rather than a file list."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "python3 scripts/prose-lint.py outputs/pr-body.md -> '0 findings in 1 file' (exit 0). check_run pr_body_stats max_words 21, over_25 0."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": true,
+      "evidence": "Each body extracted with git log -1 --format=%b minus the Co-Authored-By line and linted separately: 9874131 -> '0 findings in 1 file'; 74617b2 (empty body) -> '0 findings in 1 file'. check_run commit_body_lint_findings 0."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+      "passed": false,
+      "evidence": "Paragraph leads in order: 'When the gateway is flaky, about one message in eleven never arrives, and tenants still trigger 429 storms.' / 'The load test in docs/BENCHMARKS.md sends 10,000 messages against staging.' / 'Two designs caused this.' / 'The sender now retries on 429 and 5xx with exponential backoff, and a Retry-After header overrides the computed delay.' / 'The trade: the tail gets slower so that more messages arrive.' / 'Details a reviewer should weigh, in descending importance:'. The third lead, 'Two designs caused this.', is the exact teaser shape the assertion (and assets/writing.md: 'A teaser such as \"Two things went wrong.\" is not a claim') bans: it announces an enumeration without naming either cause, so the root causes (5xx-only three retries, fixed-minute window) are missing from the skim. The rest of the skim (what broke, what changed, what it costs) survives."
+    },
+    {
+      "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'I stopped at the CI gate because CI is unavailable here.' and 'CI is unavailable in this environment, so phase 6 did not run. ... Nothing was marked ready, force-pushed, or merged.' No claim that checks passed in CI; only local make lint/test are reported as passing."
+    }
+  ],
+  "notes": "Two failures, both narrow: the feature commit subject overshoots 72 characters by 4 (the skill lints prose in bodies but nothing in the run checked subject length, so the eval caught a real skill gap), and one paragraph lead in the Why section ('Two designs caused this.') is the teaser pattern the skill's own writing.md names. Eval critique: the subject-length assertion bundles four properties (format, mood, capital, length) into one verdict, so a failure does not say which one broke; splitting length out would make the signal sharper. The skim-test assertion is the most discriminating one here and it is judgment-only; a mechanical hint such as 'no paragraph lead consisting of a count plus a pronoun' would make it reproducible across graders. check_run.py's pr_body_journal_words only greps a few phrases, so a journal written in other words would slip past the mechanical half of assertion 11. No assertion checks that the commit body or PR body is factually consistent with the diff (e.g. the body claims 'FixedWindowLimiter leaves the public API with no alias'); a reviewer-facing body with a wrong claim would pass every assertion. The 'test run before push' assertion relies on the executor's self-written transcript; the fixture leaves no artefact (test log) to verify it independently.",
+  "execution_metrics": {},
+  "summary": {
+    "pass_rate": 0.8667,
+    "passed": 13,
+    "failed": 2,
+    "total": 15
+  }
+}

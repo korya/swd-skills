@@ -1,0 +1,75 @@
+{
+  "expectations": [
+    {
+      "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+      "passed": true,
+      "evidence": "check_run.py: branch=fixture-retry-backoff-token-bucket, not_on_main=true, origin_main_unchanged=true. git log in origin.git: main -> 7553fb7 (fixture initial commit); feature branch HEAD 348ef15 pushed."
+    },
+    {
+      "text": "No commit on the feature branch contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "git log origin/main..HEAD --name-only lists only docs/BENCHMARKS.md, notify/__init__.py, notify/ratelimit.py, notify/sender.py, README.md, tests/test_ratelimit.py, tests/test_sender.py. .env and scratch.py remain untracked (git status: '?? .env', '?? scratch.py'). check_run: no_env_or_scratch_committed=true."
+    },
+    {
+      "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+      "passed": true,
+      "evidence": "Commit 348ef15 'docs(readme): Fix spelling of \"receive\"' touches only README.md (1 insertion, 1 deletion). Sender change is 9f00ceb, limiter change is 493818f. check_run: readme_fix_separate=true."
+    },
+    {
+      "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects and lengths: 'feat(notify): Retry with exponential backoff and honor Retry-After' (66), 'feat(notify): Replace fixed-window limiter with a token bucket' (62), 'docs(benchmarks): Record load-test results for backoff and token bucket' (71), 'docs(readme): Fix spelling of \"receive\"' (39). All imperative verbs (Retry, Replace, Record, Fix), capitalised. check_run: subjects_conventional=true."
+    },
+    {
+      "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+      "passed": true,
+      "evidence": "9f00ceb body (after blank line): 'Previously Sender retried three times with a fixed one-second delay and only on 5xx ... Now each retry waits base * 2**attempt seconds (default 0.5 s, capped at 16 s) plus optional jitter, and a Retry-After header ... overrides the computed delay.' 493818f likewise: 'Previously FixedWindowLimiter allowed 100 sends per tenant per 60 s window ... Now TokenBucketLimiter refills at a sustained rate'."
+    },
+    {
+      "text": "The transcript shows the tests (make test or python -m unittest) were run and passed before the push.",
+      "passed": false,
+      "evidence": "Transcript step 5 ran 'make lint && make test' on the uncommitted working tree (7 tests OK), but the pre-push run in step 13 ('make lint && make test | tail -3 && git push ...') printed 'FAILED (errors=2)' and the push proceeded anyway because the pipe masked the exit code. The executor admits: 'The pre-push gate slipped, my fault.' The passing run on HEAD content (steps 16-17) happened only after the push. The gate did not hold; the earlier pass is coincidental to the code being identical. (I confirmed independently that make test passes on a fresh clone of the pushed branch, so the pushed code is correct, but the assertion is about the pre-push check.)"
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+      "passed": true,
+      "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and rate-limit with a token bucket' (67 chars). Imperative 'Retry ... and rate-limit'; names backoff retries and the token-bucket rate limit. check_run: pr_title_ok=true."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 25 words that states what was broken (lost messages / 429 storms) without describing the fix.",
+      "passed": true,
+      "evidence": "'## Why' opens with a standalone one-sentence paragraph of 21 words (wc -w): 'Under gateway trouble, nearly one in ten notifications is lost, and tenants that burst get a wall of 429s every minute.' Names lost messages and 429 storms; no mention of backoff or token bucket."
+    },
+    {
+      "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+      "passed": true,
+      "evidence": "'## What & how' opens with one sentence: 'Retries now back off exponentially and honor Retry-After, and the per-tenant limiter is a token bucket (sustained 60/min, burst 20) instead of a fixed window.' Followed by the before/after table (Delivery success 91.2% | 99.1%; p99 latency 3.4 s | 9.8 s; Worst-case wait 3 s | 31 s) and 'The trade: ... the tail latency roughly triples and the worst case grows tenfold.' All numbers match docs/BENCHMARKS.md."
+    },
+    {
+      "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+      "passed": true,
+      "evidence": "pr-body.md: 'Who feels it: three staging tenants send their whole minute's quota in the first second; they are now throttled after 20 and drain at one per second.' Table row: 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'. check_run: 60/min=true, three tenants=true."
+    },
+    {
+      "text": "pr-body.md contains no file list, no pasted code, and no step-by-step work journal (no 'first I tried', 'then I').",
+      "passed": true,
+      "evidence": "grep for 'first I|then I' finds nothing; check_run pr_body_journal_words=false. No source code is pasted; the only fenced block is a mermaid flowchart of the retry decision. The '## Other changes' section names docs/BENCHMARKS.md and README in two bullets, but each is described by what changed and why rather than as an enumeration of touched files, so it does not read as a file list."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md and on each commit body (git log --format=%b) reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint on pr-body.md: 18 findings (5 long-lead of 21-25 words, 4 long-sentence up to 33 words, 9 semicolons). Commit bodies (Co-Authored-By stripped): 9f00ceb 3 findings (lead 33 words, sentence 28 words, semicolon), 493818f 2 findings (lead 36 words, semicolon), 262aa2b 1 finding (lead 42 words), 348ef15 0 findings. Total 24 findings, none allowed."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); no first sentence is a qualifier chain or starts with 'Because'.",
+      "passed": true,
+      "evidence": "First sentences in order: 'Under gateway trouble, nearly one in ten notifications is lost, and tenants that burst get a wall of 429s every minute.' (what broke) / 'The sender retried three times, one second apart, and only on 5xx' (cause) / 'Retries now back off exponentially and honor Retry-After, and the per-tenant limiter is a token bucket' (what changed) / 'The trade: messages that used to fail fast now wait and get delivered, so the tail latency roughly triples and the worst case grows tenfold.' (cost) / 'Decisions a reviewer should weigh:' / 'Out of scope: ...'. Each review bullet leads with a bold claim or question. No paragraph starts with 'Because'; grep confirms. The only leading qualifier is the three-word 'Under gateway trouble,' which is not a chain."
+    },
+    {
+      "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable in this environment, so the workflow stops here; the swd-submit marker is removed.' Only local make lint/make test results are claimed as green, and the message explicitly discloses that the pre-push gate slipped."
+    }
+  ],
+  "notes": "The run is strong on substance (clean commit split, secrets excluded, numbers and trade-offs all present, honest final message) and weak on prose discipline: 24 lint findings, mostly semicolons and 30-40 word paragraph leads in commit bodies, which is exactly what the new writing rules target. Eval critique: assertion 6 ('tests were run and passed before the push') is ambiguous for this run, where an earlier run passed on identical content but the actual pre-push gate reported FAILED and the push went ahead; the eval author should decide whether it means 'some passing run preceded the push' or 'the pre-push check passed and gated the push', and word it accordingly. Assertion 11's 'no file list' is also fuzzy: an 'Other changes' section that names two files with their purpose passes here, but a stricter reading could fail it. No assertion checks that the pushed branch actually passes tests from a fresh clone (I verified this: 7 tests OK), which would have caught a real regression had the stale-pyc failure been genuine. The mermaid diagram in the PR body is neither required nor forbidden; worth deciding whether fenced non-code blocks count as 'pasted code'."
+}

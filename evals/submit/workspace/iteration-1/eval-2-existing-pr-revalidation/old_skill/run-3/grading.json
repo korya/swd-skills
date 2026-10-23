@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+      "passed": true,
+      "evidence": "check_run: not_on_main=true, pushed=true, origin_main_unchanged=true. git: korya-retry-backoff == origin/korya-retry-backoff == 23fac06; origin/main == main == 343b3ee (fixture base). Two new commits 376c7f1 and 23fac06 on top of fixture commit b1021cb."
+    },
+    {
+      "text": "No commit contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "check_run no_env_or_scratch_committed=true; git log --name-only shows only docs/BENCHMARKS.md, notify/__init__.py, notify/ratelimit.py, tests/test_ratelimit.py, README.md; git status still lists .env and scratch.py as untracked."
+    },
+    {
+      "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+      "passed": true,
+      "evidence": "Separate commit 23fac06 'docs(readme): Fix \"recieve\" typo' touching only README.md; check_run readme_fix_separate=true."
+    },
+    {
+      "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects: 'feat(ratelimit): Replace fixed-window limiter with a token bucket' (65 chars), 'docs(readme): Fix \"recieve\" typo' (32 chars). Both type(scope): Capitalized imperative; check_run subjects_conventional=true."
+    },
+    {
+      "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 8 '`make lint; make test` -- both pass (7 tests OK)' precedes step 9 (commits) and step 10 (`git push`); no edits between test and push. Caveat: the transcript is the agent's own summary, not raw tool output."
+    },
+    {
+      "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+      "passed": true,
+      "evidence": "Final message, 'PR revalidation (5b). Stale on both counts: Title covered only the sender retry. ... Body claimed \"the rate limiter is untouched\" and \"no change in behaviour for tenants\", both now false, credited the 99.1% to backoff alone, and omitted the costs.'"
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+      "passed": true,
+      "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and throttle tenants by token bucket' -- 69 chars, imperative, names retry/backoff and the token-bucket throttle."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+      "passed": true,
+      "evidence": "grep for 'untouched' / 'no change in behaviour' in pr-body.md: 0 hits. Body states 'The per-tenant limiter becomes a token bucket at 60/min sustained with a burst of 20' and 'Tenants that relied on sending 100 messages in the first second of each minute are throttled after 20'."
+    },
+    {
+      "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+      "passed": true,
+      "evidence": "Table rows: 'Delivery success | 91.2% | 99.1%', 'p99 latency | 3.4 s | 9.8 s', '429 responses per 10k sends | 1,840 | 12', 'Worst-case wait per message | 3 s | 31 s', 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'; prose: 'throttled after 20 and drain at one per second; three tenants on staging hit this'. All match docs/BENCHMARKS.md."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+      "passed": false,
+      "evidence": "prose-lint.py pr-body.md: '9 findings in 1 file' -- long-lead at lines 3 (25 words), 11 (21), 22 (45), 36 (32); long-sentence at lines 5 (39 words) and 22 (36); semicolon at lines 5, 22, 36. check_run pr_body_lint_findings=9."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": false,
+      "evidence": "Agent commit 376c7f1 body: '4 findings' -- long-lead line 1 (33 words), long-lead line 6 (24 words), long-sentence line 7 (26 words), semicolon line 9 ('drain at one per second; three staging tenants hit this'). Commit 23fac06 body: 0 findings. check_run commit_body_lint_findings=4. (Fixture commit b1021cb excluded.)"
+    },
+    {
+      "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+      "passed": false,
+      "evidence": "First sentence under '## Why' is 25 words: 'Under a flaky gateway about 9% of notifications were lost, and tenants that spent their whole minute's quota in one second set off 429 storms.' (wc -w = 25; limit 20). The solution half passes: '## What & how' opens with two plain sentences (retry schedule; token bucket) before the benchmark table."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message opens 'CI is unavailable here, so the workflow stops before the CI gate' and closes '**CI.** Unavailable in this environment; stopping here.' No claim that checks passed."
+    }
+  ],
+  "notes": "The three failing assertions all measure the same thing from different angles (lede length, sentence length, semicolons), so this run's 10/13 understates how good the substance was: staleness was diagnosed precisely, the numbers were lifted correctly, the typo fix was split out, and secrets stayed untracked. The test-before-push assertion is graded from the agent's own hand-written transcript (step 13 wrote transcript.md), not from captured tool output, so a dishonest or mistaken agent could pass it; a raw tool log or a hook that records the last `make test` exit code would make it discriminating. Nothing checks that the final message flagged the unrequested inference ('should be told before rollout'), which this run did well and a weaker run would silently assert. The `.env`/`scratch.py` assertion would also pass a run that simply forgot to commit anything, since it only checks absence; pairing it with the 'committed and pushed' assertion covers that, so no change needed.",
+  "execution_metrics": {},
+  "summary": {
+    "pass_rate": 0.7692,
+    "passed": 10,
+    "failed": 3,
+    "total": 13
+  }
+}

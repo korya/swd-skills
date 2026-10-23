@@ -1,0 +1,125 @@
+{
+  "expectations": [
+    {
+      "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+      "passed": true,
+      "evidence": "git log --all: HEAD -> fixture-backoff-token-bucket (e5de452), origin/main and main both at fbeee79 'feat(notify): Initial sender with fixed retries and window limiter'. check_run.py: not_on_main=true, origin_main_unchanged=true, pushed=true."
+    },
+    {
+      "text": "No commit on the feature branch contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "git show --stat of all four commits lists only notify/*, tests/*, docs/BENCHMARKS.md, README.md. git status still shows '?? .env' and '?? scratch.py' untracked. check_run.py: no_env_or_scratch_committed=true."
+    },
+    {
+      "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+      "passed": true,
+      "evidence": "Commit e5de452 'docs(readme): Fix the spelling of receive' touches only README.md (1 file changed, 1 insertion, 1 deletion). check_run.py: readme_fix_separate=true."
+    },
+    {
+      "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects and lengths: 'feat(sender): Retry with exponential backoff and honor Retry-After' (66), 'feat(ratelimit): Replace the fixed window with a token bucket' (61), 'docs(benchmarks): Record the load test for backoff and token bucket' (67), 'docs(readme): Fix the spelling of receive' (41). All imperative verbs, capitalised. check_run.py: subjects_conventional=true."
+    },
+    {
+      "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+      "passed": true,
+      "evidence": "6bfd7ca body (after blank line): 'Previously the sender retried three times with a fixed one-second wait and treated every 4xx as final. Now it retries up to five times with exponential backoff and honors a Retry-After header.' The ratelimit commit 786582d follows the same Previously/Now shape."
+    },
+    {
+      "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 7: 'make lint && make test && git push -u origin fixture-backoff-token-bucket' -- 'compileall clean, 7 tests OK, branch pushed, local HEAD equals origin'. The && chain means the push could only run after a passing test exit, and the result was read."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+      "passed": true,
+      "evidence": "pr-title.txt = 'feat(notify): Retry with backoff and throttle with a token bucket' (65 chars without newline). Imperative 'Retry' and 'throttle'; names backoff retries and the token-bucket rate limit."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+      "passed": true,
+      "evidence": "Line 3 under '## Why': 'Under a flaky gateway the sender loses 9% of messages, and bursting tenants draw 1,840 throttling responses per 10,000 sends.' wc -w = 20 words. Names lost messages and 429 storms, no fix, no teaser."
+    },
+    {
+      "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+      "passed": true,
+      "evidence": "'## What & how' opens with two sentences: 'The sender now retries up to five times with exponential backoff and honors a Retry-After header. The per-tenant limiter is now a token bucket with a sustained rate of 60 per minute and a burst of 20.' Followed by a before/after table with 'Delivery success | 91.2% | 99.1%', 'p99 latency | 3.4 s | 9.8 s', 'Worst-case wait per message | 3 s | 31 s', and prose 'p99 nearly triples and a single message can now wait 31 s instead of 3 s.'"
+    },
+    {
+      "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+      "passed": true,
+      "evidence": "'Three staging tenants that burst 100 sends at the top of each minute are throttled after 20 and drain at one per second. They need a heads-up before this reaches production.' Table row 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'."
+    },
+    {
+      "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+      "passed": true,
+      "evidence": "No file enumeration; the only code is a 6-line before/after constructor-signature snippet and a mermaid flowchart, both written for the reader. grep for 'first I|then I|I tried|I started|next I' finds nothing; check_run.py pr_body_journal_words=false. 'Other changes' names docs/BENCHMARKS.md and README.md by what changed, not as a file list."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py pr-body.md -> '0 findings in 1 file', exit 0. check_run.py pr_body_stats: 35 sentences, max 24 words, over_25=0."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": true,
+      "evidence": "Each of the four bodies extracted with git log -1 --format=%b minus the Co-Authored-By line and linted separately: '0 findings in 1 file' for 6bfd7ca, 786582d, 4372fdc, e5de452 (empty body). check_run.py commit_body_lint_findings=0, max_words=21."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+      "passed": true,
+      "evidence": "First sentences in order: 'Under a flaky gateway the sender loses 9% of messages...' (what broke) / 'The sender retried three times, one second apart, and treated every 4xx as final.' / 'The sender now retries up to five times with exponential backoff...' (what changed) / 'The numbers below come from the load test in docs/BENCHMARKS.md.' (source lead-in to the table) / 'The trade: one message in eleven used to be lost, now one in a hundred is.' plus the table rows p99 3.4 s -> 9.8 s and worst-case 3 s -> 31 s (what it costs) / 'Details a reviewer should not miss, in descending importance:' (structural label) / 'Deliberately out of scope: ...' / 'No visual change.' None starts with 'Because', none is a qualifier chain or a content-free teaser. Weakest link: the cost side (p99, 31 s, breaking rename) sits in the table and in sentences 2-5 of the 'The trade' paragraph rather than in a first sentence."
+    },
+    {
+      "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so I stopped at the CI gate.' No claim that checks passed; only local make lint / make test are reported as passing."
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 15,
+    "failed": 0,
+    "total": 15
+  },
+  "execution_metrics": {
+    "total_tokens": 76250,
+    "duration_ms": 320893
+  },
+  "claims": [
+    {
+      "claim": "Retry-After is not capped by max_delay; float(retry_after) raises ValueError on HTTP-date form; Sender docstring says 429 or 503 but _delay reads it on every retryable status",
+      "type": "factual",
+      "verified": false,
+      "evidence": "Reviewer notes made by the executor about the fixture code; not verified here (read-only grading scope, and no assertion covers them). Plausible given the before/after snippet, but unchecked."
+    },
+    {
+      "claim": "7 tests OK after make test",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript step 7 chained make test before git push; tests/__pycache__ exists in the repo tree, consistent with a test run."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs)...",
+        "reason": "The cost half of the argument is carried by a table and by the second sentence of 'The trade' paragraph; the assertion does not say whether a table counts as skimmable. Spell out whether a table row satisfies 'what it costs' or whether a first sentence must name the latency regression."
+      },
+      {
+        "reason": "No assertion covers whether the PR body flags the breaking API rename (FixedWindowLimiter -> TokenBucketLimiter), which is the biggest reviewer-facing side effect in this fixture. This run did it well, but a run that omitted it would still score 15/15."
+      },
+      {
+        "assertion": "The last test run before the push ... passed",
+        "reason": "Only verifiable from the summarised transcript, not from outputs. If make_fixture.sh could drop a marker (e.g. a test log written by make test), the grader could check it mechanically."
+      }
+    ],
+    "overall": "Assertions are mostly mechanical and discriminating (check_run.py covers 10 of 15). The judgment assertions passed on genuine substance. The run also surfaced three real-looking code issues as reviewer notes instead of silently patching, which is the right call for a submit skill but is not rewarded by any assertion."
+  },
+  "notes": "Strong run: 15/15 with no borderline fails. The assertions are well targeted at the hard parts (lede length, numbers from BENCHMARKS.md, lint on both body and commits) and the mechanical ones are backed by check_run.py. Two gaps worth closing: the skim test should say whether a table row counts as a skimmed first sentence, since the latency cost here lives in the table and in mid-paragraph sentences; and nothing checks that the breaking limiter rename is called out in the PR body, which is the single most important reviewer fact in this fixture and a weaker run could skip it unpunished. The test-passed assertion rests on the transcript summary alone."
+}

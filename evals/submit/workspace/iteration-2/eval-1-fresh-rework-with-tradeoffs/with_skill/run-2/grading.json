@@ -1,0 +1,145 @@
+{
+  "expectations": [
+    {
+      "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+      "passed": true,
+      "evidence": "Four commits on fixture-retry-backoff-token-bucket (1061fb2, 9e23d98, 707001b, b985c34); `git -C origin.git rev-parse main` = f716e33, which is the fixture's root commit. check_run: not_on_main=true, origin_main_unchanged=true."
+    },
+    {
+      "text": "No commit on the feature branch contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "`git ls-tree -r --name-only <sha> | grep -E '\\.env|scratch.py'` is empty for all four new commits; both files remain untracked (`?? .env`, `?? scratch.py`). check_run: no_env_or_scratch_committed=true."
+    },
+    {
+      "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+      "passed": true,
+      "evidence": "b985c34 'docs(readme): Fix the spelling of \"receive\"' touches only README.md (1 insertion, 1 deletion). The two feat commits touch notify/sender.py+tests and notify/ratelimit.py+__init__.py+tests only."
+    },
+    {
+      "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects and lengths: 'feat(notify)!: Retry with exponential backoff and honor Retry-After' (67), 'feat(notify)!: Replace the fixed window limiter with a token bucket' (67), 'docs(benchmarks): Record load-test results for backoff and token bucket' (71), 'docs(readme): Fix the spelling of \"receive\"' (43). All imperative (Retry/Replace/Record/Fix), capitalized; the `!` breaking marker is valid Conventional Commits."
+    },
+    {
+      "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+      "passed": true,
+      "evidence": "1061fb2 body (after blank line): 'Previously the sender retried three times with a fixed one-second wait and retried on every 5xx. Now it retries five times with a delay of base * 2**attempt, capped at max_delay, plus optional jitter.' 9e23d98 likewise: 'Previously FixedWindowLimiter allowed 100 sends per tenant per minute... Now TokenBucketLimiter allows a sustained rate of one send per second...'"
+    },
+    {
+      "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 12: 'for c in 1061fb2 9e23d98 HEAD; do ...; make lint; make test; done' -- 'lint and tests OK at every commit'. Steps 13-15 touched only stash entries and the untracked .env/scratch.py; the push is step 16. No tracked file changed between the test run and the push."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+      "passed": true,
+      "evidence": "pr-title.txt = 'Retry with exponential backoff and throttle tenants with a token bucket' (71 chars without newline). Imperative; names retry (exponential backoff) and rate limiting (throttle tenants / token bucket)."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+      "passed": true,
+      "evidence": "First sentence under '## Why': 'When the gateway is flaky, almost one notification in eleven is lost, and bursty tenants draw 429 storms upstream.' Counted 19 words. Names both symptoms (lost messages, 429 storms), no fix, no teaser."
+    },
+    {
+      "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+      "passed": true,
+      "evidence": "'## What & how' opens with two sentences: 'The sender retries with exponential backoff and honors `Retry-After`. Per-tenant throttling moves from a fixed window to a token bucket that refills continuously.' Then a before/after table: Delivery success 91.2% -> 99.1%, p99 3.4 s -> 9.8 s, worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, matching docs/BENCHMARKS.md exactly; followed by a 'Side effects beyond the table' list."
+    },
+    {
+      "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+      "passed": true,
+      "evidence": "'Three staging tenants that sent 100 messages in the first second of each minute are now throttled after 20 and drain at one per second.' and 'The sustained per-tenant cap drops from 100/min to 60/min.'"
+    },
+    {
+      "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+      "passed": true,
+      "evidence": "No file list or diff hunks. The only code is a 6-line '# before / # after' constructor-signature snippet under '### API contract', written for the reader. No journal language; check_run pr_body_journal_words=false. The '## Other changes' bullets describe two changes by content, not a file enumeration."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "`python3 scripts/prose-lint.py outputs/pr-body.md` -> '0 findings in 1 file'. (check_run's pr_body_stats max_words=31 is its naive splitter joining the label 'Side effects beyond the table:' with the following bullet; the linter itself reports nothing.)"
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": true,
+      "evidence": "Extracted each of the four bodies with `git log -1 --format=%b <sha> | grep -v '^Co-Authored-By'` and linted them one by one: 1061fb2 -> 0 findings, 9e23d98 -> 0 findings, 707001b -> 0 findings, b985c34 (empty body) -> 0 findings. check_run commit_body_lint_findings=0, max_words=23."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+      "passed": true,
+      "evidence": "First sentences: 'When the gateway is flaky, almost one notification in eleven is lost...' (what broke); 'The sender retried three times with a fixed one-second wait and gave up.'; 'The load test in docs/BENCHMARKS.md puts numbers on both.'; 'The sender retries with exponential backoff and honors Retry-After.' (what changed); 'The trade: nearly every message now arrives, and the gateway sees two 429s where it saw three hundred.'; 'Three staging tenants ... are now throttled after 20...' (cost); 'Retryable means 429, 500, 502, 503, or 504.'; '`Retry-After` is not capped by `max_delay`.' All are claims; none starts with 'Because'; no teaser of the 'Two things caused this.' kind. Weakest point: the latency cost itself lands in the second sentence of 'The trade:' paragraph ('In return the tail gets longer'), though the table above it carries the numbers."
+    },
+    {
+      "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so I stopped at phase 6 and disarmed the `swd-submit` marker.' No claim that checks passed."
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 15,
+    "failed": 0,
+    "total": 15
+  },
+  "execution_metrics": {
+    "total_tokens": 86422,
+    "duration_ms": 484110,
+    "total_duration_seconds": 484.1
+  },
+  "claims": [
+    {
+      "claim": "With the defaults the worst case wait per message grows from 3 s to 7.5 s (commit 1061fb2)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "base 0.5 * 2**attempt for attempts 0..3 = 0.5+1+2+4 = 7.5 s; max_delay 16 never binds."
+    },
+    {
+      "claim": "The gateway sees two 429s where it saw three hundred (pr-body)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "1,840 vs 12 per 10k is a 153:1 ratio; 300:2 is 150:1. Rounded but faithful."
+    },
+    {
+      "claim": "Each commit is independently green under make lint and make test",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript step 12 checks out each of the three code/doc commits and runs both targets; reported OK."
+    },
+    {
+      "claim": ".env and scratch.py are back in the tree untouched",
+      "type": "factual",
+      "verified": true,
+      "evidence": "`git status --short` shows both untracked; step 15 restored them from stash@{2}^3 and reported byte-identical content."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Executor flagged in the final message that it does not know why the sustained cap drops from 100/min to 60/min, and asked the user to confirm the uncapped Retry-After is intentional."
+    ],
+    "needs_review": [
+      "Three stash entries left behind in the fixture repo (one holding .env and scratch.py, two holding only __pycache__) because the auto-mode classifier denied `git stash drop`."
+    ],
+    "workarounds": [
+      "Step 10: a `; echo` chain masked the linter's exit code so a commit with a lint finding went through; the executor caught it and redid the last two commits with `git reset --soft HEAD~2` before pushing.",
+      "Restored .env/scratch.py via `git checkout stash@{2}^3 -- ...` instead of `git stash pop`."
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion covers the state the skill leaves the user's repo in. This run left three stash entries and two __pycache__ dirs behind after the per-commit test loop; the untracked .env/scratch.py were restored only through a manual recovery. An assertion like 'the working tree after the run contains the same untracked files as before and `git stash list` is empty' would have caught this hygiene regression, which a reviewer of the skill would care about."
+      },
+      {
+        "assertion": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+        "reason": "Passes here, but the transcript also shows a lint finding slipping through a masked exit code at step 10 and only being caught by a re-read. The assertion checks tests, not that the linter gate was actually honoured at commit time; an assertion that each commit's message passed prose-lint before the commit was made (not just retroactively) would be more discriminating about process."
+      },
+      {
+        "assertion": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument...",
+        "reason": "The latency cost is carried by a table and by the second sentence of the 'The trade:' paragraph, so a strict reading of 'first sentence of each paragraph' only gets the cost via the tenant bullet. The assertion would be sharper if it said whether tables count as paragraphs for the skim."
+      }
+    ],
+    "overall": "Assertions are strong on the written artefacts and the commit shape. The gap is repo hygiene after the run, which this transcript shows is a real failure mode (stashes, pycache, denied cleanup) that goes ungraded."
+  },
+  "notes": "All 15 assertions pass on direct evidence: both linters report 0 findings, the lede is 19 words, every benchmark number in the body matches docs/BENCHMARKS.md, and origin/main is still f716e33. The eval's blind spot is what the skill leaves behind: the per-commit test loop created three stash entries (one holding the user's .env and scratch.py) and __pycache__ dirs, the classifier refused the cleanup, and the executor recovered the files by hand. Nothing grades that, and a run that lost .env would have scored the same 15/15. Also worth tightening: whether the skim test counts tables as paragraphs, since the p99 cost here is in a table and in a second sentence rather than a paragraph lead; and check_run's sentence splitter reports a spurious 31-word sentence by joining the 'Side effects beyond the table:' label with the next bullet, which disagrees with the real linter."
+}

@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+      "passed": true,
+      "evidence": "check_run: branch=korya-retry-backoff, not_on_main=true, pushed=true, origin_main_unchanged=true. git: origin/korya-retry-backoff=e217a7f==HEAD; main, origin/main and the bare repo's main all at a2fc7aa."
+    },
+    {
+      "text": "No commit contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "git log --name-status origin/main..korya-retry-backoff touches only README.md, docs/BENCHMARKS.md, notify/__init__.py, notify/ratelimit.py, tests/test_ratelimit.py; .env and scratch.py still untracked (`?? .env`, `?? scratch.py`). check_run no_env_or_scratch_committed=true."
+    },
+    {
+      "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+      "passed": true,
+      "evidence": "Separate commit e217a7f `docs(readme): Fix \"recieve\" typo` touching only README.md; check_run readme_fix_separate=true."
+    },
+    {
+      "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+      "passed": true,
+      "evidence": "`feat(ratelimit): Replace fixed window with a token bucket limiter` (65 chars) and `docs(readme): Fix \"recieve\" typo` (32 chars); both type(scope): Capitalized-imperative; check_run subjects_conventional=true."
+    },
+    {
+      "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 8 `make lint && make test` \u2014 'compileall clean; 7 tests OK', immediately followed by step 9 `git push`. Final message: 'make lint clean, make test 7/7 OK.'"
+    },
+    {
+      "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+      "passed": true,
+      "evidence": "Final message: 'PR revalidation (5b): title and body are stale, both rewritten. ... Body claimed \"the rate limiter is untouched\" and \"No change in behaviour for tenants\" \u2014 both false now \u2014 and credited the 91.2% \u2192 99.1% jump to backoff alone, whereas BENCHMARKS.md measures the combined run.'"
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+      "passed": true,
+      "evidence": "pr-title.txt = `feat(notify): Retry with backoff and throttle tenants via token bucket` \u2014 70 chars excluding newline; 'Retry with backoff' + 'throttle tenants via token bucket'; imperative 'Retry'."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+      "passed": true,
+      "evidence": "pr-body.md exists (2192 bytes); neither 'untouched' nor 'No change in behaviour' appears. Instead: 'The per-tenant limiter becomes a token bucket' and '**Behaviour changes for bursty tenants**: ... throttled after 20 and drains at one per second; three tenants on staging hit this.'"
+    },
+    {
+      "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+      "passed": true,
+      "evidence": "Table rows: 'Delivery success | 91.2% | 99.1%', 'p99 latency | 3.4 s | 9.8 s', '429 responses per 10k sends | 1,840 | 12', 'Worst-case wait per message | 3 s | 31 s', 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'; prose: 'throttled after 20 and drains at one per second; three tenants on staging hit this.' All match docs/BENCHMARKS.md."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+      "passed": false,
+      "evidence": "prose-lint.py reports 7 findings: line 3 long-lead 52 words; line 5 long-lead 23; line 20 long-lead 41, long-sentence 35, semicolon; line 22 long-lead 22; line 31 semicolon. check_run pr_body_lint_findings=7."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": false,
+      "evidence": "ee1414b body (trailer stripped): 2 findings \u2014 line 1 long-lead 34 words ('Previously FixedWindowLimiter let a tenant spend ... retry through.'), line 10 semicolon ('FixedWindowLimiter is removed rather than kept alongside; nothing else imported it.'). e217a7f body is empty, 0 findings. check_run commit_body_lint_findings=2."
+    },
+    {
+      "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+      "passed": false,
+      "evidence": "First sentence under '## Why' is 52 words: 'Under a flaky gateway about 9% of notifications were lost, and the fix on the sender side alone would only move the pain: the fixed-window limiter let a tenant fire its whole 100/min quota in the first second, which is what triggered the 429 storms the sender then had to retry through.' Even the pre-colon clause alone is 23 words. The solution half passes (two plain sentences before the table), but the lede fails."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI. CI is unavailable in this environment, so I stop here; on a real forge the next step would be `gh pr checks` until green.'"
+    }
+  ],
+  "notes": "The mechanical assertions are discriminating and all checkable from the fixture (check_run.py covers 1-5, 7, part of 9). Two gaps: (a) nothing checks that pr-body.md's numbers are attributed correctly \u2014 the old body credited the success jump to backoff alone, the agent correctly reframed it as the combined run, but a body that kept the wrong attribution with the right numbers would still pass assertion 9; (b) the test-run assertion is graded from the transcript summary, not raw output, so an executor that summarised a failed run as 'OK' would pass unnoticed \u2014 a captured `make test` log in OUTPUT_DIR would make it verifiable. Also, the agent's final message flags two self-identified unverified claims ('No new dependencies', 'callers still check allow() before send()'); the first is checkable (no requirements change in the diff) and holds, which is good behaviour no assertion rewards. The old-skill run's failures cluster entirely on prose shape (long leads, semicolons), which is exactly what the writing rules in the new skill target.",
+  "execution_metrics": {},
+  "summary": {
+    "pass_rate": 0.7692,
+    "passed": 10,
+    "failed": 3,
+    "total": 13
+  }
+}
