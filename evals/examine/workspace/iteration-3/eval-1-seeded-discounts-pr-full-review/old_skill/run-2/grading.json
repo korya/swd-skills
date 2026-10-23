@@ -1,0 +1,161 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 25206 chars (wc -c)."
+    },
+    {
+      "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+      "passed": true,
+      "evidence": "H4(a): \"api_redeem's condition takes the success branch when row is None; the KeyError from STORE.discounts[code] is swallowed by the bare except, so an unknown code returns {\\\"redeemed\\\": True}\". Reproduced by grader: api_redeem({'code':'NOPE'}) -> {'redeemed': True}."
+    },
+    {
+      "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+      "passed": true,
+      "evidence": "H2 \"create_user dropped normalize_email\" with Changed anchor app/users.py:4-5,12, Fix \"Restore email = normalize_email(email)\", Cites \"docs/invariants.md \u00a71\"."
+    },
+    {
+      "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+      "passed": true,
+      "evidence": "C1 \"Discount percent is never validated\": \"validate_percent exists and has the right bounds ... but nothing calls it\"; Headline calls the description's \u00a74 claim false. Matches app/discount_engine/__init__.py:26-30 with zero callers."
+    },
+    {
+      "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+      "passed": false,
+      "evidence": "Not raised as a finding. Only mention is under Known limitations: \"uses increments are not concurrency-safe; acceptable because the store is in-process and single-threaded by design (app/db.py docstring)\". It names neither api_redeem's check-then-act nor over-redemption, and dismisses it as acceptable on a justification the code does not support: app/db.py's docstring says only \"Tiny in-memory store standing in for a database\" (grep for thread/single: no mention). The README expects S4 surfaced as PLAUSIBLE, not waved off."
+    },
+    {
+      "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+      "passed": true,
+      "evidence": "L1: \"total = int(amount * (1 + TAX_RATE_BP / 10_000)) is a float in a money path (CLAUDE.md rule 1, invariants \u00a72). Pre-existing on main, but this PR rewrites charge\". Grader re-ran the exhaustive 0..10M check: 0 mismatches, as the report states."
+    },
+    {
+      "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+      "passed": true,
+      "evidence": "No issue treats the cap change as a defect. C1 notes only that the cap \"(50 \u2192 30, 'per FIN-88') is a no-op\" because validate_percent is uncalled, which is correct; M3 lists it as a bundled policy change; Q1 asks where FIN-88 is recorded. The change is consistently framed as a finance decision, not a bug."
+    },
+    {
+      "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+      "passed": true,
+      "evidence": "H3 (High) \"Migration 002 is irreversible and destructive in one step\": \"up() pops plan from every user and writes tier; there is no down(), no additive/dual-read release\"; Cites \"docs/invariants.md \u00a73\"."
+    },
+    {
+      "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+      "passed": true,
+      "evidence": "Suggestion S1 \"Collapse discount_engine/ into a single function until a second strategy exists\": \"The ABC, register decorator, STRATEGY_REGISTRY, get_strategy and the DISCOUNT_ENGINE_BACKEND env var have one implementation and zero callers \u2014 billing.py imports PercentDiscount directly\". Also reports get_strategy() KeyError in a fresh interpreter; grader reproduced it."
+    },
+    {
+      "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+      "passed": true,
+      "evidence": "M1: \"It strips a leading - and negates, deliberately routing around parse_money's negative-input rejection ... Hand-rolled parsing at the boundary is exactly what CLAUDE.md says to avoid\"; Fix: \"model them explicitly ... parsed by a util helper\"; cites app/util.py:9-10 docstring contract."
+    },
+    {
+      "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "Sections Critical/High/Medium/Low with IDs C1, H1-H5, M1-M3, L1-L4. Every C/H/M finding has a \"Verdict: CONFIRMED\" line; L1 carries PLAUSIBLE."
+    },
+    {
+      "text": "Report contains both a Verified section and a Not reviewed section.",
+      "passed": true,
+      "evidence": "\"## Verified\" (10 bullets: baseline, tests, approach gate, float check, privacy, deps, verifier tally) and \"## Not reviewed\" (absent docs, migration runner, tickets, concurrency, sibling branch) are both present."
+    },
+    {
+      "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+      "passed": true,
+      "evidence": "Grader ran git status --porcelain --ignored in outputs/repo: empty; git branch --show-current: feature/discounts; HEAD f2c7a76. Report's Verified section states the same. Transcript notes the host code-review fork left __pycache__ and removed it."
+    },
+    {
+      "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+      "passed": true,
+      "evidence": "C1 cites \"docs/invariants.md \u00a74\" and CLAUDE.md helper-reuse rule; H2 cites \u00a71; H3 cites \u00a73; L1 cites \u00a72; H5 cites CLAUDE.md and docs/testing.md."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint.py output: \"124 findings in 1 file\" (exit 1). Mix of semicolon, dash and long-sentence findings on nearly every prose line; e.g. line 11 has a 68-word sentence and three semicolons."
+    },
+    {
+      "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+      "passed": false,
+      "evidence": "The Headline is sharp (\"Hold. The description's central claim ... is false: validate_percent is never called, so a percent of 500 produces a negative charge\"). But H1's What opens with a teaser lead that says nothing about the defect: \"The description says 'billing was updated to match'.\" The reader needs the next sentence to learn support.lookup crashes. M1's first sentence (\"A new endpoint the description never mentions.\") and H5's (\"One test: a valid 10% code on a known user.\") are fragments that lean on the finding title. No first sentence is a qualifier chain, but H1 alone fails the skim."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8125,
+    "passed": 13,
+    "failed": 3,
+    "total": 16
+  },
+  "claims": [
+    {
+      "claim": "Tests: main 3/3, HEAD 4/4",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Grader re-ran unittest discover on git archive copies: Ran 3 tests OK on main, Ran 4 tests OK on HEAD."
+    },
+    {
+      "claim": "Float tax: exhaustive 0..10,000,000 cents, no divergence from integer form",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Grader re-ran the comparison: 0 mismatches."
+    },
+    {
+      "claim": "get_strategy() raises KeyError 'percent' in a fresh interpreter",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced: importing app.discount_engine alone then get_strategy() -> KeyError: 'percent'."
+    },
+    {
+      "claim": "support.lookup on HEAD raises TypeError for unknown email",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Reproduced: TypeError 'NoneType' object is not subscriptable."
+    },
+    {
+      "claim": "git diff main HEAD --stat: 8 files",
+      "type": "factual",
+      "verified": true,
+      "evidence": "8 files changed, 129 insertions(+), 14 deletions(-)."
+    },
+    {
+      "claim": "Store is single-threaded by design per app/db.py docstring",
+      "type": "factual",
+      "verified": false,
+      "evidence": "app/db.py docstring reads only 'Tiny in-memory store standing in for a database.' No mention of threading. This false attribution is what let the S4 race be waved off as a known limitation."
+    },
+    {
+      "claim": "Independent verifier: 11 CONFIRMED / 1 PLAUSIBLE / 0 REFUTED; host code-review 14 findings all overlapping",
+      "type": "process",
+      "verified": false,
+      "evidence": "Transcript steps 8 and 12 record the subagents, but their outputs are not in outputs/; tallies cannot be independently checked."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Executor flagged its own H3 severity (High vs Critical) for a second opinion"
+    ],
+    "needs_review": [],
+    "workarounds": [
+      "Host code-review fork wrote __pycache__ into the fixture; executor removed it and re-verified a clean tree"
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+        "reason": "The assertion does not say where in the report the race must appear. This run buried it in Known limitations as 'acceptable' with a fabricated docstring justification; a grader could plausibly pass that. Consider requiring it as an Issue or Question with a PLAUSIBLE verdict, matching the README's 'verify stage: PLAUSIBLE, not refuted'."
+      },
+      {
+        "assertion": "Skim test",
+        "reason": "'Headline' is ambiguous between the report's Headline section and each finding's heading line. With finding titles included, every finding here passes; without them, H1 fails on a teaser lead. State which reading applies."
+      },
+      {
+        "reason": "No assertion covers the cross-file support.lookup crash (H1 here) in eval 1 even though it was the report's first High; the README defers it to eval 3. Fine as designed, but worth noting it is the finding most likely to separate a thorough run from a diff-only one."
+      }
+    ],
+    "overall": "The seed matrix is discriminating and the lint assertion is mechanical. Two assertions (S4 placement, skim-test scope) need tighter wording to grade consistently across runs."
+  },
+  "notes": "Strong substantive review: 8 of 9 seeds, S6 trap avoided, every reproduced claim re-verified by the grader. The three failures are all old-skill prose and placement problems: 124 lint findings (semicolons and dashes on nearly every line, sentences up to 68 words), a teaser first sentence in H1's What field, and the S4 race demoted to an accepted Known limitation on a justification the db.py docstring does not contain. S4 and the skim test are both borderline and depend on assertion wording the eval should pin down: whether 'flags' admits a Known-limitations mention, and whether 'headline' includes finding titles.",
+  "execution_metrics": {}
+}
