@@ -1,0 +1,47 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md is 11418 bytes, 76 lines, 1666 words; opens with '# Examine: Record an audit event on user creation (feature/audit-log vs main)'."
+    },
+    {
+      "text": "Zero Critical issues and zero High issues are reported.",
+      "passed": true,
+      "evidence": "Headline: 'Merge. No qualifying issues.' Issues section body is the single line 'No qualifying issues.' No severity labels appear anywhere in the report."
+    },
+    {
+      "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+      "passed": true,
+      "evidence": "Issues bucket is empty. Every non-defect checked against the diff: S1 (entry is {event, user_id} with no timestamp) matches app/audit.py:6; S2 (record(**fields) accepts any key, docstring is the only guard) matches app/audit.py:4-6; Gap 1 (commit message says 'failure paths covered in tests/test_audit.py' but the file has a happy-path test and an assertNotIn) matches the commit body and tests/test_audit.py; Gap 3 (tests/test_users.py and tests/test_billing.py setUp clear users/charges but not STORE.audit) matches those files. All framed as Suggestions, Questions or Gaps, none rated Medium or above."
+    },
+    {
+      "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+      "passed": true,
+      "evidence": "'## What was done well' bullet: '[app/users.py:21] Passes user_id=user[\"id\"] and nothing else, complies with CLAUDE.md \"reference users by id\"'. Verified: feature/audit-log app/users.py line 21 is audit.record(\"user.created\", user_id=user[\"id\"]). Four further bullets also carry file:line references (tests/test_audit.py:18-20, tests/test_audit.py:8-10, app/audit.py:5)."
+    },
+    {
+      "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+      "passed": false,
+      "evidence": "Severity buckets are handled correctly (Issues: 'No qualifying issues.', nothing invented). But the report is 1666 words / 11.4 KB for a +31/-0 clean diff. The Verified section alone is 19 bullets labelled by skill step number ('5a alignment', '5c line-by-line / pitfalls', '5d tracer' ... '5m dependencies', 'Occam pass', 'Gap sweep'), with sentences of 51 and 66 words, plus a paragraph narrating the subagent's wrong-checkout mishap and a closing 'Baseline check' paragraph about worktree hygiene. That is process narration padding a report whose substantive content (2 suggestions, 1 question, 3 gaps) fits in a third of the space."
+    },
+    {
+      "text": "Report includes a Verified or Not reviewed indication of scope.",
+      "passed": true,
+      "evidence": "Report has both a '## Verified' section (problem real on main, sketches, suite 5/5 branch and 3/3 main, caller trace, etc.) and a '## Not reviewed' section (CI, migrations/001_init.py, billing/support/api beyond caller roles, absent docs, sibling branch feature/discounts)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint.py exit 1, '74 findings in 1 file': 45 semicolon, 17 dash, 18 long-sentence (max 66 words at line 52, 51 at line 51, 46 at line 10), 1 long-lead (line 76, 21 words). Lines 4, 7, 10, 24-25, 30-31, 34-36, 39-40, 43-44, 46-47, 50-53, 55-63, 65-67, 70, 72, 74, 76 all flagged."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.7143,
+    "passed": 5,
+    "failed": 2,
+    "total": 7
+  },
+  "notes": "The judgment assertions did their job: the old skill correctly declined to invent defects on a clean PR, and the fabricated-defect check is discriminating because it forces a diff-by-diff verification of every listed item. The lint assertion is mechanical and reliable. The conciseness assertion is the weak one: 'no walls of padded findings' and 'empty buckets left empty' both technically hold here while the report still runs 1666 words of step-numbered process narration for 31 added lines, so a grader could pass it on a literal reading. Consider replacing it with a measurable bound (word or line cap scaled to diff size, or a ban on skill-internal step labels like '5a'/'5k' in the report). Nothing checks that the report's verdict reaches the user as 'merge'/'approve', which is the one-word outcome this control eval is really about; an assertion on the headline verdict would be cheap and discriminating. The transcript also records a real hazard worth a note: a shared scratchpad worktree path was clobbered by a parallel run, so the first subagent reviewed the wrong branch. The executor caught it, but no assertion would have noticed had it not.",
+  "execution_metrics": {}
+}
