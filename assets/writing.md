@@ -65,10 +65,11 @@ Run the linter on the text before it leaves the skill:
 python3 <plugin root>/scripts/prose-lint.py <file>
 ```
 
-It fails on five things:
+It fails on six things:
 
 - a sentence over 25 words
 - a paragraph lead over 20 words
+- a paragraph lead that announces a count of unnamed things, such as "Two things went wrong."
 - a paragraph over six sentences
 - a semicolon
 - an em dash

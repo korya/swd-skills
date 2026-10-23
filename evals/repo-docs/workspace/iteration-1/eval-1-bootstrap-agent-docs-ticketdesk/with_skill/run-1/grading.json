@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/proposal.md exists, lists the feature spec files and their prefixes, and the transcript shows it was written before any docs/ file.",
+      "passed": true,
+      "evidence": "outputs/proposal.md exists (3098 bytes) with a table listing tickets.md/TKT, event-log.md/LOG, cli.md/CLI plus the standard files. Transcript step 8 'Write OUT/proposal.md (heredoc)' precedes step 9 'Write REPO/docs/product-specs/invariants.md, tickets.md, ...'."
+    },
+    {
+      "text": "AGENTS.md, docs/README.md, docs/architecture.md, docs/guidelines.md, docs/product-specs/README.md, docs/product-specs/invariants.md exist in OUTPUT_DIR/repo, plus at least two feature spec files under docs/product-specs/.",
+      "passed": true,
+      "evidence": "check_run.py: required_files_present=true; feature_spec_files=[cli.md, event-log.md, tickets.md] (three, above the two-file floor). find lists all six required paths under outputs/repo."
+    },
+    {
+      "text": "AGENTS.md is at most 170 lines and contains a documentation index that links every file under docs/.",
+      "passed": true,
+      "evidence": "wc -l AGENTS.md = 118 (check_run agents_lines=118, limit 170). 'Documents at a glance' table links all nine files: docs/README.md, architecture.md, guidelines.md, product-specs/README.md, invariants.md, tickets.md, event-log.md, cli.md (check_run agents_links_all_docs=true)."
+    },
+    {
+      "text": "No generated file still contains a template placeholder: no angle-bracket placeholders such as <PROJECT NAME> or <XXX>, no literal '...' table rows, no HTML comment blocks of template tips.",
+      "passed": true,
+      "evidence": "check_run placeholders_left={} and html_comments_left=[]; grep for '<[A-Z][A-Z _]+>', '<!--' and '| ...' rows over AGENTS.md and docs/ returned nothing. The only HTML-free TODOs are dated-conflict/unknown-fact notes (CLI-007, guidelines coverage target, AGENTS.md roadmap), which are allowed."
+    },
+    {
+      "text": "Every feature spec file has a `Prefix:` line and at least five items headed `### PREFIX-NNN: Title` with zero-padded three-digit numbers, unique within the file, and no `**Testable:**` lines anywhere.",
+      "passed": true,
+      "evidence": "Each feature file has 'Prefix: `TKT`.' / 'Prefix: `LOG`.' / 'Prefix: `CLI`.'; items: tickets.md 13 (TKT-001..013), event-log.md 9, cli.md 9, all '### PREFIX-NNN: Title' with three-digit zero-padded numbers, check_run duplicates=0 per file. grep 'Testable' finds only prose mentions of a quoted \"Testable:\" appendix in two READMEs, no '**Testable:**' lines (check_run testable_lines=0). The grep-wide duplicate of '### TKT-003' is the specs README quoting it as an example inside a code block, not a within-file duplicate."
+    },
+    {
+      "text": "Spec bodies are behavioral: no spec names a function, class, method, module or file (such as TicketService, due_at, store.py); it describes observable behavior.",
+      "passed": true,
+      "evidence": "grep over docs/product-specs/*.md for TicketService|EventStore|TicketError|due_at|SLA_HOURS|store.py|tickets.py|sla.py|cli.py|argparse|ValueError|JSONDecodeError|main( returned nothing (check_run impl_words=0 for all four files). Specs describe user-facing surfaces only: e.g. TKT-008 'Assigning a `closed` ticket fails with the error `ticket <id> is closed`', LOG-007 'The error names the file path, the line number, and `corrupt event`'. Minor: INV-005 says 'the store's clock', a component reference in invariants.md, but it names no function, class, module or file."
+    },
+    {
+      "text": "The specs match the code: SLA hours P1 4, P2 24, P3 72; ticket states open, assigned, closed; a closed ticket cannot be assigned; a resolution note needs at least 10 characters; an unknown priority is rejected.",
+      "passed": true,
+      "evidence": "TKT-005 table P1 4 / P2 24 / P3 72 matches sla.py SLA_HOURS. TKT-001 'open, assigned, closed' matches STATES. TKT-008 closed cannot be assigned matches tickets.py assign(). TKT-010 '<10 characters after trimming' matches len(resolution.strip()) < 10. TKT-003 unknown priority rejected naming the value and allowed values matches due_at ValueError. I also ran the CLI from the scratchpad: no-subcommand exit 2, P9 traceback exit 1, non-int id usage exit 2, 'error: ticket 1 is closed' exit 2, list state padded to 8, log keys sorted; all match CLI-001/002/006/007/009, LOG-005, and the CLI-007 TODO."
+    },
+    {
+      "text": "invariants.md has at least two `### INV-NNN:` items and one of them captures the append-only event log as the single source of truth (events never edited or deleted, state rebuilt by replay).",
+      "passed": true,
+      "evidence": "invariants.md has INV-001..INV-005. INV-001 'The event log is the single source of truth ... derived by replaying the event log ... No other file, cache, or database holds ticket state' and INV-002 'Events are never edited or deleted ... never modified, reordered, or removed'. Together they capture the assertion's three clauses (single source of truth, never edited/deleted, state rebuilt by replay), though split across two IDs rather than one."
+    },
+    {
+      "text": "Cross-links resolve: every `INV-NNN` or `PREFIX-NNN` reference in the docs points to an existing ID, and docs/product-specs/README.md indexes every spec file with its prefix.",
+      "passed": true,
+      "evidence": "check_run dangling_refs=[] and ps_readme_indexes_all_specs=true. All 36 referenced IDs (INV-001..005, TKT-001..013, LOG-001..009, CLI-001..009) are defined. docs/product-specs/README.md has a Prefix table (invariants INV, tickets TKT, event-log LOG, cli CLI) and an Index table listing all four files."
+    },
+    {
+      "text": "docs/architecture.md states only facts true of the repo: a CLI over a JSON-lines event log on disk, no database, no web layer, no network service. It does not invent components.",
+      "passed": true,
+      "evidence": "architecture.md diagram and layer sections name only cli.py, tickets.py, sla.py, store.py and tickets.jsonl. 'Single tenant, local file. The log is a path on the local disk. There is no auth, no network'; Tech choices: Storage 'Append-only JSON lines file', Dependencies 'None'. Databases, web and locks appear only under 'What is intentionally simple in v1' (as absent) and 'Future migration paths' (clearly labelled future), not as existing components. Tech facts (Python 3.11+, 3.12 CI, compileall lint, unittest, 7 tests) match pyproject.toml, ci.yml, Makefile and the test files."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on AGENTS.md and on every file under docs/ reports 0 findings in total.",
+      "passed": true,
+      "evidence": "prose-lint.py run on AGENTS.md and all 8 files under docs/: each reports '0 findings in 1 file'; check_run lint_total=0."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of AGENTS.md and docs/architecture.md tells a newcomer what the project is, how it is built, and where to look; no first sentence is a teaser or a qualifier chain.",
+      "passed": true,
+      "evidence": "AGENTS.md paragraph first sentences: 'Operating manual for coding agents and humans working on this repo.' / '**ticketdesk** is a command-line help desk for a small support team.' / 'The one design principle: the log is the truth.' / 'Read these before working on related areas.' / 'Installed as a package, the entry point is `ticketdesk`.' architecture.md: 'Three layers and one helper.' / 'The CLI is the only user interface, so all formatting and exit-code decisions live in one place.' / 'The service owns the ticket rules...' / 'The store is the only code that knows the log is a file.' / 'The CLI is not covered by tests today.' Each states a fact; no teasers or qualifier chains. Headings (What this project is, Tech stack, Architecture in 30 seconds, Project layout, Documentation index) carry the where-to-look answer."
+    },
+    {
+      "text": "`git status` in OUTPUT_DIR/repo shows only new files under docs/ and AGENTS.md: no code or test file was modified and nothing was committed.",
+      "passed": true,
+      "evidence": "git status --porcelain in outputs/repo prints only '?? AGENTS.md' and '?? docs/'; git diff --stat and git diff --cached --stat are empty; git log shows only the fixture commit 989c0a6 (check_run only_docs_changed=true, commits_made=false). No __pycache__ directories remain after the executor's CLI harness run."
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 13,
+    "failed": 0,
+    "total": 13
+  },
+  "notes": "Strong run; all 13 assertions pass on substance, not surface. Two assertions are looser than they look: the invariants assertion accepts the single-source-of-truth idea even when split across INV-001 and INV-002 (fine here, but it would also pass a file that never ties replay to append-only in one rule), and the 'behavioral' assertion is checked by an implementation-word list that misses softer leaks such as INV-005's 'the store's clock'. Nothing checks the conflict-handling outcome that this run did best: it detected that unknown-priority and corrupt-log errors escape as tracebacks (exit 1) rather than the 'error: ... exit 2' rule, wrote the consistent rule as CLI-007 with a TODO instead of silently matching the code, and surfaced it in the final message. An assertion like 'the docs record the traceback/exit-code inconsistency as an open conflict rather than specifying the traceback as intended behavior' would discriminate between a skill that reads the code and one that only transcribes it. Also unchecked: that the final message directs the user to proposal.md and the open TODOs (the no-human-available workflow), and that the proposal flags the SLA-folded-into-tickets decision with its reasoning.",
+  "execution_metrics": {}
+}
