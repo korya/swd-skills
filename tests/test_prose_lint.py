@@ -58,6 +58,20 @@ class SentenceRules(unittest.TestCase):
         self.assertEqual(rules(text), ["long-lead"])  # one sentence, not two short ones
 
 
+class TeaserLead(unittest.TestCase):
+    def test_count_of_unnamed_things_is_flagged(self):
+        for lead in ("Two things went wrong.", "Two designs caused this.",
+                     "Two principles drive the design.", "Several factors compound here."):
+            self.assertEqual(rules(lead + " Detail follows."), ["teaser-lead"], lead)
+
+    def test_claim_with_a_count_passes(self):
+        self.assertEqual(rules("Three staging tenants burst 100 sends per second. Detail."), [])
+        self.assertEqual(rules("Two retries at one second apart were not enough. Detail."), [])
+
+    def test_only_the_lead_is_checked(self):
+        self.assertEqual(rules("The sender lost messages. Two things went wrong."), [])
+
+
 class PunctuationRules(unittest.TestCase):
     def test_semicolon(self):
         self.assertEqual(rules("One clause; another."), ["semicolon"])
