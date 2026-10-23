@@ -1,0 +1,8 @@
+[project]
+name = "ticketdesk"
+version = "0.3.0"
+description = "Command-line help desk with an append-only event log"
+requires-python = ">=3.11"
+
+[project.scripts]
+ticketdesk = "ticketdesk.cli:main"
