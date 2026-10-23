@@ -1,0 +1,92 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 21939 bytes, 338 lines, with Headline, Approach fit, Issues, Questions, Suggestions, Gaps, Known limitations, What was done well, Verified, Not reviewed sections."
+    },
+    {
+      "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+      "passed": true,
+      "evidence": "H2 What: 'The test `row is None or ...` enters the success branch for an unknown code, the `KeyError` is swallowed at `api.py:36-37`, and the call returns `{\"redeemed\": True}`.' Evidence: '`api_redeem({\"code\": \"NOPE\"})` on an empty store returned `{\"redeemed\": True}`.' Fix: 'drop the bare `except Exception`'."
+    },
+    {
+      "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+      "passed": true,
+      "evidence": "C2 (Critical): 'The base called `util.normalize_email(email)` before the write. HEAD stores `email.strip()`.' Why Critical: 'Invariant \u00a71 states \"a non-canonical write breaks every reader\".' Reproduced with `create_user(\" Alice@Example.COM \", ...)` then charge raising unknown user."
+    },
+    {
+      "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+      "passed": true,
+      "evidence": "C1 (Critical): '`validate_percent` exists at `app/discount_engine/__init__.py:26-30` and has zero callers.' ... 'The description says the percent \"is validated at the API boundary per docs/invariants.md \u00a74\". It is not.' Reproduced percent 150 yielding amount -500."
+    },
+    {
+      "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+      "passed": false,
+      "evidence": "grep -i -E 'race|concurren|toctou|check-then-act|atomic|simultaneous|parallel|thread' over report.md matches nothing relevant (only 'traced'). H2 covers api_redeem's inverted condition, the swallowed KeyError, and that charge never reads uses, but never names the non-atomic read-check-increment or over-redemption under concurrent calls."
+    },
+    {
+      "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+      "passed": true,
+      "evidence": "Suggestion S4 'Replace the float in the tax line with basis-point integer math', Locator `app/billing.py:23`: '\u00a72 forbids floats in money paths. The line is pre-existing. ... The discounted amount now flows through it, which makes this the moment to align the line with the rule.' Also listed under Known limitations. The report's claim of no divergence for 1..200000 cents at 500 bp was re-run by the grader and holds (0 divergences)."
+    },
+    {
+      "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+      "passed": true,
+      "evidence": "No Issue files the cap value as a defect. C1 calls it 'The FIN-88 cap change in the same PR (`billing.py:11`)' and faults only that nothing enforces it. Q1 asks where FIN-88 is recorded and whether it should ship in this PR; Not reviewed lists FIN-88 as an unverifiable sign-off. M3 treats it as a scope item ('Drop or separately justify ... the cap change (Q1)'), not a bug."
+    },
+    {
+      "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+      "passed": true,
+      "evidence": "H3 (High): 'Migration 002 is destructive, has no `down()`, and the code never adopts `tier`'. What: '`up()` pops `plan` and writes `tier`. There is no `down()`.' Why High: 'Invariant \u00a73 forbids a destructive step without a dual-read release and requires a `down()`.' Cites: `docs/invariants.md \u00a73 (Reversible migrations)`."
+    },
+    {
+      "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+      "passed": true,
+      "evidence": "Suggestion S1 'Collapse `discount_engine` into one function in `billing`': 'The package adds an ABC, a decorator registry, and an environment variable for a single strategy. `get_strategy` has no callers and `DISCOUNT_ENGINE_BACKEND` is a dead configuration knob'. Q4 asks whether BOGO/fixed are scheduled. Approach fit: 'more generality than the ticket schedules (S1)'."
+    },
+    {
+      "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+      "passed": true,
+      "evidence": "H4: 'The function strips a leading `-`, calls `parse_money` on the rest, negates the result ... `parse_money`'s docstring (`app/util.py:9-10`) says negatives are rejected because \"adjustments are modeled explicitly\". This endpoint routes around that rule.' Fix: 'an explicit sign convention in `util` ... reuse `parse_money` without the manual sign handling.' Cites CLAUDE.md line 3 on reusing util helpers."
+    },
+    {
+      "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "Sections Critical (C1, C2), High (H1-H5), Medium (M1-M3), Low (L1-L5). Every C/H/M block has a '**Verdict:** CONFIRMED' line (10 of 10); Low items carry none, as expected."
+    },
+    {
+      "text": "Report contains both a Verified section and a Not reviewed section.",
+      "passed": true,
+      "evidence": "Headings at line 305 '## Verified' (suite run, approach gate, REFUTED merge-conflict claim, import-order check, float sweep, checkout baseline) and line 329 '## Not reviewed' (FIN-88/SUPPORT-311, CI, absent docs, audit-log branch, migration 001)."
+    },
+    {
+      "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+      "passed": true,
+      "evidence": "Grader ran in outputs/repo: `git status --porcelain --ignored` prints nothing, `git branch --show-current` = feature/discounts, HEAD 839b891. Report's Verified section states the same; transcript step 11 shows __pycache__ created by the test run was removed."
+    },
+    {
+      "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+      "passed": true,
+      "evidence": "C1 Cites: '`docs/invariants.md \u00a74 (Percentage adjustments)`, `CLAUDE.md` line 3'. H3 Cites: '`docs/invariants.md \u00a73 (Reversible migrations)`'. H5 Cites: '`CLAUDE.md` line 4 (\"Every change to app/billing.py requires failure-path tests\")'. C2 quotes invariant \u00a71."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "`python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py <outputs>/report.md` -> '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+      "passed": true,
+      "evidence": "Headline: 'Hold. The discount cap is never enforced (C1). An unrelated edit breaks the canonical-email invariant (C2).' Finding titles state the defect and its consequence (e.g. 'Discount percent is never validated, so any percent reaches billing'; 'Migration 002 is destructive, has no `down()`, and the code never adopts `tier`'). First What sentences are concrete code facts: '`api_create_discount` stores `int(payload[\"percent\"])` with no range check.', '`if row:` falls through when the code is unknown.', '`STORE.discounts[code] = row` overwrites without a check.' Severity is carried by the section heading. No hedged or qualifier-chain opener. Minor nit: M3 title says 'six changes', its What says 'seven'."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.9375,
+    "passed": 15,
+    "failed": 1,
+    "total": 16
+  },
+  "notes": "The only miss is S4: the run found every static defect around api_redeem (inverted condition, swallowed KeyError, uses never wired to charge) but never named the non-atomic check-then-act race, which the seed matrix expects the verify stage to carry as PLAUSIBLE. The S4 assertion does its job here, since a reviewer who reads the function line by line can pass S1 and still miss it. S6 passed, but the report recommends dropping or separately justifying the cap change in M3; the assertion's 'acknowledged as deliberate' wording is loose enough that a reviewer who treats a stated-deliberate change as scope creep still passes, which seems right but is worth stating. S5 accepts a Suggestion-level mention, and that matched the report's placement. Two observed outcomes no assertion covers: the report found and reproduced the support.lookup crash (README's cross-file bonus, filed as H1 CONFIRMED) and the max_uses-never-enforced revenue leak (H2), both real and both stronger than several seeds. Also unasserted: the report's factual claims were independently reproducible (grader re-ran the float sweep, 0 divergences), and the report caught its own REFUTED claim (merge conflict on audit-log) and reframed it as a Gap. An assertion rewarding at least one refuted or downgraded candidate would discriminate well between skill and vanilla runs.",
+  "execution_metrics": {}
+}

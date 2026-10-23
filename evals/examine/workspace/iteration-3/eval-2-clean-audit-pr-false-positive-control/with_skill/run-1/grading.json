@@ -1,0 +1,99 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 7331 bytes, full six-signal report with Headline 'Merge.'"
+    },
+    {
+      "text": "Zero Critical issues and zero High issues are reported.",
+      "passed": true,
+      "evidence": "Issues section contains only a '### Low (defer)' bucket with L1 and L2. No Critical, High, or Medium bucket appears; headline says 'carries no issue above Low'."
+    },
+    {
+      "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+      "passed": true,
+      "evidence": "Checked each against the diff. L1: audit entry is {'event', 'user_id'} with no timestamp while the commit body asks for 'who and when' (true, app/audit.py:6, users.py:21). L2: test uses assertNotIn('email', STORE.audit[0]), which checks the key not the address (true, tests/test_audit.py:20). Q1: commit body claims 'failure paths covered' but record() has no failure branch and the two tests are happy-path plus property (true). S1: record(**fields) stores any kwarg including email (true, verified by the executor's probe). All rated Low or framed as Q/S. Known-limitation claims (db.py:1 docstring, db.py:13 'append-only' comment, users.py:20-21 two-step write) also match the files."
+    },
+    {
+      "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+      "passed": true,
+      "evidence": "'## What was done well' lists five items with file refs, e.g. '[app/audit.py:5] The docstring restates the id-only rule from CLAUDE.md at the one place a future caller will read.' and '[tests/test_audit.py:18] The privacy rule is a test, not only a comment.'"
+    },
+    {
+      "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+      "passed": true,
+      "evidence": "Only the Low bucket is present; Critical/High/Medium are omitted entirely. Findings are 2 Lows, 1 question, 1 suggestion, 3 known limitations, each one or two sentences. The Verified section is the longest part (about 25 bullets) and uses skill-internal step labels ('5a alignment', '5k top three risks', 'Occam'), which is verbose but not padded findings."
+    },
+    {
+      "text": "Report includes a Verified or Not reviewed indication of scope.",
+      "passed": true,
+      "evidence": "Both '## Verified' (tests 5/5 on branch, 3/3 on main, import graph, caller trace, refuted candidates) and '## Not reviewed' (missing docs, dependencies, pre-existing billing.py:19 float tax, sibling branch) sections are present."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "Ran the script: '0 findings in 1 file', exit 0."
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  },
+  "claims": [
+    {
+      "claim": "Fixture repo left unmodified on feature/discounts at 839b891 with a clean tree",
+      "type": "process",
+      "verified": true,
+      "evidence": "git status --porcelain empty; HEAD is feature/discounts 839b891"
+    },
+    {
+      "claim": "app/billing.py:19 computes tax with float arithmetic, violating docs/invariants.md \u00a72",
+      "type": "factual",
+      "verified": true,
+      "evidence": "total = int(amount * (1 + TAX_RATE_BP / 10_000)) uses true division; correctly flagged as pre-existing and out of scope"
+    },
+    {
+      "claim": "main already added discounts to Store with no migration and up() is a no-op",
+      "type": "factual",
+      "verified": true,
+      "evidence": "migrations/001_init.py up() is 'pass'; db.py has self.discounts on main"
+    },
+    {
+      "claim": "Transcript written to .../with_skill/transcript.md",
+      "type": "process",
+      "verified": false,
+      "evidence": "Final message states the wrong path; the file is actually at with_skill/run-1/transcript.md (the correct OUTPUT_DIR/../ location). Cosmetic mis-statement only."
+    },
+    {
+      "claim": "Host built-in code-review ran in a subagent and found no correctness bug",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript step 9 records the subagent and its 5 candidates, all mapped to L1/L2/S1/refutations"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+        "reason": "A 7.3KB report with a 25-bullet Verified section passed. The assertion targets findings padding, so it does not catch a verbose Verified section or skill-internal labels ('5a', '5k', 'Occam', 'rubric') leaking into a report meant for a PR author. Consider a word budget or a check for step-label leakage."
+      },
+      {
+        "reason": "No assertion checks that the fixture repo is left unmodified, although the task demands it. It held here, but a run that ran tests in place or left a checkout switched would pass every assertion."
+      },
+      {
+        "reason": "No assertion rewards the discriminating behaviour this control is meant to test: that the review distinguishes pre-existing defects (billing.py float tax) from the diff and parks them under Not reviewed instead of charging them to the PR. This run did that well and the eval gives no credit for it."
+      }
+    ],
+    "overall": "All assertions pass on genuine evidence. The set is sound for a false-positive control but structural; it would also pass a report that is correct yet bloated or jargon-heavy."
+  },
+  "notes": "All seven pass on real evidence: every listed issue checks out against the diff, severities are honest, and lint is clean. Two gaps in the eval: conciseness is only loosely tested (a long Verified section with leaked skill step labels like '5a' and '5k' passes), and nothing checks that the fixture is left untouched or that pre-existing defects are kept out of the PR's ledger, which is the behaviour a false-positive control should reward.",
+  "execution_metrics": {}
+}

@@ -1,0 +1,47 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md is 7911 bytes, 121 lines, 1155 words, with a full six-signal review."
+    },
+    {
+      "text": "Zero Critical issues and zero High issues are reported.",
+      "passed": true,
+      "evidence": "Issues section contains only a '### Low (defer)' bucket with L1 and L2. Headline: 'No qualifying defect found after two independent passes and runtime probes.' No Critical, High or Medium heading appears."
+    },
+    {
+      "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+      "passed": true,
+      "evidence": "L1 (no timestamp in entry) matches app/audit.py:6, entry is {'event', **fields} and users.py:21 passes only user_id. L2 matches tests/test_users.py:9 and tests/test_billing.py:9-10, which clear users/charges but not STORE.audit. Q1/Q2, S1/S2 and the Gap (commit message claims 'failure paths covered' while both tests in test_audit.py are happy-path) all check out against the fixture. Both issues rated Low; nothing above."
+    },
+    {
+      "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+      "passed": true,
+      "evidence": "'## What was done well' first bullet: '[`app/users.py:21`] Audits by `user_id` only, honouring CLAUDE.md\\'s email rule, and places the call after the record is stored'. Three more bullets each carry a file:line reference."
+    },
+    {
+      "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+      "passed": false,
+      "evidence": "Empty buckets are omitted (only a Low heading exists), which satisfies the second clause. But the report runs 121 lines / 1155 words for a 31-line additive diff across 11 sections. 'Known limitations' lists three items the report itself dismisses ('not an issue now', 'consistent with every other Store collection'), and 'Verified' has 12 bullets including a REFUTED kwargs collision described as 'latent API wart, not a defect'. That is padding around non-findings, so the first clause is not met. Judgment call; burden of proof on the expectation."
+    },
+    {
+      "text": "Report includes a Verified or Not reviewed indication of scope.",
+      "passed": true,
+      "evidence": "Both '## Verified' (12 bullets: base-state check, test runs, probes, refutations) and '## Not reviewed' (pre-existing code outside the diff, missing docs, no CI, checkout untouched) are present."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint.py exit 1: '55 findings in 1 file'. Breakdown: 28 semicolon, 16 dash, 10 long-sentence (27 to 36 words), 1 long-lead (26 words, line 3)."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.7143,
+    "passed": 5,
+    "failed": 2,
+    "total": 7
+  },
+  "notes": "The false-positive control did its main job: the report invents nothing, rates nothing above Low, and praises with real file references, so assertions 2 to 4 discriminate well. Two weaknesses. 'Concise' is unmeasured and the only testable half (empty buckets omitted) is easy to satisfy; a word or line budget relative to diff size, or a cap on bullets in Known limitations and Verified, would make it reproducible across graders. The lint assertion is the sharpest signal here and fails hard (55 findings, mostly semicolons and dashes), which the old skill's report template seems to invite. No assertion checks that the fixture repo was left unmodified, even though the prompt requires it; this run honoured it (feature/discounts, clean tree) but a sloppy run would pass ungraded. Also uncovered: the transcript shows the host code-review subagent rebuilt the fixture in the scratchpad instead of using the provided clone, a process deviation worth an assertion if reproducibility matters.",
+  "execution_metrics": {}
+}
