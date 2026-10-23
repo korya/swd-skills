@@ -6,23 +6,25 @@
 <diagram: layers, data flow, integrations>
 ```
 
-<one-paragraph summary: what each layer is responsible for, what crosses what>
+<One paragraph: what each layer is responsible for, and what crosses what.>
 
 ## Why each layer exists
 
 ### <Layer 1>
 
-<paragraph: what problem this layer solves, why it's a separate thing>
+<Paragraph: what problem this layer solves, and why it is a separate thing.>
 
 ### <Layer 2>
 
-<paragraph>
+<Paragraph.>
 
 ## Key technical assumptions
 
-<list important assumptions that, if violated, would break the architecture. Examples: concurrency model, auth model, data freshness expectations, single-tenant vs multi-tenant, API contract stability.>
+<List the assumptions that would break the architecture if violated. Examples: the
+concurrency model, the auth model, data freshness, single-tenant versus multi-tenant, API
+contract stability.>
 
-- **<Assumption 1>:** <one-line description and why it matters>
+- **<Assumption 1>:** <one line on what it is and why it matters>
 - **<Assumption 2>:** ...
 
 ## Tech choices
@@ -39,12 +41,14 @@
 ├── ...
 ```
 
-<call out any non-obvious organizational decisions>
+<Call out any non-obvious organizational decision.>
 
-## What's intentionally simple in v1
+## What is intentionally simple in v1
 
-<list deliberate omissions and the reason. Example: no auth, no background jobs, no real-time collaboration.>
+<List the deliberate omissions and the reason for each. Example: no auth, no background
+jobs, no real-time collaboration.>
 
 ## Future migration paths
 
-<list known scaling/evolution paths that the architecture is prepared for. Example: Sheets → Postgres when row counts demand it.>
+<List the scaling or evolution paths the architecture is prepared for. Example: Sheets to
+Postgres when row counts demand it.>
