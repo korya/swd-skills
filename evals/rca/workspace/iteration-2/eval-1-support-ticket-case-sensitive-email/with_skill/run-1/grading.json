@@ -1,0 +1,116 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 13398 bytes (wc -c)."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Section 1 Repro: 'python3 -m unittest tests.test_search -v' with output 'test_search_finds_user_signed_up_with_mixed_case ... FAIL / AssertionError: not_found != ok'. Transcript step 6 ran it."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "Section 3 is a numbered list 1-5: 'Why did search return not_found', 'Why did find_by_email return None', 'Why is the stored value in a different casing', 'Why does nothing canonicalise it', 'Why is identity undefined?'"
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Every link has an Evidence bullet. Citations in the chain: app/search.py:7-9, app/db.py:34, app/signup.py:15, app/db.py:26, db.py:1, search.py:7, signup.py:13, invite.py:7, password_reset.py:11, app/db.py:24-29, app/signup.py:13-14. Spot-checked against the fixture: db.py:34 is 'if u.email == email', signup.py:13 is the find_by_email check, insert is db.py:24-29. All accurate."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "Section 4 'Symptom, proximate cause, root cause' has three bolded bullets: 'Symptom.' 'Proximate cause. app/db.py:34 compares emails with byte-exact string equality.' 'Root cause. Email identity is undefined and unowned...'"
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause is one level deeper than the comparison: 'Email identity is undefined and unowned. The store exposes raw string equality, does not enforce uniqueness, and every flow mistakes string equality for same user.' Why 3 names the write path: 'Signup stores the email exactly as typed, and nothing in the write or read path canonicalises it' citing app/signup.py:15 and app/db.py:26. The recommended fix adds a canonical key computed on insert and enforced for uniqueness, i.e. write-time normalisation at the store boundary, not a search-only patch."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Section 5 table lists all three with call sites and severity: app/signup.py:13 (second account created, High), app/password_reset.py:11 (ResetError, High), app/invite.py:7 (invite_sent to existing member, Medium). Plus a data sibling: existing case-variant duplicate rows."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "Section 6 has '### A. Symptom fix' (casefold in find_by_email, one line) and '### B. Root-cause fix (recommended)' each with Tests, Blast radius, Rollback, then 'Recommendation: B. The symptom fix would hide the duplicate problem rather than solve it.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Section 6.5 Counterfactual: 'Confirmed. With fix B applied to the copy, the repro test passes' and section 9 shows 'Ran 7 tests ... OK'. Independently verified: applied outputs/fix.patch to a scratch copy of the pristine fixture, all 7 tests pass including test_search_finds_user_signed_up_with_mixed_case."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Section 7 lists all three: Test (tests/test_email_identity.py, present in fix.patch), Guardrail (DuplicateEmail in store, unique index on lower(trim(email)), EmailKey NewType, CI grep, miss counter), Doc (README/AGENTS.md invariant and docstring changes)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": false,
+      "evidence": "No assumptions section exists. grep -i 'assum' on report.md returns nothing. The only numbered lists are the 5-whys chain (section 3) and Open questions (section 8); the 'Falsification of the root cause' bullets in section 4 are not an assumption list with How validated / Result. The skill's step 5.5 (chain.md section 5.5) was skipped."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "Ran the script: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "The headline is not one sentence. The H1 states only what broke ('user search misses emails whose casing differs from the stored value'); the '**Headline.**' paragraph spreads broke / root cause / fix across four sentences ('Support cannot find users unless... The root cause is that... The recommended fix moves... That closes the search bug...'). The skill's own fix.md section 8 says 'Headline. One sentence'. Section first sentences otherwise pass: each states its claim directly (e.g. section 5 'Every flow that looks a user up by email shares the defect', section 6.5 'Confirmed.'), no teasers."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8462,
+    "passed": 11,
+    "failed": 2,
+    "total": 13
+  },
+  "notes": "Strong run on substance: the chain is accurate against the fixture, the fix.patch applies cleanly and passes all 7 tests when I replayed it, the fixture copy was restored byte-identical to the pristine original, and the data sibling (pre-existing duplicate rows becoming unreachable) is a genuine insight no assertion rewards. Two gaps: the assumptions list (skill step 5.5) was skipped entirely, and the headline spans four sentences where the skill demands one. On the eval itself: assertion 6's 'normalization at write time' is narrower than the best answer (identity owned at the store boundary on both read and write; write-only normalisation would leave existing rows broken), so consider rewording to accept either. Assertion 13's one-sentence headline fights the 25-word lint cap, so a run that passes both will be terse to the point of lossy; decide whether that is the intended bar. Nothing checks that the agent left the pristine fixture untouched and restored the copy, which this run did well and a careless run would not.",
+  "claims": [
+    {
+      "claim": "Fix B makes all 7 tests pass including the original failing one",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Replayed fix.patch on a scratch copy of the pristine fixture: Ran 7 tests, OK."
+    },
+    {
+      "claim": "Fixture copy restored to baseline after the counterfactual",
+      "type": "process",
+      "verified": true,
+      "evidence": "diff -r -x __pycache__ pristine vs outputs/fixture: identical."
+    },
+    {
+      "claim": "No normalisation anywhere in app/ (grep for lower/casefold/strip/normaliz empty)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Read all five app/*.py files; none transform the email."
+    },
+    {
+      "claim": "Four call sites of find_by_email: search, signup, invite, password_reset",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Confirmed in fixture: search.py:7, signup.py:13, invite.py:7, password_reset.py:11."
+    },
+    {
+      "claim": "Probe results (trailing-space miss, casefold monkeypatch passes, duplicate order dependence)",
+      "type": "factual",
+      "verified": false,
+      "evidence": "Probe script lived in the session scratchpad and is not in outputs; results are consistent with the code but not reproducible from the outputs directory."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [
+      "No user_notes.md produced. Transcript notes the skill snapshot was briefly missing at start and the agent asked the caller, then found it."
+    ]
+  },
+  "execution_metrics": {}
+}

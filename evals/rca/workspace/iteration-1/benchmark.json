@@ -1,0 +1,336 @@
+{
+  "metadata": {
+    "skill_name": "rca",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-05-21T22:04:30Z",
+    "evals_run": [
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 11,
+        "failed": 0,
+        "total": 11,
+        "time_seconds": 281.7,
+        "tokens": 45286,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+          "passed": true,
+          "evidence": "22210 bytes."
+        },
+        {
+          "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+          "passed": true,
+          "evidence": "\u00a72 'Repro (deterministic)' runs `python3 -m unittest tests.test_search.SearchTests.test_search_finds_user_signed_up_with_mixed_case -v` and quotes the AssertionError."
+        },
+        {
+          "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+          "passed": true,
+          "evidence": "\u00a74 has 5 numbered Why items, each a different question."
+        },
+        {
+          "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+          "passed": true,
+          "evidence": "Citations include app/search.py:7-9, app/db.py:32-36, app/signup.py:10-15, app/db.py:1, app/db.py:7-11, grep commands with results."
+        },
+        {
+          "text": "Report explicitly labels symptom / proximate cause / root cause.",
+          "passed": true,
+          "evidence": "\u00a75 'Symptom / proximate / root' has all three labelled with their statements."
+        },
+        {
+          "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+          "passed": true,
+          "evidence": "Root cause stated as 'No enforced invariant that stored email = canonical email, combined with no shared chokepoint that normalizes at the boundary.' Fix lands in db.insert + db.find_by_email."
+        },
+        {
+          "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+          "passed": true,
+          "evidence": "\u00a76 sibling table lists all four: search.py, signup.py (P1 duplicate), invite.py, password_reset.py."
+        },
+        {
+          "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+          "passed": true,
+          "evidence": "\u00a78a symptom fix, \u00a78b root-cause fix, \u00a78c recommends 8b with reasons."
+        },
+        {
+          "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+          "passed": true,
+          "evidence": "\u00a78.5 walks through the repro under the fix, confirms 'Repro would not fire', names which links break."
+        },
+        {
+          "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+          "passed": true,
+          "evidence": "\u00a79 includes 1) regression tests, 2) guardrails (CanonicalEmail value object, invariant assertion), 3) docs (INV-EMAIL-CANONICAL)."
+        },
+        {
+          "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+          "passed": true,
+          "evidence": "\u00a77 lists 5 numbered assumptions, each with How validated and Result fields."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 9,
+        "failed": 0,
+        "total": 9,
+        "time_seconds": 220.9,
+        "tokens": 35326,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+          "passed": true,
+          "evidence": "14184 bytes."
+        },
+        {
+          "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+          "passed": true,
+          "evidence": "Headline explicitly says 'The user's proposed ... in app/search.py fixes only one of four affected call sites and leaves a silent duplicate-signup bug active'. Dedicated 'Pushback on the user's framing' section."
+        },
+        {
+          "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+          "passed": true,
+          "evidence": "Why-link 3-5 trace the chain back to db.py:26 (insert stores raw email) and the missing canonicalization invariant. Recommended fix is in db.py insert + find_by_email."
+        },
+        {
+          "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+          "passed": true,
+          "evidence": "Sibling table lists app/signup.py:13 (P1 silent data corruption), app/invite.py:7, app/password_reset.py:11."
+        },
+        {
+          "text": "Report flags the data-migration / already-stored-rows concern.",
+          "passed": true,
+          "evidence": "Open question \u00a711 #1: 'Does the real users table have mixed-case rows today? If yes, backfill UPDATE users SET email = LOWER(TRIM(email))'. Also noted in sibling table footer."
+        },
+        {
+          "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+          "passed": true,
+          "evidence": "Option A symptom fix vs Option B root-cause fix; explicit 'Recommendation: Ship Option B.'"
+        },
+        {
+          "text": "Counterfactual on the recommended fix.",
+          "passed": true,
+          "evidence": "'Counterfactual: would Option B have prevented the captured repro?' section walks through the test step by step under the fix, confirms 'Result: Confirmed.'"
+        },
+        {
+          "text": "Report contains at least 3 file:line-style citations.",
+          "passed": true,
+          "evidence": "Citations include app/db.py:34, app/db.py:32-36, app/db.py:1, app/db.py:7-11, app/signup.py:13, app/search.py:7, app/invite.py:7, app/password_reset.py:11."
+        },
+        {
+          "text": "Report does not propose any 'human error' / blame conclusion.",
+          "passed": true,
+          "evidence": "Explicit 'Design gap, not author oversight.' No person named anywhere."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.818,
+        "passed": 9,
+        "failed": 2,
+        "total": 11,
+        "time_seconds": 152.8,
+        "tokens": 27946,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+          "passed": true,
+          "evidence": "10241 bytes."
+        },
+        {
+          "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+          "passed": true,
+          "evidence": "\u00a71 runs `python3 -m unittest discover tests -v` and quotes the test names with FAIL output."
+        },
+        {
+          "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+          "passed": true,
+          "evidence": "\u00a73 Five whys, 5 items, each a distinct Why."
+        },
+        {
+          "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+          "passed": true,
+          "evidence": "Citations across the report include app/db.py:32-36, app/db.py:24-29, app/signup.py:10-15, app/search.py:7, app/password_reset.py:11, app/invite.py:7, app/signup.py:13."
+        },
+        {
+          "text": "Report explicitly labels symptom / proximate cause / root cause.",
+          "passed": true,
+          "evidence": "TL;DR includes 'Symptom:', 'Proximate cause:', and 'Root cause:' bullets."
+        },
+        {
+          "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+          "passed": true,
+          "evidence": "'Root cause = missing canonicalization at the boundary, combined with mixing identity and display in one field.' Fix lands in db.insert + db.find_by_email."
+        },
+        {
+          "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+          "passed": true,
+          "evidence": "\u00a74 table lists all four: search.py, password_reset.py, invite.py, signup.py."
+        },
+        {
+          "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+          "passed": true,
+          "evidence": "\u00a75a minimal fix, \u00a75b class-of-bug fix, \u00a77 recommendation."
+        },
+        {
+          "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+          "passed": false,
+          "evidence": "No dedicated counterfactual section. The report claims the fix 'fixes search, reset, invite, and signup duplicate-detection in one place' but does not walk the failing test through the fix step-by-step or name which 5-whys link the fix breaks."
+        },
+        {
+          "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+          "passed": true,
+          "evidence": "\u00a75b Email value object + uniqueness invariant; \u00a75c regression tests; comment fix to db.py docstring."
+        },
+        {
+          "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+          "passed": false,
+          "evidence": "No 'Assumptions' section with 'How validated / Result' structure. Assumptions are scattered through the prose (RFC 5321, no display-casing dependency, etc.) but not enumerated and validated."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.778,
+        "passed": 7,
+        "failed": 2,
+        "total": 9,
+        "time_seconds": 106.6,
+        "tokens": 23912,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+          "passed": true,
+          "evidence": "6530 bytes."
+        },
+        {
+          "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+          "passed": true,
+          "evidence": "Dedicated 'Why the proposed one-liner is not enough' section calls it a symptom fix and lists three sibling endpoints it leaves broken."
+        },
+        {
+          "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+          "passed": true,
+          "evidence": "5-whys #3-4 land on 'signup.signup writes email through unchanged' and 'no normalization done on write'. Recommended fix in db.insert + find_by_email."
+        },
+        {
+          "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+          "passed": true,
+          "evidence": "Table includes signup.signup, invite.is_already_member, password_reset.request_reset."
+        },
+        {
+          "text": "Report flags the data-migration / already-stored-rows concern.",
+          "passed": true,
+          "evidence": "'Migration / data note: any persisted users with mixed-case emails need a one-shot lowercase pass.' Also mentions UNIQUE LOWER(email) constraint and risk/blast-radius display-casing concern."
+        },
+        {
+          "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+          "passed": true,
+          "evidence": "Recommended fix (normalize in db) presented as the single recommendation; the symptom fix is implicitly addressed in 'Why the one-liner is not enough'. Recommendation is unambiguous."
+        },
+        {
+          "text": "Counterfactual on the recommended fix.",
+          "passed": false,
+          "evidence": "No section walks the failing test through the fix and confirms it would pass. Patch plan says 'existing tests should pass' but does not break which 5-whys link the fix addresses, nor verify against the captured repro step-by-step."
+        },
+        {
+          "text": "Report contains at least 3 file:line-style citations.",
+          "passed": false,
+          "evidence": "References use filenames only (app/db.py, db.py, signup.py, search.py, invite.py, password_reset.py) without :line numbers. No file:line-style citations."
+        },
+        {
+          "text": "Report does not propose any 'human error' / blame conclusion.",
+          "passed": true,
+          "evidence": "Why-#4 mentions 'the original author punted' but frames it as a wrong assumption to be corrected, not a blame conclusion. No person named."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 251.3,
+        "stddev": 42.9921,
+        "min": 220.9,
+        "max": 281.7
+      },
+      "tokens": {
+        "mean": 40306.0,
+        "stddev": 7042.7835,
+        "min": 35326,
+        "max": 45286
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.798,
+        "stddev": 0.0283,
+        "min": 0.778,
+        "max": 0.818
+      },
+      "time_seconds": {
+        "mean": 129.7,
+        "stddev": 32.6683,
+        "min": 106.6,
+        "max": 152.8
+      },
+      "tokens": {
+        "mean": 25929.0,
+        "stddev": 2852.4688,
+        "min": 23912,
+        "max": 27946
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.20",
+      "time_seconds": "+121.6",
+      "tokens": "+14377"
+    }
+  },
+  "notes": []
+}

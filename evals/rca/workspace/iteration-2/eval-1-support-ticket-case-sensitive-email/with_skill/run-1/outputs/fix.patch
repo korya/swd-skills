@@ -1,0 +1,133 @@
+diff -ruN a/app/db.py b/app/db.py
+--- a/app/db.py	2026-10-23 14:22:58.089299000 -0400
++++ b/app/db.py	2026-10-23 14:22:58.099631989 -0400
+@@ -1,14 +1,34 @@
+-"""In-memory user store. Case-sensitive lookups by email."""
++"""In-memory user store.
+ 
+-from dataclasses import dataclass
+-from typing import Optional
++Email identity lives here and nowhere else: two emails name the same user
++iff `email_key(a) == email_key(b)`. The store enforces that on write
++(uniqueness) and on read (lookup), so no caller needs to know the rule.
++"""
++
++from dataclasses import dataclass, field
++from typing import NewType, Optional
++
++EmailKey = NewType("EmailKey", str)
++
++
++def email_key(email: str) -> EmailKey:
++    """Canonical identity form of an email address: trimmed and case-folded."""
++    return EmailKey(email.strip().casefold())
++
++
++class DuplicateEmail(Exception):
++    pass
+ 
+ 
+ @dataclass
+ class User:
+     id: int
+-    email: str
++    email: str          # as the user typed it, for display only
+     name: str
++    key: EmailKey = field(init=False, repr=False, compare=False)
++
++    def __post_init__(self) -> None:
++        self.key = email_key(self.email)
+ 
+ 
+ _USERS: list[User] = []
+@@ -23,6 +43,8 @@
+ 
+ def insert(email: str, name: str) -> User:
+     global _NEXT_ID
++    if find_by_email(email) is not None:
++        raise DuplicateEmail(email)
+     user = User(id=_NEXT_ID, email=email, name=name)
+     _NEXT_ID += 1
+     _USERS.append(user)
+@@ -30,8 +52,9 @@
+ 
+ 
+ def find_by_email(email: str) -> Optional[User]:
++    key = email_key(email)
+     for u in _USERS:
+-        if u.email == email:
++        if u.key == key:
+             return u
+     return None
+ 
+diff -ruN a/app/signup.py b/app/signup.py
+--- a/app/signup.py	2026-10-23 14:22:58.089403000 -0400
++++ b/app/signup.py	2026-10-23 14:22:58.120045281 -0400
+@@ -1,4 +1,4 @@
+-"""Signup flow. Stores email as the user typed it."""
++"""Signup flow. Keeps the email as typed for display; identity is decided by `db`."""
+ 
+ from app import db
+ 
+@@ -10,6 +10,7 @@
+ def signup(email: str, name: str) -> db.User:
+     if not email or "@" not in email:
+         raise SignupError("invalid email")
+-    if db.find_by_email(email) is not None:
+-        raise SignupError("email already registered")
+-    return db.insert(email=email, name=name)
++    try:
++        return db.insert(email=email, name=name)
++    except db.DuplicateEmail:
++        raise SignupError("email already registered") from None
+diff -ruN a/tests/test_email_identity.py b/tests/test_email_identity.py
+--- a/tests/test_email_identity.py	1969-12-31 19:00:00.000000000 -0500
++++ b/tests/test_email_identity.py	2026-10-23 14:22:58.130222655 -0400
+@@ -0,0 +1,47 @@
++"""Email identity is case- and whitespace-insensitive in every flow that looks a user up."""
++
++import sys
++import unittest
++
++sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1]))
++
++from app import db, signup, search, invite, password_reset  # noqa: E402
++
++STORED = "Bob@Example.COM"
++VARIANTS = ["bob@example.com", "BOB@EXAMPLE.COM", "Bob@example.com", " Bob@Example.COM "]
++
++
++class EmailIdentityTests(unittest.TestCase):
++    def setUp(self):
++        db.reset()
++        self.bob = signup.signup(email=STORED, name="Bob")
++
++    def test_store_lookup_ignores_case_and_whitespace(self):
++        for v in VARIANTS:
++            with self.subTest(v=v):
++                self.assertEqual(db.find_by_email(v), self.bob)
++
++    def test_signup_rejects_case_variant_duplicates(self):
++        for v in VARIANTS:
++            with self.subTest(v=v):
++                with self.assertRaises(signup.SignupError):
++                    signup.signup(email=v, name="Impostor")
++        self.assertEqual(len(db.all_users()), 1)
++
++    def test_store_enforces_uniqueness_without_signup(self):
++        with self.assertRaises(db.DuplicateEmail):
++            db.insert(email="bob@example.com", name="Bypass")
++
++    def test_search_invite_and_reset_agree_with_signup(self):
++        for v in VARIANTS:
++            with self.subTest(v=v):
++                self.assertEqual(search.search_by_email(v)["id"], self.bob.id)
++                self.assertEqual(invite.send_invite(v)["status"], "already_member")
++                self.assertEqual(password_reset.request_reset(v), f"reset-token-for-{self.bob.id}")
++
++    def test_display_email_keeps_user_casing(self):
++        self.assertEqual(search.search_by_email("bob@example.com")["email"], STORED)
++
++
++if __name__ == "__main__":
++    unittest.main()

@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 9,
+    "failed": 0,
+    "total": 9
+  },
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "14184 bytes."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Headline explicitly says 'The user's proposed ... in app/search.py fixes only one of four affected call sites and leaves a silent duplicate-signup bug active'. Dedicated 'Pushback on the user's framing' section."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Why-link 3-5 trace the chain back to db.py:26 (insert stores raw email) and the missing canonicalization invariant. Recommended fix is in db.py insert + find_by_email."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Sibling table lists app/signup.py:13 (P1 silent data corruption), app/invite.py:7, app/password_reset.py:11."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Open question §11 #1: 'Does the real users table have mixed-case rows today? If yes, backfill UPDATE users SET email = LOWER(TRIM(email))'. Also noted in sibling table footer."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "Option A symptom fix vs Option B root-cause fix; explicit 'Recommendation: Ship Option B.'"
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'Counterfactual: would Option B have prevented the captured repro?' section walks through the test step by step under the fix, confirms 'Result: Confirmed.'"
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "Citations include app/db.py:34, app/db.py:32-36, app/db.py:1, app/db.py:7-11, app/signup.py:13, app/search.py:7, app/invite.py:7, app/password_reset.py:11."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "Explicit 'Design gap, not author oversight.' No person named anywhere."
+    }
+  ]
+}
