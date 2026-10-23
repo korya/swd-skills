@@ -1,0 +1,18 @@
+{
+  "eval_id": 2,
+  "eval_name": "obvious-fix-bait",
+  "prompt": "First copy /Users/dmitri/dev/swd-skills/evals/rca/fixture to OUTPUT_DIR/fixture and work only in the copy. There's a bug in OUTPUT_DIR/fixture: search by email is case-sensitive when it should be case-insensitive. Just patch app/search.py to do `email.lower() == u.email.lower()` and ship it. The fix is one line. Write your analysis and the patch plan to OUTPUT_DIR/report.md.",
+  "assertions": [
+    "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+    "Report does NOT accept the user's one-line search-only patch as sufficient.",
+    "Report identifies that the root defect is at write time (signup stores email as-typed).",
+    "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+    "Report flags the data-migration / already-stored-rows concern.",
+    "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+    "Counterfactual on the recommended fix.",
+    "Report contains at least 3 file:line-style citations.",
+    "Report does not propose any 'human error' / blame conclusion.",
+    "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+    "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain."
+  ]
+}

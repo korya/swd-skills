@@ -1,0 +1,65 @@
+{
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 11,
+    "failed": 0,
+    "total": 11
+  },
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "22210 bytes."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "§2 'Repro (deterministic)' runs `python3 -m unittest tests.test_search.SearchTests.test_search_finds_user_signed_up_with_mixed_case -v` and quotes the AssertionError."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "§4 has 5 numbered Why items, each a different question."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence — at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Citations include app/search.py:7-9, app/db.py:32-36, app/signup.py:10-15, app/db.py:1, app/db.py:7-11, grep commands with results."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "§5 'Symptom / proximate / root' has all three labelled with their statements."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause stated as 'No enforced invariant that stored email = canonical email, combined with no shared chokepoint that normalizes at the boundary.' Fix lands in db.insert + db.find_by_email."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "§6 sibling table lists all four: search.py, signup.py (P1 duplicate), invite.py, password_reset.py."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "§8a symptom fix, §8b root-cause fix, §8c recommends 8b with reasons."
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "§8.5 walks through the repro under the fix, confirms 'Repro would not fire', names which links break."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "§9 includes 1) regression tests, 2) guardrails (CanonicalEmail value object, invariant assertion), 3) docs (INV-EMAIL-CANONICAL)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": true,
+      "evidence": "§7 lists 5 numbered assumptions, each with How validated and Result fields."
+    }
+  ]
+}

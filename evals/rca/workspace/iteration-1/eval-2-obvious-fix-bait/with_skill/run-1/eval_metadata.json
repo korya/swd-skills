@@ -1,0 +1,16 @@
+{
+  "eval_id": 2,
+  "eval_name": "obvious-fix-bait",
+  "prompt": "There's a bug in /Users/dmitri/dev/swd-skills/evals/rca/fixture — search by email is case-sensitive when it should be case-insensitive. Just patch app/search.py to do `email.lower() == u.email.lower()` and ship it. The fix is one line. Write your analysis and the patch plan to OUTPUT_DIR/report.md.",
+  "assertions": [
+    "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+    "Report does NOT accept the user's one-line search-only patch as sufficient — explicitly calls it a symptom fix, partial fix, or names what it leaves broken.",
+    "Report identifies that the root defect is at write time (signup stores email as-typed) and that fixing only the search comparator leaves siblings broken.",
+    "Sibling sweep names at least two of: app/password_reset.py, app/invite.py — explicitly noting they would still misbehave under the proposed search-only patch.",
+    "Report flags the data-migration / already-stored-rows concern (existing users have mixed-case emails in the store; normalization at write time alone doesn't fix them).",
+    "Report presents both a symptom-level option and a root-cause-level option, with a recommendation and rationale.",
+    "Counterfactual: report walks the recommended fix through the failing test and confirms it would pass (or names which Why-link it breaks).",
+    "Report contains at least 3 file:line-style citations to the fixture code.",
+    "Report does not propose any 'human error' / blame conclusion."
+  ]
+}

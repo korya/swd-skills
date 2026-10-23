@@ -1,0 +1,105 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "outputs/report.md exists, wc -c = 11911 bytes."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Lead: 'The one-line patch to app/search.py stops the ticket but leaves three other flows broken and hides duplicate accounts. I recommend fixing the cause in app/db.py instead.' Fix A cost: 'The codebase then has two different definitions of \"same email\".' Recommendation: 'Ship B.'"
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Lead: 'signup stores the email exactly as typed.' Why 3: 'Signup stores the email exactly as the user typed it. Nothing lowercases or trims it on the way in.' Evidence 'app/signup.py:15 passes email straight to db.insert.' Root cause: 'It stores raw input and compares raw input.' Fix B normalizes in insert at the storage boundary."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table rows 'app/password_reset.py:11 ... Locks a user out of password reset' and 'app/invite.py:7 ... Sends invites to people who already have an account'. Each was probed against the unpatched fixture (ResetError, invite_sent)."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Fix B blast radius: 'Existing duplicate rows still need a one-time cleanup, see open question 3.' Counterfactual: 'The survivor is data: rows already stored as case variants of each other stay duplicated until a cleanup runs.' Open question 3 gives the SELECT lower(email), count(*) ... HAVING count(*) > 1 query and asks how to merge."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'### A. Symptom fix: the requested one-liner in search.py' and '### B. Root-cause fix: one canonical form, owned by db', each with files, approach, tests, blast radius, rollback. '### Recommendation: Ship B.' with a hotfix-first fallback."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'## Counterfactual' section: 'Fix B: Confirmed with survivors. It breaks link 2, because both sides of the comparison are normalized, and link 3, because the stored value is normalized. The repro test passes and the three siblings pass with it. The survivor is data...'"
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "grep -c 'app/[a-z_]*\\.py:[0-9]' counts 13 lines with citations, e.g. app/db.py:34, app/signup.py:15, app/search.py:7-9, app/invite.py:7, app/password_reset.py:11. Line numbers match the fixture source."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|fault of|should have known' finds nothing. Why 5 is systemic: 'No spec or invariant states that email is a case-insensitive identifier.'"
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "The lead's first sentence, 'Support cannot find existing customers because db.find_by_email compares emails byte for byte, and signup stores the email exactly as typed.', gives what broke and the root cause but not the fix. The recommendation arrives only in sentence 3 ('I recommend fixing the cause in app/db.py instead.'). The H1 carries only the symptom. Section leads are otherwise sound (Timeline: 'The fixture has no commit history, so there is no change to bisect.'; Recommendation: 'Ship B.'), with one soft spot: Falsification opens on a conditional setup, 'If the root cause were local to search, the other flows would handle mixed case correctly.', rather than the finding. Graded consistently with the four prior old_skill gradings that failed this assertion on the same one-sentence criterion."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.9091,
+    "passed": 10,
+    "failed": 1,
+    "total": 11
+  },
+  "claims": [
+    {
+      "claim": "The fixture copy is unchanged; SHA-256 sums match the baseline.",
+      "type": "process",
+      "verified": true,
+      "evidence": "diff -rq --exclude=__pycache__ between the pristine fixture and outputs/fixture reports no differences."
+    },
+    {
+      "claim": "With Bob stored as Bob@Example.COM, invite returns invite_sent, reset raises ResetError, signup creates id=2 for bob@example.com.",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Follows from app/db.py:34 '=='; invite.py:11-13, password_reset.py:12-13, signup.py:13-15 all route through find_by_email. The transcript records the probe script run (command 11)."
+    },
+    {
+      "claim": "db.insert is the only write path and find_by_email the only email comparison.",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Fixture source: insert defined at db.py:24, called only at signup.py:15; the only email '==' is db.py:34."
+    },
+    {
+      "claim": "Fix B makes the one-liner hide duplicates less than Fix A.",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Fix B has insert reject duplicates on the normalized key; Fix A adds a second equality rule only in search. Reasoning is sound, though neither fix was applied, so test pass claims under B are by construction, not by execution."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Whether the local part is case-insensitive for this product (RFC 5321).",
+      "Why reports began on 2026-05-12 with unchanged code."
+    ],
+    "needs_review": [
+      "Count of case-variant duplicates in production before Fix B lands."
+    ],
+    "workarounds": [
+      "First dispatch found the skill snapshot missing and stopped; coordinator recreated it and re-issued."
+    ]
+  },
+  "notes": "Assertions 2 through 9 are discriminating and this run earns them: it probed the siblings and the proposed one-liner in memory rather than asserting from the code, and verified the tree was untouched. The skim assertion is the weak spot in the eval, not the run. It bundles two checks (headline-in-one-sentence and section-lead quality) into one pass/fail, and the one-sentence requirement is in tension with the 25-word lint ceiling: broke plus cause plus fix in 25 words is possible but tight, and every graded run so far has failed on exactly this clause while passing lint. Consider splitting it into a 'lead paragraph (first 3 sentences) states broke, cause, fix' assertion and a separate section-lead assertion. Also uncovered: no assertion checks that the agent did not modify the fixture copy, which this run did well and which the 'ship it' prompt actively baits; and no assertion checks that Fix B's counterfactual notes that unapplied fixes are confirmed by construction only.",
+  "execution_metrics": {}
+}

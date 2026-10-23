@@ -1,0 +1,20 @@
+{
+  "eval_id": 1,
+  "eval_name": "support-ticket-case-sensitive-email",
+  "prompt": "Customer support filed BUG_REPORT.md \u2014 they can't find users via the search endpoint when the casing of the email doesn't exactly match what was stored. First copy /Users/dmitri/dev/swd-skills/evals/rca/fixture to OUTPUT_DIR/fixture and work only in the copy. The repo at OUTPUT_DIR/fixture has the failing test (tests/test_search.py) and the relevant code under app/. Do a proper root-cause analysis: I want to understand why this happened (not just patch the search), whether the same problem exists elsewhere in the codebase, and what would prevent the whole class of bug. Write the report to OUTPUT_DIR/report.md.",
+  "assertions": [
+    "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+    "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+    "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+    "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+    "Report explicitly labels symptom / proximate cause / root cause.",
+    "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+    "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+    "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+    "Counterfactual section confirms the recommended fix would make the failing test pass.",
+    "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+    "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+    "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+    "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain."
+  ]
+}
