@@ -1,0 +1,103 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "wc -c outputs/report.md = 14558 bytes."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Reproduction section: '`tests/test_search.py::test_search_finds_user_signed_up_with_mixed_case` is a deterministic repro' plus the quoted failure output. Transcript step 8 ran `python3 -m unittest discover tests -v`."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "Section '5-whys chain' has a numbered list 1-5, each a distinct bold Why question, from 'Why does search return not found' to 'Why was that definition never made?'."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Every link has an Evidence line. Citations: app/search.py:7-9, app/db.py:34, app/signup.py:15, app/db.py:26, app/search.py:7, app/signup.py:13, app/invite.py:7, app/password_reset.py:11, app/db.py:1, app/db.py:10, app/db.py:14, app/db.py:24-29. All checked against the fixture source and accurate."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "Section 'Symptom, proximate cause, root cause' with bold bullets '**Symptom.**', '**Proximate cause.** app/db.py:34 compares emails with exact string equality.', '**Root cause.** The service has no single owner of email identity...'"
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause: 'The data model stores the display string as the key, and no layer normalizes or enforces uniqueness.' Why 3: 'Signup stores the email as the user typed it. Nothing normalizes it on the way in.' The == comparison is labelled the proximate cause, and probe F1 shows query-only normalization still misses."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Siblings table lists app/password_reset.py:11 (High), app/signup.py:13 (High, data integrity), app/invite.py:7 (Medium), each with a probe result (S1-S3)."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "'### A. Symptom fix, one line' (casefold compare at db.py:34) and '### B. Root-cause fix, with sibling repairs' (app/email.py, email_key, DuplicateEmail), then '### Recommendation: Ship B.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Counterfactual table row 'B, root cause | passes | passes | no, DuplicateEmail' and 'Fix B: **confirmed**'. Transcript step 16 ran the repro on scratchpad copies; the rca-cf/{baseline,symptom,root} directories exist with test_email_identity.py."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Prevention section has '**Test.** tests/test_email_identity.py', three '**Guardrail**' items (NewType, unique index, CI grep), and '**Doc.**' (AGENTS.md invariant, replace db.py:1 and signup.py:1 docstrings)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": true,
+      "evidence": "Assumptions section: numbered list 1-5, each with 'How validated' and 'Result' (four Confirmed, one explicitly UNVERIFIED about production duplicates)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "Ran the script: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "The Headline section is five sentences, not one. Its first sentence, 'The user service has no definition of email identity, so every lookup compares raw strings.', gives the root cause only. What broke arrives in sentence 3 ('Search is the visible failure.') and the fix in sentence 5. The skill's fix.md s8 requires 'One sentence: what broke, what the root cause was, the recommended fix.' Secondary: the Counterfactual lead 'I applied each fix in an isolated scratchpad copy' is process, not the section's claim, and the Falsification lead is a conditional setup whose claim lands in sentence 2. Section leads elsewhere (Symptom, Timeline, Recommendation 'Ship B.', Side effects) do carry their claims."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.9231,
+    "passed": 12,
+    "failed": 1,
+    "total": 13
+  },
+  "claims": [
+    {
+      "claim": "All 12 file:line citations in the chain point at the quoted code",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Checked each against outputs/fixture/app/*.py"
+    },
+    {
+      "claim": "Fix B repro and 6 prevention tests pass; fix A leaves 5 failing; unmodified leaves 22 failing",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Transcript step 16 ran the suites; scratchpad rca-cf/{baseline,symptom,root} exist. Table totals (16+6=22, 4+1=5) match the prose."
+    },
+    {
+      "claim": "Fixture copy restored byte for byte",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript step 18 diff -r and md5 check; outputs/fixture matches evals/rca/fixture."
+    },
+    {
+      "claim": "Grammar glitch",
+      "type": "quality",
+      "verified": false,
+      "evidence": "Headline sentence 2 'The string support types must match, character for character, the string the customer typed at signup.' reads oddly (missing article/verb); cosmetic."
+    }
+  ],
+  "notes": "Twelve of thirteen pass on substance, not surface: citations verified against the fixture, the counterfactual was actually executed in scratchpad copies, and the root cause is correctly placed at write-time normalization with the == compare demoted to proximate cause. The one failure is structural: the headline is spread over five sentences instead of the one the skill's fix.md demands, so a skimmer reading only first sentences gets the root cause but not what broke or the fix. Eval critique: assertions 3, 5, 10 and 11 check shape (numbered list, labels present) and would pass a plausible-but-wrong chain; assertion 6 is the discriminating one and should stay. Nothing checks that the chain's citations are accurate or that the counterfactual was actually run rather than asserted, which I verified by hand here; an assertion like 'transcript shows the repro test executed against a patched copy' would close that. The skim-test assertion bundles two checks (one-sentence headline, section leads) so a report can fail it on either, which makes run-to-run comparison noisy; splitting it would help. Run-specific noise: the skill snapshot path did not exist at start and the agent began from a byte-identical older snapshot before switching mid-run, so this run is not a clean measurement of rca-new alone.",
+  "execution_metrics": {}
+}

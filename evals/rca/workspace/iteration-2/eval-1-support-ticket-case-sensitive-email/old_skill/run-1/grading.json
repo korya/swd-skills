@@ -1,0 +1,132 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "wc -c outputs/report.md = 14926 bytes."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Symptom section: \"Repro: tests/test_search.py::test_search_finds_user_signed_up_with_mixed_case fails deterministically: AssertionError: 'not_found' != 'ok'\". Transcript step 3 runs `python3 -m unittest tests.test_search -v` (1 of 2 fails)."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "Section '5-whys chain' is a numbered list 1-5: 'Why did search return not_found?', 'Why did find_by_email return None for an existing user?', 'Why is the stored value mixed-case in the first place?', 'Why does neither the write path nor the read path normalize?', 'Why is there no definition of email identity?'."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Chain cites app/search.py:7-9, app/db.py:32-36, app/signup.py:15, app/db.py:24-29, app/signup.py:1, app/db.py:10, app/db.py:7-11, app/db.py:1, tests/test_search.py:24. Spot-checked against the fixture: db.py:34 is `if u.email == email`, signup.py:15 is `db.insert(email=email, ...)`, db.py:10 is `email: str`. All accurate."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "Section 'Classification' has bold labels 'Symptom:', 'Proximate cause:', 'Root cause:' each with its own statement."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Why 3: \"signup passes the email straight through to db.insert, and insert stores it verbatim. Nothing in the write path normalizes.\" Root cause: \"email identity is undefined. There is no canonical form ... no uniqueness constraint on the identity form\". Fix B canonicalizes in `insert` (write) and `find_by_email` (read). The diagnosis reaches past the == comparison to the write path and the missing canonical form, though it frames the root one level more abstractly than the assertion wording."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Siblings table lists app/signup.py:13 (duplicate account created), app/password_reset.py:11 (ResetError), app/invite.py:7 (invite_sent to existing member), each verified by probe in transcript steps 5-6."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "'A. Symptom fix (smallest)' (fallback scan in search.py, verdict 'Not recommended') and 'B. Root-cause fix (recommended)' (canonical_email in db.py), followed by 'Recommendation: B.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Counterfactual: \"search_by_email(\\\"bob@example.com\\\") canonicalizes to the same key and matches. The repro does not fire ... Verified by running the repro and the four-flow probe against the prototype: Confirmed\". Transcript step 7 shows the prototype applied in a scratch copy and `python3 -m unittest tests.test_search -v` with both tests passing."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Prevention section has 'Test (floor)' (repro plus parametrized four-flow test), three guardrails (NewType, UNIQUE(email_canonical), lint on `.email ==`), and 'Doc' (invariant in docs/architecture.md or AGENTS.md, fix the two docstrings)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": true,
+      "evidence": "Assumptions section: numbered list 1-5, each with 'How validated' and 'Result' (four Confirmed, one explicitly UNVERIFIED: production duplicates)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint.py reports '40 findings in 1 file': 29 semicolons (lines 21, 34, 35, 39, 47, 61, 65, 74, 78, 80, 84, 87, 92, 96, 105, 114, 115, 117, 119, 120, 126, 134, 135, 142), 9 long sentences (lines 16: 37 words, 25: 47 words, 55, 59, 83, 122, 126, 131, 135), 1 long lead (line 5, headline, 34 words), 1 dash (line 21)."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "The Headline is three sentences: sentence 1 (34 words) gives what broke and the root cause, sentence 2 lists siblings, and the recommended fix only arrives in sentence 3 ('Recommended fix: canonicalize email once, inside app/db.py ...'). Not one sentence. The Timeline section also opens with a qualifier ('The fixture carries no git history and no deploy/config log, so the responsible change cannot be cited by SHA.') before its claim. Other sections (Siblings, Counterfactual) lead well."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8462,
+    "passed": 11,
+    "failed": 2,
+    "total": 13
+  },
+  "execution_metrics": {
+    "total_tokens": 69076,
+    "duration_ms": 247527
+  },
+  "claims": [
+    {
+      "claim": "Fixture working copy was read and executed, not modified; checksums match baseline.",
+      "type": "process",
+      "verified": true,
+      "evidence": "diff -r of outputs/fixture against the pristine evals/rca/fixture reports no differences."
+    },
+    {
+      "claim": "signup with a case variant creates a duplicate account (ids 1 and 2 both exist).",
+      "type": "factual",
+      "verified": true,
+      "evidence": "signup.py:13 guards with db.find_by_email(email), which is byte-exact (db.py:34), so 'bob@example.com' passes the check after 'Bob@Example.COM' was inserted. Transcript step 5 reports the probe."
+    },
+    {
+      "claim": "Prototype fix makes both tests pass and all four flows resolve for four spellings.",
+      "type": "quality",
+      "verified": false,
+      "evidence": "Transcript step 7 describes the run but the prototype lives only in the scratchpad and its output is not captured in outputs/. Plausible from the described approach (strip+casefold in insert and find_by_email) but not independently verifiable from the outputs."
+    },
+    {
+      "claim": "grep -rn 'lower()|casefold' app/ returns nothing.",
+      "type": "factual",
+      "verified": true,
+      "evidence": "No .lower() or casefold in any fixture app/*.py file."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": [
+      "Executor's first prototype write was refused by zsh noclobber, so one counterfactual run in transcript step 6 ran against unfixed code; the executor noticed, redid it with >| in step 7, and marked the earlier run invalid."
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+        "reason": "The wording pins the root cause to one specific framing (write-time normalization). This run went one level deeper ('no definition of email identity', fix normalizes on both write and read) and still deserves to pass, but a grader could read the assertion literally and fail a correct deeper diagnosis. Consider rewording to 'root cause reaches the write path / storage of unnormalized email, not just the read-side comparison'."
+      },
+      {
+        "assertion": "Running prose-lint.py on OUTPUT_DIR/report.md reports 0 findings",
+        "reason": "This is the only prose-quality assertion and it is binary across four rules, so 1 semicolon and 40 findings score the same. If the point is to measure improvement between skill versions, recording the finding count (or per-rule counts) alongside pass/fail would make the comparison informative."
+      },
+      {
+        "reason": "No assertion checks that the sibling sweep is verified by execution rather than by reading. This run probed every sibling and found the duplicate-account consequence of the signup guard, which is the most important finding in the report and the thing that justifies rejecting the symptom fix. A weaker run could list the three filenames from grep alone and pass assertion 7 identically."
+      },
+      {
+        "reason": "No assertion checks that the fixture copy was left unmodified (the prompt says 'work only in the copy' but the prototype should not corrupt the evidence). This run passed (diff clean), but a run that edited outputs/fixture/app/db.py in place would also pass every current assertion."
+      }
+    ],
+    "overall": "Content assertions are well matched to the task and were all met with substance. The two failures are both writing-style: the old skill produces a rigorous but dense report (semicolon-heavy, 34-word headline lead, fix deferred to the third sentence). Consider adding verification-by-execution and fixture-untouched checks."
+  },
+  "notes": "Content was strong and every content assertion passed on substance: accurate file:line citations, an executed (not merely read) sibling sweep that surfaced the duplicate-account consequence, a prototyped fix, and an honest UNVERIFIED assumption. Both failures are prose-shape: prose-lint found 40 findings (29 semicolons, 9 long sentences, 1 long lead, 1 dash), and the headline spreads what-broke, root cause and fix across three sentences instead of one. Eval critique: assertion 6 is worded for one specific root-cause framing and could penalize a correct deeper diagnosis; the lint assertion is binary so it cannot show partial improvement; nothing checks that siblings were verified by execution or that the fixture copy stayed unmodified, both of which this run did and a weaker run could skip without failing."
+}

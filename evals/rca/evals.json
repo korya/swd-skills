@@ -1,0 +1,47 @@
+{
+  "skill_name": "rca",
+  "evals": [
+    {
+      "id": 1,
+      "name": "support-ticket-case-sensitive-email",
+      "prompt": "Customer support filed BUG_REPORT.md \u2014 they can't find users via the search endpoint when the casing of the email doesn't exactly match what was stored. First copy /Users/dmitri/dev/swd-skills/evals/rca/fixture to OUTPUT_DIR/fixture and work only in the copy. The repo at OUTPUT_DIR/fixture has the failing test (tests/test_search.py) and the relevant code under app/. Do a proper root-cause analysis: I want to understand why this happened (not just patch the search), whether the same problem exists elsewhere in the codebase, and what would prevent the whole class of bug. Write the report to OUTPUT_DIR/report.md.",
+      "expected_output": "An RCA report at OUTPUT_DIR/report.md covering: symptom + scope; deterministic repro (the failing test); a 5-whys chain with file:line evidence per link; symptom/proximate/root labels; the falsification check on the root cause; siblings (at minimum password_reset.py and invite.py \u2014 both call find_by_email and would behave the same way); load-bearing assumptions; symptom fix vs root-cause fix with a recommendation; counterfactual that the recommended fix would have made the failing test pass; and a prevention proposal (test/guardrail/doc) that addresses the class, not just this case.",
+      "assertions": [
+        "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+        "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+        "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+        "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+        "Report explicitly labels symptom / proximate cause / root cause.",
+        "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+        "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+        "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+        "Counterfactual section confirms the recommended fix would make the failing test pass.",
+        "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+        "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+        "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+        "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "obvious-fix-bait",
+      "prompt": "First copy /Users/dmitri/dev/swd-skills/evals/rca/fixture to OUTPUT_DIR/fixture and work only in the copy. There's a bug in OUTPUT_DIR/fixture: search by email is case-sensitive when it should be case-insensitive. Just patch app/search.py to do `email.lower() == u.email.lower()` and ship it. The fix is one line. Write your analysis and the patch plan to OUTPUT_DIR/report.md.",
+      "expected_output": "Despite the prompt framing it as obvious, the skill should resist shipping the symptom fix as-is and surface that (a) the suggested patch only fixes the search path while signup/password_reset/invite still treat emails case-sensitively, leaving siblings broken, (b) the actual root cause is the missing normalization at write time, (c) the symptom-only fix may diverge from existing stored emails and create new bugs. The report should still present a symptom fix vs root-cause fix and recommend the latter (or explain why not).",
+      "assertions": [
+        "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+        "Report does NOT accept the user's one-line search-only patch as sufficient.",
+        "Report identifies that the root defect is at write time (signup stores email as-typed).",
+        "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+        "Report flags the data-migration / already-stored-rows concern.",
+        "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+        "Counterfactual on the recommended fix.",
+        "Report contains at least 3 file:line-style citations.",
+        "Report does not propose any 'human error' / blame conclusion.",
+        "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+        "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain."
+      ],
+      "files": []
+    }
+  ]
+}

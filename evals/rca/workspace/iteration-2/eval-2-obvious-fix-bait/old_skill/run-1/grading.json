@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "wc -c outputs/report.md = 14678 bytes; 12 sections from Headline to Side effects and restoration."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Headline: 'The requested one-liner in `app/search.py` cannot be written there (`u` is not in scope), and a lookup-only `.lower()` fixes the ticket while leaving whitespace misses and already-duplicated accounts in place.' Fix A section: 'Not `app/search.py` ... would fix search and leave reset/invite/signup broken.' Verified: `u` is a loop variable local to db.find_by_email (app/db.py:33); search.py only calls that function."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Headline: 'signup stores emails exactly as typed (`app/signup.py:1`, `app/db.py:26`)'. Why 3: 'Signup passes the email through untouched and `insert` stores whatever it receives; nothing in the codebase normalises email.' Classification root cause: 'Identity is \"the bytes the user typed\", applied inconsistently to write (stored raw) and read (compared raw)'. Fix B normalises in `insert` as well as `find_by_email`. Citations verified against fixture: signup.py:1 docstring 'Stores email as the user typed it', db.py:26 `User(id=_NEXT_ID, email=email, ...)`."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lists `app/password_reset.py:11` (ResetError lockout) and `app/invite.py:7` (already_member guard bypassed), plus `app/signup.py:13` (duplicate account). Line numbers match the fixture. Transcript step 5 shows probes P3/P4 exercising these callers."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Siblings: 'production very likely already contains duplicate accounts differing only by case ... `SELECT lower(email), count(*) ... GROUP BY 1 HAVING count(*) > 1` before any fix ships'. Fix B rollout: '(3) backfill: lower-case existing rows, merge or flag the case-variant duplicates by policy; (4) add the DB-level unique constraint'. Fix A 'What it leaves behind': 'already-duplicated accounts resolve silently to whichever row was inserted first'. Open question 2 asks for the merge policy."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "Fix proposals has 'A. Symptom fix (smallest change that closes the ticket)' at db.py:34 and 'B. Root-cause fix (recommended)' with canonical_email() in insert and find_by_email plus store-level uniqueness. Explicit 'Recommendation: B. A closes the ticket but keeps manufacturing the class ... acceptable as a same-day hotfix only if B cannot ship within the week'."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "Counterfactual section: 'Fix B against the captured repro: confirmed. Breaks link 4 ... experiment B output: `OK`; `search(lower): ok`, `search(trailing sp): ok`, `invite(lower): already_member`, `reset(lower): reset-token-for-1`, `dup signup: blocked`'. Transcript step 7 shows experiment B run on a scratch copy with the test suite and probes. Fix A was also trialled (steps 7-8) and reported as leaving siblings."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "Over 15 citations, e.g. `app/db.py:34`, `app/signup.py:1`, `app/db.py:26`, `app/search.py:7-9`, `app/db.py:33-34`, `app/signup.py:15`, `app/password_reset.py:11`, `app/invite.py:7`, `tests/test_search.py:20-22`, `app/db.py:24-29`. Spot-checked all of these against the pristine fixture; every one points at the claimed code."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "Why 5 lands on a system cause: 'No invariant, test, or constraint encodes \"one person = one email, independent of case/whitespace\"'. The docstring is described as 'a design, not an accident'. Prevention proposes types, a unique index and tests. No mention of a person, team, carelessness or mistake anywhere in the report."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint.py exit 1: '49 findings in 1 file'. 39 semicolon findings (lines 5, 15, 16, 18 x3, 22, 28, 32, 35, 40, 43, 44 x2, 46, 58, 79, 84, 86, 88, 90, 91, 101 x2, 106, 121, 122, 123, 124, 125 x3, 132, 136 x2, 138, 140, 146, 151) and 10 long-sentence findings (lines 5 x2 at 27 and 26 words, 22 at 66 words, 43 at 38, 57 at 34, 101 at 28, 123 at 28, 125 at 34, 127 at 31, 136 at 35). No em-dash or paragraph-lead findings."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "The Headline is a five-sentence paragraph, not one sentence; the H1 title carries only the symptom. Its first sentence, 'Search is not the bug; it is the first place the bug was noticed.', is a teaser that withholds the cause and fix (both appear only in sentences 2 and 5). Section leads also miss the bar: Timeline opens with the qualifier 'The fixture has no version history, so `git log` cannot name an introducing change.'; Symptom and scope, Classification, Assumptions and Fix proposals open with bullets or a bold label rather than a claim sentence. Siblings ('All four callers share `db.find_by_email`, so all four misbehave on a case mismatch') is the one section lead that does carry its claim."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8182,
+    "passed": 9,
+    "failed": 2,
+    "total": 11
+  },
+  "notes": "The content assertions are well chosen for this bait prompt and the run earned every one of them with verified work (probes, scratch-copy experiments, accurate citations, fixture left byte-identical). Two gaps: no assertion checks that the file:line citations are accurate, so a report with three hallucinated locations passes assertion 8 (I verified them by hand here); and nothing checks that outputs/fixture was left unmodified, which the prompt demands and the skill treats as a hard rule. The report's strongest discriminating finding, that the requested one-liner cannot even be written in search.py because `u` is out of scope, is only indirectly covered by assertion 2. Assertion 3's 'at write time' wording is slightly looser than the report's actual root ('no canonical form, applied inconsistently on write and read'), which a stricter grader could read as a near miss; consider rewording to 'names the as-typed store on signup as part of the root'. The two failures are both prose-form checks the old skill never asked for, so they measure the writing rules rather than RCA quality, which is exactly what the new/old comparison needs.",
+  "execution_metrics": {}
+}
