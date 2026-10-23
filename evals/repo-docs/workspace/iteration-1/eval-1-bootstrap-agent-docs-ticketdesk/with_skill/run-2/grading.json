@@ -1,0 +1,109 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/proposal.md exists, lists the feature spec files and their prefixes, and the transcript shows it was written before any docs/ file.",
+      "passed": true,
+      "evidence": "outputs/proposal.md exists (2596 bytes) with a 'Feature spec files' table: tickets.md/TKT, event-log.md/LOG, cli.md/CLI, plus an invariants table and final layout. Transcript step 7 writes proposal.md; the first docs/ write (invariants.md) is step 8."
+    },
+    {
+      "text": "AGENTS.md, docs/README.md, docs/architecture.md, docs/guidelines.md, docs/product-specs/README.md, docs/product-specs/invariants.md exist in OUTPUT_DIR/repo, plus at least two feature spec files under docs/product-specs/.",
+      "passed": true,
+      "evidence": "check_run.py: required_files_present=true, feature_spec_files=[cli.md, event-log.md, tickets.md]. All six required files present and non-trivial (read in full)."
+    },
+    {
+      "text": "AGENTS.md is at most 170 lines and contains a documentation index that links every file under docs/.",
+      "passed": true,
+      "evidence": "wc -l AGENTS.md = 110. check_run.py agents_links_all_docs=true; the 'Documents at a glance' table links all 8 docs/ files plus AGENTS.md itself."
+    },
+    {
+      "text": "No generated file still contains a template placeholder: no angle-bracket placeholders such as <PROJECT NAME> or <XXX>, no literal '...' table rows, no HTML comment blocks of template tips.",
+      "passed": true,
+      "evidence": "check_run.py placeholders_left={} and html_comments_left=[]. Manual read of all 9 files found no angle-bracket placeholders, no '...' rows, no HTML comments. The only '<feature>' is in docs/README.md's 'product-specs/<feature>.md' trigger table, which is a generic reference, not a fill-in slot (check_run did not flag it)."
+    },
+    {
+      "text": "Every feature spec file has a `Prefix:` line and at least five items headed `### PREFIX-NNN: Title` with zero-padded three-digit numbers, unique within the file, and no `**Testable:**` lines anywhere.",
+      "passed": true,
+      "evidence": "check_run.py: tickets.md 14 items/TKT, event-log.md 9 items/LOG, cli.md 8 items/CLI, each has_prefix_line=true, duplicates=0; testable_lines=0."
+    },
+    {
+      "text": "Spec bodies are behavioral: no spec names a function, class, method, module or file (such as TicketService, due_at, store.py); it describes observable behavior.",
+      "passed": true,
+      "evidence": "grep for TicketService|EventStore|due_at|*.py|argparse|dataclass|class|function|module over docs/product-specs/*.md returned nothing; check_run impl_words=0 for all four files. Bodies speak of 'the store', 'the log', 'the ticket service' as components, and state messages, exit codes, and field names."
+    },
+    {
+      "text": "The specs match the code: SLA hours P1 4, P2 24, P3 72; ticket states open, assigned, closed; a closed ticket cannot be assigned; a resolution note needs at least 10 characters; an unknown priority is rejected.",
+      "passed": true,
+      "evidence": "TKT-006: 'P1: 4 hours, P2: 24 hours, P3: 72 hours' matches SLA_HOURS. TKT-001 states open/assigned/closed match STATES. TKT-009 'ticket N is closed' matches assign(). TKT-010 '>= 10 characters after trimming' matches len(resolution.strip()) < 10. TKT-003 unknown priority rejected matches due_at() ValueError. Error messages for TKT-002/008/012/013 also match the code verbatim."
+    },
+    {
+      "text": "invariants.md has at least two `### INV-NNN:` items and one of them captures the append-only event log as the single source of truth (events never edited or deleted, state rebuilt by replay).",
+      "passed": true,
+      "evidence": "Seven items INV-001..007. INV-001 'The event log is the single source of truth ... rebuilt by replaying the log from its first line'; INV-002 'A written event is never edited, reordered, or deleted.'"
+    },
+    {
+      "text": "Cross-links resolve: every `INV-NNN` or `PREFIX-NNN` reference in the docs points to an existing ID, and docs/product-specs/README.md indexes every spec file with its prefix.",
+      "passed": true,
+      "evidence": "check_run.py dangling_refs=[] and ps_readme_indexes_all_specs=true. Referenced IDs (INV-001..007, TKT-001..014, LOG-001..009, CLI-001..008) all exist. README prefix table lists invariants/INV, tickets/TKT, event-log/LOG, cli/CLI."
+    },
+    {
+      "text": "docs/architecture.md states only facts true of the repo: a CLI over a JSON-lines event log on disk, no database, no web layer, no network service. It does not invent components.",
+      "passed": true,
+      "evidence": "Diagram shows CLI -> TicketService -> (due_at) -> EventStore -> tickets.jsonl, 'the only persistent state'. Tech table, assumptions (full replay, no lock, injectable clock, stdlib only, 3.11+/CI 3.12) all verified against cli.py, store.py, tickets.py, sla.py, pyproject.toml, ci.yml. A database appears only as a hypothetical migration path. No invented components."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on AGENTS.md and on every file under docs/ reports 0 findings in total.",
+      "passed": true,
+      "evidence": "Ran prose-lint.py on AGENTS.md and all 8 files under docs/: '0 findings in 1 file' for each; check_run lint_total=0."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of AGENTS.md and docs/architecture.md tells a newcomer what the project is, how it is built, and where to look; no first sentence is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "AGENTS.md 'What this project is', second paragraph opens with 'Two principles drive the design.' That is a teaser by the skill's own writing rules (assets/writing.md: 'A teaser such as \"Two things went wrong.\" is not a claim'). Every other first sentence in both files carries its claim ('Calls flow downward only.', 'The store is the only code that touches the file.', 'The CLI is the only user surface.'), and the skim does convey what/how/where, but the assertion requires no teaser at all."
+    },
+    {
+      "text": "`git status` in OUTPUT_DIR/repo shows only new files under docs/ and AGENTS.md: no code or test file was modified and nothing was committed.",
+      "passed": true,
+      "evidence": "git status --short: '?? AGENTS.md' and '?? docs/' only. git log shows only the fixture commit a82f18d. Transcript step 16 shows the executor removed the __pycache__ dirs its CLI runs created."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.9231,
+    "passed": 12,
+    "failed": 1,
+    "total": 13
+  },
+  "claims": [
+    {
+      "claim": "CLI-006: list output has 'the state left-padded to 8 characters'",
+      "type": "factual",
+      "verified": false,
+      "evidence": "cli.py uses f'{t.state:<8}', which left-aligns and pads on the right. Minor wording error, outside assertion 7's fact list."
+    },
+    {
+      "claim": "create --priority P9 ends in a traceback with exit 1 (CLI-008 TODO, AGENTS.md 'Current state')",
+      "type": "factual",
+      "verified": true,
+      "evidence": "sla.due_at raises ValueError; cli.py catches only TicketError. Transcript step 16 confirmed exit 1 empirically."
+    },
+    {
+      "claim": "cli.py and sla.py have no direct tests",
+      "type": "factual",
+      "verified": true,
+      "evidence": "tests/ contains only test_store.py and test_tickets.py; sla is exercised via test_create_sets_due_by_priority."
+    },
+    {
+      "claim": "CI runs make lint and make test on Python 3.12 on push and pull request",
+      "type": "factual",
+      "verified": true,
+      "evidence": ".github/workflows/ci.yml: on [push, pull_request], python-version 3.12, run make lint, make test."
+    },
+    {
+      "claim": "Executor ran the CLI against a scratch log and make lint && make test (7 tests pass)",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript steps 14 and 16; test files define 7 test methods in total."
+    }
+  ],
+  "notes": "The mechanical assertions (1-5, 8, 9, 11, 13) are all checked by check_run.py and were trivially green here; they would also pass a thin but well-formed doc set, so the discriminating power sits in 6, 7, 10 and 12. Assertion 7 names five facts but the specs assert many more (error message strings, output line formats, key ordering, exit codes); a wrong message string or the CLI-006 'left-padded' slip would go uncaught, so consider extending 7 to the error messages and output formats, or adding a 'no false fact in any spec' assertion. The skim test is the only judgment assertion that caught anything, and it caught a one-sentence teaser that the prose linter does not detect; if the linter grew a teaser rule ('Two things ...', 'N principles ...') this would become mechanical. No assertion covers whether the proposal records the scope trade-offs (SLA folded into tickets, P9 traceback as TODO), which this run did well and which distinguishes a thoughtful bootstrap from a template fill.",
+  "execution_metrics": {}
+}
