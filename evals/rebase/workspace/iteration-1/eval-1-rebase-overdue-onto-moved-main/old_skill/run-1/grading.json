@@ -1,0 +1,106 @@
+{
+  "expectations": [
+    {
+      "text": "The transcript or report states the three points before any history moved: HEAD of feature/overdue, the merge-base with main, and HEAD of main.",
+      "passed": true,
+      "evidence": "Transcript step 6 (before the step-16 `git reset --hard main`): \"three points: curr 3e7ddfe, old_base b61ba70, new_base 9d38390\". report.md repeats them in the points table (`curr` 3e7ddfe, `old_base` b61ba70 merge-base, `new_base` 9d38390 main)."
+    },
+    {
+      "text": "The untracked debug_notes.md was stashed under a labelled stash before the rebase and restored afterwards: at the end it is present and untracked in OUTPUT_DIR/repo, `git stash list` is empty, and the transcript shows the label.",
+      "passed": true,
+      "evidence": "check_run.py: debug_notes_untracked=true, stash_list_empty=true, stash_label_in_transcript=true. Transcript step 6: `git stash push --include-untracked --message swd-rebase-preflight-20261027-082925`; step 21: `git stash pop stash@{0}`. `git status --short` in outputs/repo shows `?? debug_notes.md`; `git stash list | wc -l` = 0."
+    },
+    {
+      "text": "The delta inventory names all four changes on main: the rename of due_at to deadline_for, the extracted _line formatter and the export subcommand, INV-006 (time from the store clock), and the CLI test convention in docs/guidelines.md with tests/test_cli.py.",
+      "passed": true,
+      "evidence": "Transcript step 9: \"full delta: deadline_for rename, _line + export, INV-006, CLI test convention, tests/test_cli.py\". report.md names each with its effect: INV-006 row in the per-commit table, \"main extracted `_line` and added `export`\", \"new convention: each subcommand has a subprocess test in `tests/test_cli.py`\", and \"`deadline_for` rename: the branch never referenced `due_at()` the function\". The inventory is spread across the per-commit table and the \"Delta-touched surfaces\" section rather than one list."
+    },
+    {
+      "text": "Each of the three feature commits carries a classification (Untouched, Adjusted, Extended, Obsolete, or Conflicting) with a one-line justification; the service commit is Conflicting or Adjusted because of INV-006, the CLI commit is Adjusted or Extended because of _line, and the specs commit is Untouched or Adjusted.",
+      "passed": true,
+      "evidence": "report.md per-commit table: e6cdf67 \"**Conflicting** with INV-006 (new on main): the service defaulted `now` to `time.time()`\"; e9e90a3 \"**Adjusted** (main extracted `_line` and added `export` on both hunks the commit touches) + **Extended** (new convention: ... subprocess test in `tests/test_cli.py`)\"; 3e7ddfe \"**Untouched**\"."
+    },
+    {
+      "text": "OUTPUT_DIR/questions.md exists and names the INV-006 conflict (the branch reads time.time() directly) as the item that needed the user's decision, with the assumption taken (read the clock from the store).",
+      "passed": true,
+      "evidence": "questions.md Risk gate: \"commit 1 conflicts with a new invariant on `main`. INV-006 ... `TicketService.overdue()` as authored defaults `now` to `time.time()`.\" Q1 option (a) \"`now = self.store.clock()`; drop the `now=None` parameter\" and \"**Assumption: (a), the lowest-risk option.**\""
+    },
+    {
+      "text": "On the rebased feature/overdue, ticketdesk/tickets.py contains no call to time.time() and the overdue computation reads the current time from the store's clock (store.clock or an equivalent injected clock).",
+      "passed": true,
+      "evidence": "check_run.py: time_time_in_tickets=false, store_clock_used=true. ticketdesk/tickets.py: `now = self.store.clock()  # INV-006: the store clock, never the system clock`. `grep -rn time.time ticketdesk/` matches only store.py's `clock=time.time` default."
+    },
+    {
+      "text": "On the rebased branch, the overdue subcommand in ticketdesk/cli.py prints through the shared _line formatter rather than a second copy of the format string, and the export subcommand still exists.",
+      "passed": true,
+      "evidence": "check_run.py: overdue_uses_line=true, export_present=true. cli.py: `elif args.cmd == \"overdue\":  # CLI-010 / for t in svc.overdue(): print(_line(t))`; `sub.add_parser(\"export\")` and the export branch remain."
+    },
+    {
+      "text": "A subprocess CLI test for the overdue subcommand exists in tests/test_cli.py on the rebased branch, following the convention added on main.",
+      "passed": true,
+      "evidence": "check_run.py: overdue_cli_test=true. tests/test_cli.py has `test_overdue_lists_only_past_due_tickets` using the module's `run(...)` subprocess helper, seeding a past-due event and asserting stdout `#1 [P1] open     Old\\n` and returncode 0."
+    },
+    {
+      "text": "`make test` passes on the rebased branch (all tests, including tests/test_cli.py), and `make lint` passes.",
+      "passed": true,
+      "evidence": "check_run.py: tests_pass=true, lint_pass=true. Re-ran: `make test` -> \"Ran 12 tests ... OK\" (3 of them in test_cli.py); `make lint` (compileall) exits 0."
+    },
+    {
+      "text": "The rebased branch is based on main's HEAD (merge-base of feature/overdue and main equals main's HEAD), the three original commits are still present by subject (possibly with edits), and any new fix is in its own Conventional Commits commit rather than squashed into an original one unless it preserves that commit's intent.",
+      "passed": true,
+      "evidence": "check_run.py: rebased_onto_main_head=true, original_subjects_present=true; `git log --graph` shows 5ac4755, 7397982, dc87663 directly on 9d38390 (main). No separate fix commits: the INV-006 change and service tests were amended into feat(tickets), the _line resolution and CLI test into feat(cli); both edits preserve the commit's intent (the feature itself plus its own tests), and questions.md Q2 states that reasoning explicitly."
+    },
+    {
+      "text": "The transcript shows no `-X theirs`, `-X ours`, or `--no-verify`, and no push.",
+      "passed": true,
+      "evidence": "check_run.py: forbidden_flags=[]. grep of transcript.md for `-X theirs|-X ours|--no-verify|git push` returns no matches; conflicts in step 19-20 were resolved by reading both hunks."
+    },
+    {
+      "text": "OUTPUT_DIR/report.md opens with a headline that says succeeded, succeeded with adjustments, or blocked, then gives a per-commit outcome, the spec or invariant deviations and their resolution, and what the user should still verify by hand.",
+      "passed": true,
+      "evidence": "report.md line 3: \"**Headline: rebased with adjustments.** All three commits replayed; one needed a semantic fix (INV-006)...\" (wording is \"rebased with adjustments\", not the literal \"succeeded with adjustments\"). Sections follow: \"## Per-commit outcome\" (table), \"## Spec and invariant deviations and how they were resolved\", \"## Please verify by hand\" (4 numbered items)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md and OUTPUT_DIR/questions.md reports 0 findings in total.",
+      "passed": false,
+      "evidence": "prose-lint.py: report.md 9 findings (8 semicolon, 1 long-sentence of 34 words at line 33); questions.md 7 findings (5 semicolon, 1 long-lead of 27 words at line 26, 1 long-sentence of 38 words at line 28). Total 16, not 0."
+    },
+    {
+      "text": "Skim test: the headline and the first sentence of each section of report.md carry their claim; no teaser or qualifier-chain leads.",
+      "passed": true,
+      "evidence": "Headline: \"rebased with adjustments. All three commits replayed; one needed a semantic fix (INV-006)\". Section leads: per-commit table rows state class and outcome; deviations opens \"INV-006 vs. `time.time()` (the risk-gate stop). Resolved by option (a)\"; Working tree opens \"`debug_notes.md` was stashed under ... before history moved and popped cleanly after\"; verify-by-hand opens with the concrete Q1 ask. prose-lint flagged no teaser-lead or long-lead in report.md."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.93,
+    "passed": 13,
+    "failed": 1,
+    "total": 14
+  },
+  "execution_metrics": {
+    "total_tokens": 96440,
+    "duration_ms": 330292
+  },
+  "timing": {
+    "executor_duration_seconds": 330.3
+  },
+  "claims": [
+    {"claim": "Lint and all 12 tests pass on the result", "type": "factual", "verified": true, "evidence": "make test: Ran 12 tests OK; make lint exit 0"},
+    {"claim": "grep finds no due_at( call anywhere", "type": "factual", "verified": true, "evidence": "grep -rn 'due_at(' ticketdesk tests -> no matches"},
+    {"claim": "only store.py references time.time", "type": "factual", "verified": true, "evidence": "grep -rn time.time ticketdesk/ -> store.py:14 only"},
+    {"claim": "diff main..feature/overdue is 6 files / +44", "type": "factual", "verified": true, "evidence": "git diff --stat main feature/overdue: 6 files changed, 44 insertions(+)"},
+    {"claim": "Pre-rebase tip kept as feature/overdue.pre-rebase", "type": "factual", "verified": true, "evidence": "git branch lists feature/overdue.pre-rebase at 3e7ddfe"},
+    {"claim": "e2e run through the binary matches TKT-014 and CLI-010", "type": "process", "verified": false, "evidence": "Transcript step 21 lists the e2e commands but not their output; cannot verify independently beyond the subprocess test passing"}
+  ],
+  "user_notes_summary": {"uncertainties": [], "needs_review": [], "workarounds": []},
+  "eval_feedback": {
+    "suggestions": [
+      {"assertion": "OUTPUT_DIR/report.md opens with a headline that says succeeded, succeeded with adjustments, or blocked ...", "reason": "The run wrote \"rebased with adjustments\"; decide whether the vocabulary is literal (then this run fails) or semantic. check_run.py does not check it, so graders will split."},
+      {"assertion": "The delta inventory names all four changes on main ...", "reason": "The report has no single inventory; the four changes are scattered across the per-commit table and a later section. If the skill wants one inventory block, say so in the assertion."},
+      {"reason": "No assertion checks that the pre-rebase tip is preserved (backup ref or reflog pointer named in the report). This run did it; a run that did not would still pass every assertion."},
+      {"reason": "The e2e claim in the report (binary matches TKT-014/CLI-010) is unverifiable from the transcript, which lists commands without output."}
+    ],
+    "overall": "Mechanical assertions are discriminating and the run genuinely did the work; the single failure is prose style (16 lint findings, mostly semicolons), which is exactly the dimension the old skill was not written against."
+  },
+  "notes": "The mechanical half of this eval is well covered by check_run.py and the run clears all of it; the only failure is prose-lint (16 findings, 13 of them semicolons), which measures the writing rules rather than rebase judgment. Two assertions are looser than they look: the headline assertion lists three literal phrases but the run wrote \"rebased with adjustments\" and nothing scripted enforces the vocabulary, and the delta-inventory assertion passes even though the report never presents the four changes as one list. Nothing checks the backup ref or the e2e claim, both of which the report asserts without transcript evidence for the latter."
+}
