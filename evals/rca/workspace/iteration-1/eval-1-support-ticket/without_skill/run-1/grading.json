@@ -1,0 +1,65 @@
+{
+  "summary": {
+    "pass_rate": 0.818,
+    "passed": 9,
+    "failed": 2,
+    "total": 11
+  },
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "10241 bytes."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "§1 runs `python3 -m unittest discover tests -v` and quotes the test names with FAIL output."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "§3 Five whys, 5 items, each a distinct Why."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence — at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Citations across the report include app/db.py:32-36, app/db.py:24-29, app/signup.py:10-15, app/search.py:7, app/password_reset.py:11, app/invite.py:7, app/signup.py:13."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "TL;DR includes 'Symptom:', 'Proximate cause:', and 'Root cause:' bullets."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "'Root cause = missing canonicalization at the boundary, combined with mixing identity and display in one field.' Fix lands in db.insert + db.find_by_email."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "§4 table lists all four: search.py, password_reset.py, invite.py, signup.py."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "§5a minimal fix, §5b class-of-bug fix, §7 recommendation."
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": false,
+      "evidence": "No dedicated counterfactual section. The report claims the fix 'fixes search, reset, invite, and signup duplicate-detection in one place' but does not walk the failing test through the fix step-by-step or name which 5-whys link the fix breaks."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "§5b Email value object + uniqueness invariant; §5c regression tests; comment fix to db.py docstring."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": false,
+      "evidence": "No 'Assumptions' section with 'How validated / Result' structure. Assumptions are scattered through the prose (RFC 5321, no display-casing dependency, etc.) but not enumerated and validated."
+    }
+  ]
+}

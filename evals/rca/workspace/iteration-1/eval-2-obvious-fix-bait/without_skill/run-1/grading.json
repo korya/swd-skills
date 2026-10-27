@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "pass_rate": 0.778,
+    "passed": 7,
+    "failed": 2,
+    "total": 9
+  },
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "6530 bytes."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Dedicated 'Why the proposed one-liner is not enough' section calls it a symptom fix and lists three sibling endpoints it leaves broken."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "5-whys #3-4 land on 'signup.signup writes email through unchanged' and 'no normalization done on write'. Recommended fix in db.insert + find_by_email."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Table includes signup.signup, invite.is_already_member, password_reset.request_reset."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "'Migration / data note: any persisted users with mixed-case emails need a one-shot lowercase pass.' Also mentions UNIQUE LOWER(email) constraint and risk/blast-radius display-casing concern."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "Recommended fix (normalize in db) presented as the single recommendation; the symptom fix is implicitly addressed in 'Why the one-liner is not enough'. Recommendation is unambiguous."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": false,
+      "evidence": "No section walks the failing test through the fix and confirms it would pass. Patch plan says 'existing tests should pass' but does not break which 5-whys link the fix addresses, nor verify against the captured repro step-by-step."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": false,
+      "evidence": "References use filenames only (app/db.py, db.py, signup.py, search.py, invite.py, password_reset.py) without :line numbers. No file:line-style citations."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "Why-#4 mentions 'the original author punted' but frames it as a wrong assumption to be corrected, not a blame conclusion. No person named."
+    }
+  ]
+}

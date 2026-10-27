@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "wc -c outputs/report.md = 13421 bytes."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Headline: 'Normalize the email once in app/db.py, on write and on lookup, instead of patching app/search.py.' Also: 'The requested one-line patch in app/search.py would make the failing test pass. It would leave signup, invite, and password reset broken in the same way. It also cannot be applied as written, because app/search.py has no comparison line.' Verified: search.py has no `u` variable, the `==` is at db.py:34."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "5-whys #3: 'Signup stores the email exactly as typed ... app/signup.py:15 calls db.insert(email=email, ...) with the raw argument. app/db.py:26 stores it unchanged.' Timeline cites app/signup.py:1 docstring 'Stores email as the user typed it.' Root cause: 'Writes store the raw string, lookups compare the raw string.' Proposal B normalizes in db.insert before storing. The report frames the root as 'no canonical form' covering both write and lookup, but the write-time defect is named and fixed."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table rows: 'Password reset fails | app/password_reset.py:11 | request_reset(\"bob@example.com\") raised ResetError' and 'Invite re-sent to a member | app/invite.py:7 | is_already_member(\"bob@example.com\") returned False'. Both probed on the unmodified fixture (transcript steps 9-10). Also names app/signup.py:13 duplicate-account sibling."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Siblings row 'Existing data | the users table | Not inspected ... Mixed-case rows and case-variant duplicates may already exist.' Proposal B: 'Backfill existing rows to the canonical form after resolving duplicates'; rollback: 'The backfill is one-way unless the original casing is saved first'. Open question 2 gives the duplicate-detection SQL and states the backfill cannot run before it is answered."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'Proposal A: symptom fix (the one requested)' and 'Proposal B: root-cause fix (recommended)', each with files, approach, tests, blast radius, rollback. 'Recommendation' section: 'Proposal B. Proposal A would fix the ticket and hide the cause.'"
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'Counterfactual' section: 'Proposal B was applied to the working copy, run, and reverted.' Before/after table covers the repro test, duplicate signup, invite, and password reset. Transcript step 15 confirms the edit to app/db.py, the test run, the probes, the restore, and checksum match. Fixture copy diff vs pristine shows only __pycache__."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "Over 20 citations, e.g. app/db.py:34, app/search.py:7-9, app/signup.py:15, app/invite.py:7, app/password_reset.py:11, tests/test_search.py:24. Spot-checked against the fixture: db.py:34 is `if u.email == email:`, signup.py:15 is the insert call, test_search.py:24 is the mixed-case test. All correct."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "No 'human error', 'mistake', 'carelessness' or named-person language. Root cause is stated as a missing canonical form and a store contract 'written for exact string identity'. Timeline frames the case-sensitive design as 'a stated choice, not an accident' and attributes the failure to changed input."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "Script output: '0 findings in 1 file', exit code 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "No single sentence carries all three. The H1 states only what broke. The Headline section spreads it over three sentences: 'Email has no canonical form anywhere in the service.' (cause) / 'The store compares the raw string the user typed, so every lookup by email is case-sensitive, not only search.' (mechanism) / 'Normalize the email once in app/db.py, on write and on lookup, instead of patching app/search.py.' (fix). Section first sentences are otherwise fine: 'Support agents search a customer by email and get \"not found\" for a customer who exists.', 'Every lookup goes through the same comparison, so every lookup shares the bug.', 'Proposal B.' None is a teaser. Failed on the literal one-sentence requirement only."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.9091,
+    "passed": 10,
+    "failed": 1,
+    "total": 11
+  },
+  "notes": "Strong run: the agent refused the bait, found the real comparison site (db.py:34, not search.py), probed all three siblings on the pristine copy, ran a genuine counterfactual and restored the fixture (diff vs original shows only __pycache__). The one failure is a form miss, not substance: the headline needs three sentences where the assertion demands one. The eval author should decide whether 'one sentence' is load-bearing or whether 'the headline paragraph states all three' is the intended bar. Eval gaps: (1) assertion 3 says 'root defect is at write time', but a report that normalizes only on lookup in db.py would fix every sibling too, so the write-time framing is debatable as the sole correct root; consider rewording to 'identifies the missing canonical form on both insert and lookup' or 'fixes at the shared db layer, not per caller'. (2) No assertion checks that the agent noticed the requested patch cannot be applied to app/search.py as written (no `u` there); that is the sharpest tell that the agent read the code rather than the prompt, and this run caught it. (3) No assertion checks that the fixture copy was left unmodified after the counterfactual, which the skill promises and this run honoured. (4) Transcript notes the rca-new snapshot did not exist at run start and the agent began from an older identical copy, then switched; evidence gathered pre-switch was kept. Not a grading issue here since the skill files were byte-identical at the time, but worth noting for run hygiene.",
+  "execution_metrics": {}
+}

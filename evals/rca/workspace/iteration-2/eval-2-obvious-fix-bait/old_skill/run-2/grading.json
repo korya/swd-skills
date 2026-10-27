@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "outputs/report.md exists, 14546 bytes (wc -c)."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Headline: 'The requested one-line patch to app/search.py fixes the ticket and leaves three siblings live.' Fix A survivors list; 'Recommendation: B.' Also notes the literal one-liner cannot even be applied since search.py has no `u` (verified against fixture app/search.py)."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Headline: 'app/db.py stores email exactly as typed (insert, db.py:26)'; Why 3: 'insert stores the string it is handed; signup hands it the raw input. No layer normalizes email before storage.' Fix B step 2 normalizes in insert. Matches fixture db.py:26 / signup.py:15."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table rows cite `app/password_reset.py:11` (ResetError no such user) and `app/invite.py:7` (invite_sent instead of already_member), plus `app/signup.py:13` duplicate account. Each confirmed by probe per transcript step 5."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Siblings row 'Data already written: every row stores as-typed casing'; Fix B step 6 'Backfill (production, not the fixture): UPDATE users SET email = lower(trim(email))'; Open question 1 gives the duplicate-detection SELECT and the merge-decision caveat."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "Sections 'A. Symptom fix: what was asked for' and 'B. Root-cause fix: the store owns normalization (recommended)', each with tests/blast radius/rollback, then 'Recommendation: B.' with justification."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "Counterfactual section: 'Fix B against the captured repro: signup(\"Bob@Example.COM\") stores bob@example.com ... Repro does not fire. Breaks links 2, 3 and 4 ... Confirmed; verified by running the suite and the probe on prototype C.' Prototype exists in scratchpad rca-e2r2/root."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "db.py:26, db.py:34, app/search.py:7-9, app/db.py:32-36, app/signup.py:15, app/db.py:10, app/password_reset.py:11, app/invite.py:7, tests/test_search.py:23-29. Spot-checked db.py:26/34, signup.py:13/15, invite.py:7, password_reset.py:11 against the fixture: all accurate."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "Root cause stated as 'Email normalization has no owner ... the rule lives only in a docstring'. grep for human error/blame/careless/negligen returns nothing."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint.py exit 1: '40 findings in 1 file'. Breakdown: ~33 semicolon, 4 long-lead (lines 12, 56, 133 at 24/33/37 words), 3 long-sentence (lines 6, 82, 235 at 33/30/31 words). No em-dash findings."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in one sentence, and the first sentence of each section carries its claim; no first sentence is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Headline's first sentence: 'The requested one-line patch to app/search.py fixes the ticket and leaves three siblings live.' It names neither what broke nor the root cause nor the recommended fix; those arrive in sentences 2 and 3. Section leads also fail: Timeline opens 'No commit history exists for the fixture, so git log is unavailable.' (qualifier, not the claim), Siblings opens 'All confirmed by probe on the untouched fixture (...)' (method, not the claim), Symptom and Counterfactual open with bullets."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8182,
+    "passed": 9,
+    "failed": 2,
+    "total": 11
+  },
+  "notes": "The run nailed the substance: it refused the bait, found the write-time root, probed all three siblings on the untouched fixture, prototyped both fixes in a scratchpad, verified the fixture was unchanged (confirmed by diff: only __pycache__ differs), and flagged the backfill plus production duplicate check. It failed only on prose form, which is exactly what the old skill lacks. Eval critique: the content assertions are well-discriminating and tied to specific fixture facts, so they are hard to pass by accident. Two gaps: (1) nothing checks that the fixture copy was left unmodified, even though the prompt says 'ship it' and the skill promises to leave no trace; a run that applied the one-liner in place would pass every content assertion. (2) The one-liner is literally inapplicable to search.py (no `u` in scope), and no assertion rewards noticing that; it is a strong signal the agent actually read the code rather than paraphrasing the prompt. The skim-test assertion is partly subjective; it would be more checkable if the headline rule were split from the per-section lead rule.",
+  "execution_metrics": {}
+}
