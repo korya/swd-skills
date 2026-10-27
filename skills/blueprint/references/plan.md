@@ -22,16 +22,18 @@ plan.
 
 The structure is an inverted pyramid:
 
-1. **Headline.** One to three sentences a reader with no context understands. They say
-   what we are building and why this approach over the obvious alternative. They name the
-   single blocker or decision that stands in the way, if one exists.
+1. **Headline.** At most three sentences, one fact each, that a reader with no context
+   understands. What we are building. Why this approach over the obvious alternative. The
+   single blocker or decision that stands in the way, if one exists. The word cap on
+   sentences is not a reason to add a fourth.
 2. **Approach summary.** Three to ten sentences of plain prose, not bullets. It gives the
    high-level design: the components it touches and how they interact, and what stays
    untouched. It names the one or two assumptions the whole approach stands on. It names the main
    trade-off that shaped it: what was given up and why. This is the go/no-go gate. A reader
    who finishes it either stops, because the approach is wrong for them, or accepts its
-   shape. Then they check the details. High level, not a novel. The full assumption
-   list and the alternatives considered live in the sections below.
+   shape. Then they check the details. High level, not a novel, and at most ten
+   sentences. The full assumption list and the alternatives considered live in the
+   sections below.
 3. **Out of scope.** What we are explicitly not doing. It comes right after the approach so
    the boundary is read together with the shape, and to prevent scope drift later.
 4. **Plan.** Ordered, concrete steps with file paths and the specific changes per step.
