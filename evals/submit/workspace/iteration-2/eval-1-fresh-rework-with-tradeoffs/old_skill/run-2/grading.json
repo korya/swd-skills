@@ -1,0 +1,87 @@
+{
+  "expectations": [
+    {
+      "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+      "passed": true,
+      "evidence": "check_run: branch=fixture-backoff-token-bucket, not_on_main=true, origin_main_unchanged=true. git: origin/main and local main both at 7553fb7 (the root commit); feature branch at 6558747, 4 commits ahead, pushed."
+    },
+    {
+      "text": "No commit on the feature branch contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "git log --name-only origin/main..HEAD lists only README.md, docs/BENCHMARKS.md, notify/__init__.py, notify/ratelimit.py, notify/sender.py, tests/test_ratelimit.py, tests/test_sender.py. git status still shows .env and scratch.py untracked. check_run no_env_or_scratch_committed=true."
+    },
+    {
+      "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+      "passed": true,
+      "evidence": "Commit 6558747 'docs(readme): Fix \"recieve\" typo' touches only README.md; sender and ratelimit changes are in 664532f and c5c2445. check_run readme_fix_separate=true."
+    },
+    {
+      "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects: 'feat(sender): Retry with exponential backoff and honor Retry-After' (66), 'feat(ratelimit): Replace the fixed window with a token bucket' (61), 'docs(benchmarks): Record load-test results for backoff and token bucket' (71), 'docs(readme): Fix \"recieve\" typo' (32). All imperative, capitalised, <=72. check_run subjects_conventional=true."
+    },
+    {
+      "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+      "passed": true,
+      "evidence": "664532f body (after blank line): 'Previously every retry waited a fixed 1 s and only 5xx responses were retried... Now retries back off as base * 2**attempt (default 0.5 s, capped at 16 s)...'. c5c2445 likewise: 'Previously FixedWindowLimiter let a tenant spend its whole 100/min quota... Now TokenBucketLimiter allows a sustained rate...'."
+    },
+    {
+      "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript step 8: 'make lint && make test | tail -3 && git push -u origin fixture-backoff-token-bucket' -- 'checks green at HEAD'. Re-ran make test on a scratch copy of the pushed branch: 'Ran 7 tests ... OK'. Note the pipe to tail means a failing test would not have blocked the push, but the result was read and it did pass."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+      "passed": true,
+      "evidence": "pr-title.txt: 'feat(notify): Add exponential backoff and a token-bucket tenant limiter' (71 chars). 'Add' is imperative; names backoff (retry) and token-bucket limiter (rate limit). check_run pr_title_ok=true."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+      "passed": false,
+      "evidence": "First sentence under '## Why': 'Under gateway pressure almost one send in eleven is lost: the load test shows 91.2% delivery success and 1,840 `429` responses per 10,000 sends.' Manual count = 24 words (wc -w; prose-lint counts 23). Over the 20-word limit. Content is right (lost sends, 429s, no fix) but length fails."
+    },
+    {
+      "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+      "passed": true,
+      "evidence": "'## What & how' opens with two sentences: 'Retries now back off exponentially (0.5 s doubling to a 16 s cap, optional jitter), treat `429` as retryable, and obey a `Retry-After` header...' and 'Per-tenant limiting moves from a fixed window to a token bucket: 60/min sustained with a burst of 20...'. Followed by a before/after table: Delivery success 91.2% -> 99.1%, p99 3.4 s -> 9.8 s, worst-case wait 3 s -> 31 s, and a prose 'The trade:' paragraph."
+    },
+    {
+      "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+      "passed": true,
+      "evidence": "'Three tenants on staging rely on sending 100 messages in the first second of each minute; they are now throttled after 20 and drain at one per second.' Table row: 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'."
+    },
+    {
+      "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+      "passed": true,
+      "evidence": "No diff hunks or source; one Mermaid sequence diagram written for the reader. 'Other changes' has two prose bullets (tests, README typo), not a file list. check_run pr_body_journal_words=false; no 'first I', 'then I' anywhere."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint.py reports 14 findings: 4 long-lead (23, 27, 21, 33 words), 4 long-sentence (33, 34, 28, 44 words), 6 semicolons (lines 22, 41, 42, 43, 49). No em dashes."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": false,
+      "evidence": "Linted each body separately with the trailer stripped: 6558747 = 0 findings; bb5af04 = 1 (long-lead 45 words); c5c2445 = 2 (long-lead 36 and 24); 664532f = 4 (long-lead 34 and 26, long-sentence 33, one semicolon). Total 7 findings (matches check_run commit_body_lint_findings=7)."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+      "passed": false,
+      "evidence": "Second paragraph of '## Why' opens with 'Two things compound.' which is a teaser sentence of the exact kind the eval names ('Two things went wrong'). Also 'Details a reviewer should weigh:' and the table caption 'Load test, 10,000 sends with ... (full table in docs/BENCHMARKS.md):' are set-ups, not claims. The other openers (lost sends, backoff+token bucket, 'The trade: ... slow tail gets slower') do carry the argument, but the no-teaser rule is violated."
+    },
+    {
+      "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: '**CI is unavailable in this environment, so the CI gate (phase 6) stops here.**' Only local lint and the 7 unit tests are claimed green, which re-running confirms."
+    }
+  ],
+  "notes": "The mechanical git assertions (1-7, 15) are solid and discriminating; all pass here and the PR body substance (numbers, trade-off, tenant impact, no journal) is genuinely good. The run fails on prose shape: 14 lint findings in the PR body, 7 in commit bodies, a 24-word lede, and a 'Two things compound.' teaser. Two eval gaps worth noting. First, assertion 6 passed even though 'make test | tail -3 && git push' would not have blocked the push on a test failure (pipeline exit status is tail's); an assertion that the push is gated on the test exit code, not just that tests happened to pass, would catch this. Second, assertion 14 (skim test) is doing double duty with 8 and 12: the teaser rule in 8 only covers the first sentence, so 'Two things compound.' as a second-paragraph opener is caught only by 14, which is a judgment call. Consider making the no-teaser rule apply to every paragraph opener explicitly so the lint or a cheap regex can catch 'Two things', 'Details ...:' style set-ups. The checker's pr_body_mentions block already covers assertions 9 and 10 mechanically; no gap there.",
+  "execution_metrics": {},
+  "summary": {
+    "pass_rate": 0.7333,
+    "passed": 11,
+    "failed": 4,
+    "total": 15
+  }
+}

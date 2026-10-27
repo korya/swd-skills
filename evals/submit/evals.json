@@ -1,0 +1,51 @@
+{
+  "skill_name": "submit",
+  "evals": [
+    {
+      "id": 1,
+      "name": "fresh-rework-with-tradeoffs",
+      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/submit/make_fixture.sh OUTPUT_DIR/fx fresh`, then work inside OUTPUT_DIR/fx/repo (branch main, with my uncommitted changes). I finished the retry and rate-limit rework for acme-notify; the load-test numbers are in docs/BENCHMARKS.md. Submit it for review. This environment has no GitHub: `origin` is the local bare repo at OUTPUT_DIR/fx/origin.git and the `gh` CLI must not be used. Where the workflow would create a PR, write the title to OUTPUT_DIR/pr-title.txt and the body to OUTPUT_DIR/pr-body.md instead. Where it would wait for CI, say that CI is unavailable here and stop.",
+      "expected_output": "A feature branch pushed to origin with the rework committed in Conventional Commits form, the README typo fix in its own commit, .env and scratch.py left out of every commit, tests run before the push, and a PR title plus body whose problem and solution sections each open with a short plain lede followed by the measurable side effects from docs/BENCHMARKS.md, good and bad, including the 60/min throttling change for heavy tenants. Every sentence in the commit bodies and PR body is short enough to read once.",
+      "assertions": [
+        "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+        "No commit on the feature branch contains .env or scratch.py.",
+        "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+        "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+        "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+        "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+        "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+        "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+        "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+        "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+        "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+        "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+        "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+        "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+        "The final message to the user states that CI is unavailable here rather than claiming checks passed."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "existing-pr-revalidation",
+      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/submit/make_fixture.sh OUTPUT_DIR/fx existing-pr`, then work inside OUTPUT_DIR/fx/repo. I'm on branch korya-retry-backoff; a PR is already open for it, and its current title and body are in OUTPUT_DIR/fx/pr/title.txt and OUTPUT_DIR/fx/pr/body.md (treat those files as what the forge would show you). I've now added the token-bucket rate limiter and refreshed docs/BENCHMARKS.md; it's uncommitted. Push this up. This environment has no GitHub: `origin` is the local bare repo at OUTPUT_DIR/fx/origin.git and the `gh` CLI must not be used. If the PR title or body needs editing, write the new title to OUTPUT_DIR/pr-title.txt and the new body to OUTPUT_DIR/pr-body.md; if they do not, say so explicitly. Where the workflow would wait for CI, say that CI is unavailable here and stop.",
+      "expected_output": "The rate-limit change committed and pushed on the existing branch, .env and scratch.py left out, the README typo fix separate, and the PR title and body revalidated: the old body's claim 'No change in behaviour for tenants; the rate limiter is untouched' is now false, so a new title covering both changes and a new body with the full before/after table and the throttling side effect are written out, with the staleness stated explicitly.",
+      "assertions": [
+        "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+        "No commit contains .env or scratch.py.",
+        "The README typo fix is in its own commit or explicitly left out with a reason.",
+        "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+        "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+        "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+        "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+        "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+        "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+        "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+        "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+        "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+        "The final message states CI is unavailable here rather than claiming checks passed."
+      ],
+      "files": []
+    }
+  ]
+}

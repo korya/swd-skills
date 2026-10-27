@@ -1,0 +1,20 @@
+{
+  "eval_id": 2,
+  "eval_name": "existing-pr-revalidation",
+  "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/submit/make_fixture.sh OUTPUT_DIR/fx existing-pr`, then work inside OUTPUT_DIR/fx/repo. I'm on branch korya-retry-backoff; a PR is already open for it, and its current title and body are in OUTPUT_DIR/fx/pr/title.txt and OUTPUT_DIR/fx/pr/body.md (treat those files as what the forge would show you). I've now added the token-bucket rate limiter and refreshed docs/BENCHMARKS.md; it's uncommitted. Push this up. This environment has no GitHub: `origin` is the local bare repo at OUTPUT_DIR/fx/origin.git and the `gh` CLI must not be used. If the PR title or body needs editing, write the new title to OUTPUT_DIR/pr-title.txt and the new body to OUTPUT_DIR/pr-body.md; if they do not, say so explicitly. Where the workflow would wait for CI, say that CI is unavailable here and stop.",
+  "assertions": [
+    "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+    "No commit contains .env or scratch.py.",
+    "The README typo fix is in its own commit or explicitly left out with a reason.",
+    "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+    "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+    "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+    "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+    "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+    "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+    "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+    "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+    "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+    "The final message states CI is unavailable here rather than claiming checks passed."
+  ]
+}
