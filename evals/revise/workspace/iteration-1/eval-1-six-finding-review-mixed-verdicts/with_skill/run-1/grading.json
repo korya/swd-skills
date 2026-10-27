@@ -1,0 +1,143 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and contains a decision table with one row for each of the six findings, labelled F1 to F6 (or equivalent IDs covering all six), each with a verdict and an evidence/justification cell.",
+      "passed": true,
+      "evidence": "report.md has a 'Decision table' with columns ID | Finding | Verdict | Evidence and justification and rows F1, F2, F3, F4a, F4b, F5, F6; review item 4 is split into two rows, so all six review items are covered and every row has a verdict and an evidence cell."
+    },
+    {
+      "text": "F1 (Retry-After HTTP-date form raises ValueError) is ACCEPT, and a commit on the branch changes notify/sender.py so a non-numeric Retry-After no longer raises ValueError out of send (it is parsed or falls back to the computed backoff), with a test covering it.",
+      "passed": true,
+      "evidence": "Table row F1 = ACCEPT. Commit 0ef5ddf wraps float(retry_after) in try/except ValueError and falls through to the computed backoff; tests/test_sender.py gains test_http_date_retry_after_falls_back_to_backoff (503 with 'Wed, 21 Oct 2015 07:28:00 GMT', asserts clock.now == 1000.5). check_run: sender_retry_after_guarded=true."
+    },
+    {
+      "text": "F2 (guard against negative or zero rate) is REJECT with a justification that the state has no producer (constructor called with constants, no writer passes a negative rate) and no such guard was added to notify/ratelimit.py.",
+      "passed": true,
+      "evidence": "Row F2 = REJECT: 'no caller produces it. All constructors pass the default or rate=1.0 (tests/test_ratelimit.py:10,15,23). The rate is a code constant, not a trust-boundary input.' check_run: ratelimit_negative_guard_added=false; notify/ratelimit.py is not in the post-fixture diff."
+    },
+    {
+      "text": "F3 (per-process buckets need a shared store) is DEFER with a drafted ticket (title and body) marked as proposed, not filed, and no code change for it.",
+      "passed": true,
+      "evidence": "Row F3 = DEFER. Report section 'Ticket draft (proposed, not filed)' with title 'Share the per-tenant token bucket across workers' and a body citing notify/ratelimit.py:16 and the source thread. No change to notify/ratelimit.py on the branch."
+    },
+    {
+      "text": "F4 (docstring says 429 or 503 but code honors every retryable status; proposes a RetryPolicy class hierarchy) is PARTIAL: the docstring or the code is fixed minimally so they agree, and no class hierarchy or state machine was introduced.",
+      "passed": true,
+      "evidence": "Split into F4a = ACCEPT (docstring) and F4b = REJECT (hierarchy), which together equal PARTIAL. Commit c8dfd9b changes only the docstring: 'on 429 or 503' -> 'on any retryable status'; code unchanged. check_run: retry_policy_hierarchy_added=false. check_run reports F4=null only because it does not recognise the sub-IDs."
+    },
+    {
+      "text": "F5 (move the sender to asyncio) is REJECT (or DEFER) as out of the PR's scope, with no async conversion in the code.",
+      "passed": true,
+      "evidence": "Row F5 = REJECT: 'Outside the stated intent. No async code anywhere in the repo. The blocking sleep predates the branch.' check_run: async_added=false."
+    },
+    {
+      "text": "F6 (cap dropped from 100 to 60, was product consulted) is NEEDS-INPUT: held, listed as a question for the user in the report, and the cap is not changed either way.",
+      "passed": true,
+      "evidence": "Row F6 = NEEDS-INPUT; report has a 'NEEDS-INPUT' section asking 'Did product agree to the sustained cap of 60 per minute with a burst of 20?' and says 'The branch stays at 60 until then.' check_run: ratelimit_rate_default='1.0' (60/min), unchanged."
+    },
+    {
+      "text": "Every verdict in the table carries cross-validation evidence: a file:line citation, a quoted passage from the PR body or code, or an experiment result, not only reasoning.",
+      "passed": false,
+      "evidence": "F1 (reproduced ValueError, sender.py:45), F2 (experiment plus tests/test_ratelimit.py:10,15,23), F3 (ratelimit.py:16, FixedWindowLimiter._counts on main), F4a (sender.py:17 vs 39,43), F5 (grep for async, sleep predates branch) and F6 (searched README.md, docs/BENCHMARKS.md, PR body) all carry citations or experiment results. F4b's cell is reasoning only: 'One strategy, one caller. An abstraction for one subclass is oversized, and the drift was doc versus code, which a hierarchy does not prevent.' No file:line, quote, or experiment backs the one-caller claim. Borderline, but the assertion says every verdict."
+    },
+    {
+      "text": "`git diff main..korya-retry-backoff --name-only` after the run adds only changes under notify/sender.py and tests/ relative to the fixture commit (no changes to notify/ratelimit.py, no new files outside tests/), and the fixture commit itself is intact.",
+      "passed": true,
+      "evidence": "git diff 4e666c1..HEAD --name-only -> notify/sender.py, tests/test_sender.py. check_run: fixture_commit_intact=true, files_changed_after_fixture=[notify/sender.py, tests/test_sender.py]. Two new commits c8dfd9b and 0ef5ddf on top of fixture 4e666c1."
+    },
+    {
+      "text": "OUTPUT_DIR/replies.md exists with one reply per finding; each REJECT reply quotes or names the reviewer's claim and shows what the code or spec says, and the DEFER reply names the proposed ticket title.",
+      "passed": true,
+      "evidence": "Six threads (Thread 4 covers F4a and F4b). Thread 2: 'I confirmed the behavior you describe. A negative rate drains tokens... The only constructors in the repo pass the default or rate=1.0'. Thread 4: 'The RetryPolicy hierarchy I am not adding. There is one strategy and one caller.' Thread 5: 'The blocking time.sleep predates this branch, and nothing in the repo is async today.' Thread 3 names the ticket 'Share the per-tenant token bucket across workers'."
+    },
+    {
+      "text": "The tests pass on the branch HEAD (make test or python -m unittest in the repo).",
+      "passed": true,
+      "evidence": "make test at HEAD 0ef5ddf: 'Ran 8 tests in 0.000s OK'. check_run: tests_pass=true."
+    },
+    {
+      "text": "The report states explicitly whether the PR title and body are still accurate after the revision, and if a pr-body.md was written it is lint-clean.",
+      "passed": true,
+      "evidence": "Report: 'PR revalidation: title unchanged, body edited as described above.' and 'The title still covers all the work on the branch.' pr-body.md written (numeric Retry-After wording, Known limitations, Open question); prose-lint on pr-body.md: 0 findings in 1 file."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md and OUTPUT_DIR/replies.md reports 0 findings in total.",
+      "passed": true,
+      "evidence": "prose-lint report.md: '0 findings in 1 file'; replies.md: '0 findings in 1 file'. check_run lint: report 0, replies 0."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed, and nothing was marked ready or force-pushed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so the workflow stops before the CI gate.' Report: 'Nothing was marked ready, force-pushed, or filed as a ticket.' Transcript step 14 shows a plain `git push`; no --force or ready command anywhere in the transcript."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.9286,
+    "passed": 13,
+    "failed": 1,
+    "total": 14
+  },
+  "execution_metrics": {
+    "total_tokens": 99243,
+    "duration_ms": 453531,
+    "total_duration_seconds": 453.5
+  },
+  "claims": [
+    {
+      "claim": "ValueError escaped send on the HTTP-date form (reproduced)",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript step 9 runs a python3 -I experiment; fixture sender.py:45 is `return float(retry_after)` with no handler."
+    },
+    {
+      "claim": "FixedWindowLimiter._counts on main had the same per-process scope",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Transcript step 10: git show main:notify/ratelimit.py | grep _counts; fixture PR body says the old limiter was a fixed window."
+    },
+    {
+      "claim": "make test passed with 8 tests and make lint passed",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Re-ran make test at HEAD: Ran 8 tests, OK."
+    },
+    {
+      "claim": "korya-retry-backoff is at 0ef5ddf on origin, matching local HEAD",
+      "type": "factual",
+      "verified": true,
+      "evidence": "git -C origin.git log korya-retry-backoff shows 0ef5ddf at the tip."
+    },
+    {
+      "claim": "Retry-After value is not capped by max_delay (executor's own side note)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "_delay returns float(retry_after) directly without min(..., self.max_delay). Correct and outside the review's scope."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [
+      "Executor flagged, outside the review, that Retry-After is returned uncapped by max_delay"
+    ],
+    "workarounds": [
+      "Two zsh glob failures in exploratory commands (steps 2 and 9), re-run quoted; no effect on outputs"
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Every verdict in the table carries cross-validation evidence: a file:line citation, a quoted passage from the PR body or code, or an experiment result, not only reasoning.",
+        "reason": "For design or scope rejections (F4b, F5) what counts as evidence is underspecified; a run can legitimately split F4 and then the hierarchy half has nothing to cite but a call-site count. Say what evidence a scope/design REJECT must show (for example a quote of the PR body's stated intent, or a cited call site)."
+      },
+      {
+        "assertion": "`git diff main..korya-retry-backoff --name-only` after the run adds only changes under notify/sender.py and tests/ relative to the fixture commit",
+        "reason": "The literal command also lists the fixture's own files (README.md, ratelimit.py, ...). check_run.py correctly diffs from the fixture commit; the assertion text should name that command instead."
+      },
+      {
+        "reason": "No assertion checks that the F3 limitation reached the PR body or that the F6 open question is recorded there, although the skill did both; a run that defers silently would pass. check_run.py also does not recognise F4a/F4b, reporting F4=null, so the script needs a human to finish grading."
+      }
+    ],
+    "overall": "Assertions are discriminating on verdicts and code shape. The evidence-per-verdict assertion needs a sharper definition for non-code findings, and the script should accept sub-IDs."
+  },
+  "notes": "Strong run: six distinct verdicts matching the README key, minimal fixes at the root, honest CI stop, lint-clean prose. The one miss is borderline: F4b's REJECT cell is reasoning without a citation, although the F4a half and every other row carry file:line or experiment evidence. Eval gaps: the evidence assertion is underspecified for scope/design rejections, check_run.py does not parse sub-IDs (F4=null), and nothing checks that the deferred limitation and open question landed in the PR body."
+}
