@@ -2,7 +2,7 @@
 
 ![The swd skills as six workbench stations covering the development cycle, with a /revise loop back](assets/hero.jpg)
 
-A plugin of skills covering the full development cycle — spec, plan, build, submit, review, test — nine shipped, one planned. Runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
+A plugin of skills that covers the full development cycle: spec, plan, build, submit, review, test. Nine are shipped, one is planned. It runs on **Claude Code**, **Codex CLI**, and any [Agent Plugins](https://agent-plugins.org/) client.
 
 | Skill | What it does | When it triggers |
 | --- | --- | --- |
@@ -17,18 +17,18 @@ A plugin of skills covering the full development cycle — spec, plan, build, su
 | **[/e2e-test](./skills/e2e-test)** | Tests the product the way its real user uses it — browser for a web app, binary for a CLI, consumer programs for a library — black-box from the change's blast radius, reporting PASS/FAILURE/BLOCKED per case, fixing nothing. | "/e2e-test", "e2e test this", "test it in the browser", "test it as the end user", "manual e2e testing". |
 | **/implement** | Executes an approved blueprint plan with discipline: ordered steps, tests per step, deviations amend the plan instead of improvising. | Not implemented yet — [#27](https://github.com/korya/swd-skills/issues/27). |
 
-Invocation differs per host: in Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, … (or on the natural-language triggers above); in Codex they are namespaced mentions — `$swd:spec`, `$swd:blueprint`, `$swd:rca`, `$swd:submit`, `$swd:revise`, `$swd:examine`, `$swd:e2e-test`, `$swd:rebase`, `$swd:repo-docs`.
+Invocation differs per host. In Claude Code the skills fire on `/blueprint`, `/rca`, `/examine`, and so on, or on the natural-language triggers above. In Codex they are namespaced mentions: `$swd:spec`, `$swd:blueprint`, `$swd:rca`, `$swd:submit`, `$swd:revise`, `$swd:examine`, `$swd:e2e-test`, `$swd:rebase`, `$swd:repo-docs`.
 
 ## Install (from GitHub)
 
-**Claude Code** — in the session:
+**Claude Code**, in the session:
 
 ```sh
 /plugin marketplace add korya/swd-skills
 /plugin install swd@swd
 ```
 
-**Codex CLI** — in the shell (requires Codex ≥ 0.145):
+**Codex CLI**, in the shell (Codex 0.145 or later):
 
 ```sh
 codex plugin marketplace add korya/swd-skills
@@ -77,11 +77,11 @@ Codex copies the plugin into `~/.codex/plugins/cache/`, so edits to your checkou
 codex plugin marketplace upgrade swd
 ```
 
-This refreshes the Git snapshot *and* the installed copy under `~/.codex/plugins/cache/`. It only works for unpinned Git marketplaces — if you added the marketplace with `--ref <sha>`, `upgrade` fails; re-add it without the ref.
+This refreshes the Git snapshot *and* the installed copy under `~/.codex/plugins/cache/`. It only works for unpinned Git marketplaces. If you added the marketplace with `--ref <sha>`, `upgrade` fails. Re-add it without the ref.
 
 ## Other hosts
 
-The skills themselves are portable — `SKILL.md` with YAML frontmatter is read by OpenCode, pi, Grok Build, and Muse Code too. Only the *packaging* is host-specific: outside Claude Code and Codex there is no install command, so clone the repo and point your agent at `skills/`.
+The skills themselves are portable. A `SKILL.md` with YAML frontmatter is read by OpenCode, pi, Grok Build, and Muse Code too. Only the *packaging* is host-specific. Outside Claude Code and Codex there is no install command, so clone the repo and point your agent at `skills/`.
 
 | Host | Reads |
 | --- | --- |
@@ -90,7 +90,7 @@ The skills themselves are portable — `SKILL.md` with YAML frontmatter is read 
 | Muse Code | `~/.agents/skills/`, `.agents/skills/`; also `muse skills import --from claude` |
 | Grok Build | `.claude/` skills, `AGENTS.md`, hooks, MCP |
 
-`~/.agents/skills/` is the closest thing to a vendor-neutral location — symlinking `skills/*` there covers most of the table.
+`~/.agents/skills/` is the closest thing to a vendor-neutral location. Symlinking `skills/*` there covers most of the table.
 
 ## Layout
 
@@ -105,14 +105,23 @@ skills/
 hooks/
   hooks.json         # Claude Code hooks the plugin installs with itself
   guard-pr.py        # PreToolUse: a bare `gh pr create` is refused unless /submit is running
-scripts/validate.py  # manifest + budget checks CI runs on every push
-tests/               # unit tests for the validator
+assets/
+  writing.md         # the writing rules every skill and every document it produces follow
+scripts/
+  validate.py        # manifest + budget checks CI runs on every push
+  prose-lint.py      # mechanical check of the writing rules; CI runs it on skills and assets
+tests/               # unit tests for the validator and the linter
+evals/               # per-skill eval fixtures and benchmarks (skill-creator format)
 LICENSE              # AGPL-3.0-or-later
 ```
 
-One hook, Claude Code only. `/submit` owns the PR body, the screenshots for rendered changes, and the CI gate — and an agent that knows the `gh pr create` pattern will skip all three unless something stops it. `hooks/guard-pr.py` is that something: it refuses `gh pr create` unless `/submit` has left its marker (`$GIT_DIR/swd-submit`, set in phase 0, removed in phase 6, ignored after four hours) and tells the agent to invoke the skill instead. Hosts without hooks get the description alone, which names the same rule.
+One hook, Claude Code only. `/submit` owns the PR body, the screenshots for rendered changes, and the CI gate. An agent that knows the `gh pr create` pattern will skip all three unless something stops it. `hooks/guard-pr.py` is that something.
 
-Two manifests, one package. Claude Code reads `marketplace.json` and ignores `plugin.json`; Codex resolves `plugin.json` first and validates its `$schema` strictly — a wrong value makes `codex plugin add` fail outright. CI runs both hosts' native validators to keep them honest, plus `scripts/validate.py` for the checks neither host makes (version agreement across manifests, marketplace ↔ `skills/` symmetry, skills naming no host-specific tool, and every `SKILL.md` inside Codex's prompt budget).
+It refuses `gh pr create` unless `/submit` has left its marker and tells the agent to invoke the skill instead. The marker is `$GIT_DIR/swd-submit`, set in phase 0, removed in phase 6, ignored after four hours. Hosts without hooks get the description alone, which names the same rule.
+
+Two manifests, one package. Claude Code reads `marketplace.json` and ignores `plugin.json`. Codex resolves `plugin.json` first and validates its `$schema` strictly, so a wrong value makes `codex plugin add` fail outright. CI runs both hosts' native validators to keep them honest, plus `scripts/validate.py` for the checks neither host makes. Those are version agreement across manifests, symmetry between the marketplace and `skills/`, no host-specific tool named in a skill, and every `SKILL.md` inside Codex's prompt budget.
+
+One writing standard. `assets/writing.md` holds the rules every skill and every document a skill produces follow: the claim first, short sentences, one term per concept. `scripts/prose-lint.py` checks the mechanical half of those rules, and CI runs it on the skills and the rule file. Each skill has an eval under `evals/` that measures a rewrite against the previous version.
 
 ## Development
 
@@ -121,8 +130,8 @@ python3 scripts/validate.py
 python3 -m unittest discover -s tests
 ```
 
-The first command validates both manifests and every skill; the second runs the validator's own unit tests. CI runs both, plus each host's native validator.
+The first command validates both manifests and every skill. The second runs the unit tests for the validator and the prose linter. CI runs both, plus each host's native validator and the prose linter itself.
 
-Skill budgets: Codex loads at most **8,000 bytes** of a `SKILL.md` — raw file, frontmatter included — and silently drops the rest, and shortens descriptions past **1,024 characters** in the catalog ([#10](https://github.com/korya/swd-skills/issues/10)). The validator prints every skill's budget, warns from 90% of either limit, and fails the build past either cap. Keep the core a step skeleton and move depth into `references/` files the skill reads at the step that needs them.
+Skill budgets are enforced. Codex loads at most **8,000 bytes** of a `SKILL.md`, raw file and frontmatter included, and silently drops the rest. It also shortens descriptions past **1,024 characters** in the catalog ([#10](https://github.com/korya/swd-skills/issues/10)). The validator prints every skill's budget, warns from 90% of either limit, and fails the build past either cap. Keep the core a step skeleton and move depth into `references/` files the skill reads at the step that needs them.
 
-Bump the version in **both** `plugin.json` and `.claude-plugin/marketplace.json` (`metadata.version` and the plugin entry). The validator fails if they disagree — Codex derives the installed version from `plugin.json`, so a stale value stalls updates for Codex users.
+Bump the version in **both** `plugin.json` and `.claude-plugin/marketplace.json` (`metadata.version` and the plugin entry). The validator fails if they disagree. Codex derives the installed version from `plugin.json`, so a stale value stalls updates for Codex users.

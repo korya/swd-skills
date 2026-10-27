@@ -19,7 +19,7 @@ jobs:
       - name: Test the validator and the prose linter
         run: python3 -m unittest discover -s tests -v
       - name: Lint prose in the files already converted to the writing rules
-        run: python3 scripts/prose-lint.py assets/writing.md skills/submit skills/repo-docs skills/examine skills/rca skills/revise skills/blueprint skills/spec skills/e2e-test skills/rebase
+        run: python3 scripts/prose-lint.py README.md assets/writing.md skills/submit skills/repo-docs skills/examine skills/rca skills/revise skills/blueprint skills/spec skills/e2e-test skills/rebase
 
   avocetta:
     name: avocetta (spec + cross-runtime lint)
