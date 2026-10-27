@@ -1,0 +1,16 @@
+{"at": 1793103881.424482, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"at": 1793103881.4882822, "id": 2, "kind": "created", "priority": "P1", "title": "VPN down for everyone"}
+{"at": 1793103881.715549, "id": 3, "kind": "created", "priority": "P2", "title": "Caf\u00e9 \"wifi\" \u2014 \u00f1 \u65e5\u672c\u8a9e <tag> & stuff"}
+{"assignee": "dana", "at": 1793103881.919984, "id": 1, "kind": "assigned"}
+{"assignee": "lee", "at": 1793103882.0035782, "id": 1, "kind": "assigned"}
+{"at": 1793103882.313175, "id": 2, "kind": "closed", "resolution": "duplicate"}
+{"at": 1793103882.416, "id": 3, "kind": "closed", "resolution": "   duplicate   "}
+{"at": 1793103882.475722, "id": 4, "kind": "created", "priority": "P3", "title": "Ten char close test"}
+{"at": 1793103882.518068, "id": 4, "kind": "closed", "resolution": "abcdefghij"}
+{"at": 1793103882.561234, "id": 5, "kind": "created", "priority": "P3", "title": "Keyboard sticky keys"}
+{"at": 1793103882.603323, "id": 5, "kind": "closed", "resolution": "Cleaned the keyboard thoroughly"}
+{"at": 1793103882.661661, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+{"assignee": "mallory", "at": 1793103882.884692, "id": 1, "kind": "assigned"}
+{"at": 1793103882.986621, "id": 6, "kind": "created", "priority": "P3", "title": "After closes"}
+{"at": 1793103923.029818, "id": 1, "kind": "closed", "resolution": "Second close of a once-closed ticket"}
+{"at": 1793103923.1292899, "id": 7, "kind": "created", "priority": "P2", "title": "Append check"}

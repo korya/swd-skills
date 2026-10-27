@@ -1,0 +1,16 @@
+{"at": 1793104243.988342, "id": 1, "kind": "created", "priority": "P1", "title": "Printer on fire"}
+{"at": 1793104244.029983, "id": 2, "kind": "created", "priority": "P2", "title": "Laptop will not boot"}
+
+
+{"at": 1793104244.069948, "id": 3, "kind": "created", "priority": "P3", "title": "Request new mouse"}
+{"at": 1793104260.880471, "id": 3, "kind": "closed", "resolution": "duplicate"}
+{"at": 1793104260.974026, "id": 1, "kind": "closed", "resolution": " duplicate "}
+{"assignee": "dana", "at": 1793104261.01867, "id": 2, "kind": "assigned"}
+{"assignee": "eve", "at": 1793104261.064845, "id": 2, "kind": "assigned"}
+{"at": 1793104261.110817, "id": 2, "kind": "closed", "resolution": "  duplicates  "}
+{"assignee": "frank", "at": 1793104261.202239, "id": 1, "kind": "assigned"}
+{"at": 1793104261.28799, "id": 1, "kind": "closed", "resolution": "Closing it again for real"}
+{"at": 1793104261.332122, "id": 4, "kind": "created", "priority": "P3", "title": "Keyboard sticky keys"}
+{"at": 1793104288.183993, "id": 4, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+{"at": 1793104288.274493, "id": 5, "kind": "created", "priority": "P3", "title": "Monitor flickers"}
+{"assignee": "gina", "at": 1793104322.345786, "id": 5, "kind": "assigned"}

@@ -1,0 +1,76 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "report.md line 3: '**Verdict: 31/39 PASS, 8 FAILURE, 0 BLOCKED. Not ready to merge.**'. Table recount: 39 rows, 31 PASS, 8 FAILURE, 0 BLOCKED, matching the headline."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript step 12 'cat >| SCRATCH/e2e-run2/cases.md ... 39-case contract written before execution' precedes the first CLI run at step 13; the scratch file exists and holds only planned cases with spec refs (R1, C1-8, S1-27, L1-9, X1-8), no results. 35 of 39 table rows cite TKT-/CLI-/LOG- IDs; the 4 without are shell-contract/edge cases (C36, C37, C38, C39) that have no spec."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "Status column over 39 rows: 31 PASS (one tagged 'PASS (UX gap, see below)'), 8 FAILURE (two tagged '(pre-existing)'). check_run.py: SKIPPED 0, PARTIAL 0; no blank cells."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "C21 FAILURE, TKT-010. Details: 'python3 -m ticketdesk.cli --log OUTPUT_DIR/tickets.jsonl close 2 'duplicate'' with 'Observed: stdout `#2 closed`, exit 0'. tickets.jsonl line 6 corroborates: {\"id\": 2, \"kind\": \"closed\", \"resolution\": \"duplicate\"}."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "C16 FAILURE, TKT-008. Details: 'python3 -m ticketdesk.cli --log OUTPUT_DIR/tickets.jsonl assign 1 mallory' with 'Observed: stdout `#1 assigned -> mallory`, exit 0'. tickets.jsonl line 13 shows the assigned event after the closed event on line 12. The report also verified the cascade (second close succeeds)."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "C10 FAILURE, CLI-006. Observed block quotes the real lines: '#1 open     Printer on fire' / '#2 open     VPN down for everyone' against expected '#2 [P1] open     VPN down for everyone'."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "C01 FAILURE: observed 'Manage support tikets from the shell.'; Issues list item 4 'Medium: `--help` says \"tikets\"'."
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "Transcript steps 13-105 list ~90 CLI invocations (T = python3 -m ticketdesk.cli from OUT/repo) with observed output per step; scratch run_cases.sh/run_cases*.out exist. Every FAILURE detail section has a 'What was done' command and an 'Observed' output; code is cited only under 'Most-likely cause'. The 16-event tickets.jsonl matches the narrated run exactly."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "C16: 'The PR describes this as \"assigning a ticket now works at any point in its life\", but the spec and the invariant say otherwise, and nobody surfaced the conflict.' C21: 'The PR's own stated goal (\"short notes like 'duplicate' are accepted\") is achieved by exactly one character and contradicts TKT-010, which was not updated.' Headline: 'contradicts three product specs it never updated (CLI-006, TKT-008, TKT-010)'."
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "All 8 FAILURE sections (C01, C08, C10, C16, C21, C24, C30, C39) carry a '**Most-likely cause**' line. Section 'Leftover artifacts (kept for reproduction)' lists tickets.jsonl (tickets #1 to #7, with what each holds), snapshot-before.jsonl, env-log.jsonl, cwd-default/tickets.jsonl, corrupt-log.jsonl, blank-lines-log.jsonl; all exist in outputs/."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "git status --porcelain in outputs/repo printed nothing; branch feature/cli-tidy; check_run.py modified_tracked [] and untracked []."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": false,
+      "evidence": "prose-lint.py exited 1 with '43 findings in 1 file': 34 semicolon, 8 long-sentence (28-46 words; line 3 headline paragraph has a 46-word sentence), 1 long-lead (line 11, 33 words)."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "Headline '31/39 PASS, 8 FAILURE, 0 BLOCKED. Not ready to merge.' answers ship/no-ship by itself. Section leads carry the gist: Non-PASS subsections are headed by the finding ('C16: a closed ticket can be assigned, which reopens it (FAILURE)'), Issues opens with the Critical item, Leftover artifacts opens with the location. Weak spot: the headline's second sentence is 46 words, so the gist is there but the unfold is dense."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.923,
+    "passed": 12,
+    "failed": 1,
+    "total": 13
+  },
+  "notes": "The assertions discriminate well on substance: the run found all four planted changes plus the failing unit test, and the tickets.jsonl artifact independently confirms the CLI was actually driven. Two gaps worth closing. First, check_run.py reports transcript_cli_runs: 5 because the executor abbreviated 'python3 -m ticketdesk.cli' as 'T'; the mechanical check undercounts and the grader has to fall back to reading, so the script should accept an alias definition or the eval should require the literal command in the transcript. Second, the planned case list had 55 cases (incl. X1-X3, X7, X8: missing title arg, unknown option, --log pointing at a directory, --log after subcommand) but the report has 39 and the 'Missing / untested' section does not mention the dropped ones; no assertion checks that every planned case is either in the table or declared untested, so a silent plan-to-report shrink goes uncaught. The prose-lint assertion is the only failure and it is doing real work: 43 findings, mostly semicolons, is the old skill's writing style rather than a test-quality issue, which is exactly what the new skill is meant to fix."
+}

@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "report.md exists (check_run report_exists=true). First body line: \"44/53 PASS, 9 FAILURE, 0 BLOCKED. Not ready to merge. The branch lets a closed ticket be reopened and closed a second time, and it accepts resolution notes the spec rejects.\""
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript step 8: \"cat >| $S/cases.md <<EOF ... EOF ... 53-case contract written\" precedes step 9, the first CLI run (`--help`). The case table's Spec/ref column cites CLI-001..009, TKT-001..013, LOG-001..009, INV-003/004 (check_run spec_ids_cited=33)."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "Parsed the 53 case-table rows: 44 end in `| PASS |`, 9 in `| FAILURE |`, zero rows with any other status. check_run: SKIPPED=0, PARTIAL=0. (check_run's PASS=46/FAILURE=10/BLOCKED=1 counts include the headline and heading mentions, not table rows.)"
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case C3 `close` with the 9-character note `duplicate` is rejected | TKT-010, PR item 2 | FAILURE. Details: command `python3 -m ticketdesk.cli --log $L close 3 \"duplicate\"`, \"Observed for both: exit 0 and `#3 closed`\". Transcript step 16 confirms rc 0."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case C7 | TKT-008, PR item 3 | FAILURE. Details: `python3 -m ticketdesk.cli --log $L assign 1 frank` -> \"Observed: exit 0, `#1 assigned -> frank`, and line 9 of the log is an `assigned` event.\" Transcript step 23 matches."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case C2 | CLI-006, PR item 1 | FAILURE. Details quote the actual output `#1 open     Printer on fire` (three lines) against the expected `#1 [P1] open     Printer on fire`, and note main still prints the column."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case C1 FAILURE; details quote verbatim \"Manage support tikets from the shell.\"; Issues found #5 \"Low: `--help` says \\\"tikets\\\" (C1)\"."
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "Transcript steps 9-64 list ~55 `python3 -m ticketdesk.cli` invocations with rc/stdout for every case, plus steps 65-70 re-running the same commands on a main snapshot for diagnosis. Each of the 7 Non-PASS detail sections opens with \"What was done:\" naming the command and \"Observed:\" quoting output. The diff was read in step 4 for blast radius only; no FAILURE cites code as its evidence."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "C3/C6: \"The PR calls this intended, but the spec says 10.\" C2: \"the PR removes the column on purpose, see item 1 of `PR.md`. CLI-006 was not updated and no flag restores the column. `docs/README.md` requires that such a conflict is surfaced and the spec changed with sign-off.\" Improvements: \"If assigning a closed ticket is wanted, specify it.\" Issue #4 also calls out that PR.md's \"All tests pass locally\" is false."
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "7 \"Most likely cause:\" labels cover all 9 FAILURE cases (C1, C2, C3+C6, C7+C8, S11, L5, X7), each hedged (\"most likely pre-existing\", \"It was not run on `main`\"). \"## Leftover artifacts\" table lists `tickets.jsonl` (\"6 tickets, 15 events, including the reopen on lines 9 and 10\") and every file under `logs/` with what each holds."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "`git status --porcelain` in outputs/repo printed nothing; check_run modified_tracked=[] and untracked=[]. Transcript step 73 shows the agent removed only the __pycache__ dirs it had created."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "Ran it myself: \"0 findings in 1 file\", exit 0. check_run lint_findings=0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "Headline: \"44/53 PASS, 9 FAILURE, 0 BLOCKED. Not ready to merge.\" Section openers: Scope \"The scope is the four changes named in `PR.md`...\"; each Non-PASS heading states the finding (\"C2: `list` dropped the priority column\"); Issues ranked with severity in the heading; Leftover artifacts \"All under `OUTPUT_DIR`. The repo is unchanged.\" Weak spot: \"## Issues found\" opens with the meta sentence \"Ordered by severity.\" rather than the top issue, and \"## Non-PASS details\" opens with a path convention."
+    }
+  ],
+  "summary": {"pass_rate": 1.0, "passed": 13, "failed": 0, "total": 13},
+  "notes": "Clean run. Ambiguities: (1) assertion 19's 'listing the tickets created' is satisfied by file-level counts (6 tickets, 15 events) rather than an itemised ticket list; graded pass since the artifacts section is complete at the file level. (2) The skim-test assertion is subjective; two sections open with housekeeping sentences, not the gist, but the headline and the issue headings carry the decision. (3) check_run.py counts status words across the whole file, so its PASS/FAILURE/BLOCKED totals (46/10/1) disagree with the actual table (44/9/0); the table is what matters, and it is clean. The run also found the branch's own failing test (test_assign_requires_open_ticket vs PR.md's 'all tests pass'), which no assertion asks for."
+}
