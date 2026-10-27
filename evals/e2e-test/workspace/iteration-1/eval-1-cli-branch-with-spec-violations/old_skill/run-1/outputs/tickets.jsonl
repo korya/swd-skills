@@ -1,0 +1,15 @@
+{"at": 1793103897.3757281, "id": 1, "kind": "created", "priority": "P1", "title": "Printer on fire"}
+{"at": 1793103897.411983, "id": 2, "kind": "created", "priority": "P3", "title": "Laptop won't boot"}
+{"at": 1793103897.448464, "id": 3, "kind": "created", "priority": "P2", "title": "VPN drops every hour"}
+{"assignee": "dana", "at": 1793103897.5241432, "id": 1, "kind": "assigned"}
+{"assignee": "erin", "at": 1793103897.5634692, "id": 1, "kind": "assigned"}
+{"at": 1793103897.637761, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+{"at": 1793103897.674525, "id": 2, "kind": "closed", "resolution": "duplicate"}
+{"at": 1793103897.782787, "id": 3, "kind": "closed", "resolution": "0123456789"}
+{"assignee": "frank", "at": 1793103897.819915, "id": 1, "kind": "assigned"}
+{"at": 1793103897.893761, "id": 1, "kind": "closed", "resolution": "Closing it a second time"}
+{"at": 1793103897.929676, "id": 4, "kind": "created", "priority": "P3", "title": "After close"}
+{"at": 1793103974.864203, "id": 5, "kind": "created", "priority": "P3", "title": "Caf\u00e9 \u2615 na\u00efve \u2014 em dash"}
+{"at": 1793103974.900411, "id": 6, "kind": "created", "priority": "P3", "title": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+{"at": 1793103974.936429, "id": 7, "kind": "created", "priority": "P3", "title": "  padded title  "}
+{"at": 1793104005.7143319, "id": 8, "kind": "created", "priority": "P3", "title": "Default ticket"}

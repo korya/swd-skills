@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "report.md first paragraph: \"31/40 PASS, 9 FAILURE, 0 BLOCKED. Not ready to merge.\" Table count matches (31 PASS, 9 FAILURE rows)."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript step 12 `cat >| $O/cases.md` (\"wrote the 40-case contract before testing\") precedes step 13, the first CLI run; cases.md mtime 08:30, tickets.jsonl 08:32. check_run: spec_ids_cited=35; table has a Spec/ref column with CLI-/TKT-/LOG-/INV- IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "Parsed the 40 table rows: 31 PASS, 9 FAILURE, 0 other. check_run: SKIPPED 0, PARTIAL 0."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 20 FAILURE. Report: `$ python3 -m ticketdesk.cli --log OUTPUT_DIR/tickets.jsonl close 3 \"duplicate\"` -> `#3 closed`, `exit=0`; tickets.jsonl holds the `closed` event with resolution \"duplicate\"."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 25 FAILURE. Report: `$ ... assign 1 frank` -> `#1 assigned -> frank`, `exit=0`, then `list` shows `#1 assigned Printer on fire`; tickets.jsonl shows the assigned->frank event after the closed event for id 1."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 10 FAILURE. Report quotes `#1 open     Printer on fire` / `#2 open     VPN drops every hour` and states \"Expected per CLI-006: `#<id> [<priority>] <state> <title>`\"."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 1 FAILURE with the quoted help output \"Manage support tikets from the shell.\"; Issue 6 \"Low. `--help` misspells \\\"tickets\\\" as \\\"tikets\\\".\""
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "Transcript steps 13-21 run `python3 -m ticketdesk.cli` directly and via `run` in runner.sh (which wraps the same command from $O/repo). Real artifacts corroborate: tickets.jsonl has 14 events including the reopen, .se holds the FileNotFoundError traceback. Every FAILURE section quotes command plus observed output; code citations appear only under \"Most likely cause\"."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "Issue 1: \"The PR frames it as a support request, but the spec was not changed\"; Case 10: \"This is a deliberate change that contradicts the spec\"; Improvements: \"Each of the three deliberate changes (assign on closed, minimum 9, no priority column) contradicts a spec ID.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "Each of the 7 non-PASS subsections (covering all 9 FAILURE cases) ends with a \"Most likely cause:\" paragraph. \"## Leftover artifacts\" table lists tickets.jsonl \"14 events, tickets 1 to 5\", plus blank.jsonl \"3 tickets\" and the other logs."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "`git -C outputs/repo status --porcelain` printed nothing; check_run modified_tracked=[], untracked=[]. git diff main...HEAD shows only the planted changes."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "prose-lint.py output: \"0 findings in 1 file\"."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "Headline: \"31/40 PASS, 9 FAILURE, 0 BLOCKED. Not ready to merge. The branch lets a closed ticket reopen and accepts resolution notes the spec forbids.\" Section openers: \"Scope is the branch feature/cli-tidy against main...\", each failure subsection heading states the finding (\"Case 25: assigning a closed ticket succeeds and reopens it\"), Issues list opens with the two High items, Leftover artifacts opens \"All under OUTPUT_DIR, kept to reproduce the findings.\""
+    }
+  ],
+  "summary": {"pass_rate": 1.0, "passed": 13, "failed": 0, "total": 13},
+  "notes": "All assertions pass and the claims check out against the diff and the artifacts (the reopen and the 9-char note are in tickets.jsonl; main does reject both per the diff). Two gaps in the eval: (1) the transcript is an executor-written summary, so 'case list before execution' is verified by the executor's own ordering plus file mtimes, which a lazy run could fake; check_run could compare cases.md mtime against the first log event's `at`. (2) No assertion covers the 'All tests pass locally' PR claim, yet the run caught that `test_assign_requires_open_ticket` fails, which is a strong discriminator between reading PR.md and verifying it. Also, check_run's status counter over-counts (33/10/1) because it greps prose, not the table; the headline-vs-table consistency check should parse the table rows. The 'most-likely' mention key misses the unhyphenated 'Most likely cause' label the report actually uses."
+}

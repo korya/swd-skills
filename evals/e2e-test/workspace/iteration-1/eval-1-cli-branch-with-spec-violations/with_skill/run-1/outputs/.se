@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills/evals/e2e-test/workspace/iteration-1/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills/evals/e2e-test/workspace/iteration-1/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 23, in main
+    t = svc.create(args.title, args.priority); print(f"#{t.id} {t.state} {t.title}")
+  File "/Users/dmitri/dev/swd-skills/evals/e2e-test/workspace/iteration-1/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 60, in create
+    ev = self.store.append({"kind": "created", "id": next_id, "title": title, "priority": priority})
+  File "/Users/dmitri/dev/swd-skills/evals/e2e-test/workspace/iteration-1/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 21, in append
+    with self.path.open("a", encoding="utf-8") as fh:
+         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.1/Frameworks/Python.framework/Versions/3.15/lib/python3.15/pathlib/__init__.py", line 970, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/dmitri/dev/swd-skills/evals/e2e-test/workspace/iteration-1/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/no-such-dir/t.jsonl'

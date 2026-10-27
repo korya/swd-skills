@@ -1,0 +1,5 @@
+#1 closed   Printer on fire
+#2 closed   Laptop will not boot
+#3 closed   Request new mouse
+#4 closed   Keyboard sticky keys
+#5 assigned Monitor flickers
