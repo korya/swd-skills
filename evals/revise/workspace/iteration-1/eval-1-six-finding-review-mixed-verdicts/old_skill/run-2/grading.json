@@ -1,0 +1,82 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and contains a decision table with one row for each of the six findings, labelled F1 to F6 (or equivalent IDs covering all six), each with a verdict and an evidence/justification cell.",
+      "passed": true,
+      "evidence": "report.md has a 4-column table `| ID | Finding | Verdict | Evidence & justification |` with rows F1..F6; check_run.py parsed verdicts {F1: ACCEPT, F2: REJECT, F3: DEFER, F4: PARTIAL, F5: REJECT, F6: NEEDS-INPUT}."
+    },
+    {
+      "text": "F1 (Retry-After HTTP-date form raises ValueError) is ACCEPT, and a commit on the branch changes notify/sender.py so a non-numeric Retry-After no longer raises ValueError out of send (it is parsed or falls back to the computed backoff), with a test covering it.",
+      "passed": true,
+      "evidence": "F1 = ACCEPT. Commit aba2f2e adds `_retry_after`: float() first, then `parsedate_to_datetime`, and `return None` (fall back to backoff) on TypeError/ValueError. tests/test_sender.py gains test_retry_after_http_date_waits_until_that_time, ..._in_the_past_does_not_wait, test_malformed_retry_after_falls_back_to_backoff. check_run: sender_retry_after_guarded=true."
+    },
+    {
+      "text": "F2 (guard against negative or zero rate) is REJECT with a justification that the state has no producer (constructor called with constants, no writer passes a negative rate) and no such guard was added to notify/ratelimit.py.",
+      "passed": true,
+      "evidence": "F2 = REJECT: 'no writer exists: the only constructors are three test calls (tests/test_ratelimit.py:10,15,23); the value is a literal in our own wiring'. Verified those three lines all pass rate=1.0. git diff 9ae5e6e..HEAD does not touch notify/ratelimit.py; check_run ratelimit_negative_guard_added=false."
+    },
+    {
+      "text": "F3 (per-process buckets need a shared store) is DEFER with a drafted ticket (title and body) marked as proposed, not filed, and no code change for it.",
+      "passed": true,
+      "evidence": "F3 = DEFER. report.md section '## Ticket drafts (proposed, not filed)' with bold title 'Back the per-tenant token bucket with a shared store' and a two-paragraph body. notify/ratelimit.py unchanged since the fixture commit."
+    },
+    {
+      "text": "F4 (docstring says 429 or 503 but code honors every retryable status; proposes a RetryPolicy class hierarchy) is PARTIAL: the docstring or the code is fixed minimally so they agree, and no class hierarchy or state machine was introduced.",
+      "passed": true,
+      "evidence": "F4 = PARTIAL. Commit 94b1df2 changes one docstring line to 'A Retry-After header on any retryable response (see RETRYABLE)' and adds one test looping over the five statuses. No RetryPolicy class in the diff; check_run retry_policy_hierarchy_added=false."
+    },
+    {
+      "text": "F5 (move the sender to asyncio) is REJECT (or DEFER) as out of the PR's scope, with no async conversion in the code.",
+      "passed": true,
+      "evidence": "F5 = REJECT: 'Outside the PR's stated intent (backoff + token bucket); changes Sender.send's signature for every caller.' No async/await in the diff; check_run async_added=false."
+    },
+    {
+      "text": "F6 (cap dropped from 100 to 60, was product consulted) is NEEDS-INPUT: held, listed as a question for the user in the report, and the cap is not changed either way.",
+      "passed": true,
+      "evidence": "F6 = NEEDS-INPUT; report section '## NEEDS-INPUT (blocking)' lists the question verbatim with the two possible outcomes. notify/ratelimit.py still has `rate=1.0, burst=20`; check_run ratelimit_rate_default='1.0'."
+    },
+    {
+      "text": "Every verdict in the table carries cross-validation evidence: a file:line citation, a quoted passage from the PR body or code, or an experiment result, not only reasoning.",
+      "passed": true,
+      "evidence": "F1: reproduced `ValueError: could not convert string to float: 'Wed, 21 Oct 2015 ...'` plus quoted PR intent 'honors a Retry-After header'. F2: experiment 'rate=-1 sits at -100 tokens after 100 s' plus tests/test_ratelimit.py:10,15,23. F3: notify/ratelimit.py:15 and quoted 'No new dependencies'. F4: sender.py:17 vs :43 (verified against fixture commit). F5: grep result 'zero async code, no architecture doc in the repo' (transcript step 6 grep). F6: searched PR body, commit 9ae5e6e, docs/BENCHMARKS.md. F5 is the thinnest (an absence result), but it is a recorded search, not bare reasoning."
+    },
+    {
+      "text": "`git diff main..korya-retry-backoff --name-only` after the run adds only changes under notify/sender.py and tests/ relative to the fixture commit (no changes to notify/ratelimit.py, no new files outside tests/), and the fixture commit itself is intact.",
+      "passed": true,
+      "evidence": "`git diff 9ae5e6e..HEAD --name-only` = notify/sender.py, tests/test_sender.py. Fixture commit 9ae5e6e is still HEAD~2 on the branch; check_run fixture_commit_intact=true, files_changed_after_fixture=[notify/sender.py, tests/test_sender.py]."
+    },
+    {
+      "text": "OUTPUT_DIR/replies.md exists with one reply per finding; each REJECT reply quotes or names the reviewer's claim and shows what the code or spec says, and the DEFER reply names the proposed ticket title.",
+      "passed": true,
+      "evidence": "replies.md has six '## Thread N' sections. Thread 2 (REJECT) restates the rate<=0 claim, confirms the behaviour by experiment, then cites 'the only constructors in the repo are the three in tests/test_ratelimit.py' and the unguarded Sender/FixedWindowLimiter args. Thread 5 (REJECT) quotes 'every modern client in this company is async' and answers 'there is no async code and no architecture note'. Thread 3 (DEFER) names the ticket 'Back the per-tenant token bucket with a shared store'."
+    },
+    {
+      "text": "The tests pass on the branch HEAD (make test or python -m unittest in the repo).",
+      "passed": true,
+      "evidence": "`make test` on HEAD 94b1df2: 'Ran 11 tests ... OK'. check_run tests_pass=true."
+    },
+    {
+      "text": "The report states explicitly whether the PR title and body are still accurate after the revision, and if a pr-body.md was written it is lint-clean.",
+      "passed": false,
+      "evidence": "Statement half passes: report Phase 5b says 'PR body was stale (did not mention ...). Revised body written to pr-body.md; title ... still covers all the work.' Lint half fails: prose-lint.py on pr-body.md reports 5 findings (long-lead at lines 9 and 21, long-sentence at 23 and 25, semicolon at 25)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md and OUTPUT_DIR/replies.md reports 0 findings in total.",
+      "passed": false,
+      "evidence": "prose-lint.py: report.md 9 findings (2 long-lead, 7 semicolon), replies.md 14 findings (10 long-sentence, 3 semicolon, 1 long-lead). 23 total, not 0."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed, and nothing was marked ready or force-pushed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so the /submit flow stops at the CI gate with the PR still a draft.' Report Phase 6: 'nothing marked ready, no force-push, no tickets filed.' origin.git history is linear 9ae5e6e -> aba2f2e -> 94b1df2 (fast-forward push, transcript step 11 shows plain `git push origin korya-retry-backoff`)."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8571,
+    "passed": 12,
+    "failed": 2,
+    "total": 14
+  },
+  "notes": "The six verdicts, the code changes and the mechanical hygiene all landed; the run failed only on prose shape (23 lint findings across report and replies, 5 in the PR body), which is exactly what the new skill's writing rules target, so these two assertions discriminate well. Two things for the eval author: (1) assertion 12 bundles an accuracy statement and a lint result, so it fails here on the lint half alone and hides that the revalidation statement was correct; split it. (2) Assertion 9 names `git diff main..korya-retry-backoff`, which literally includes the fixture commit's own changes to ratelimit.py and README; the intent (diff relative to the fixture commit) is what check_run.py measures, so the text should say `<fixture>..HEAD`. Assertion 8 is lenient on F5 and F6, where the only possible evidence is an absence (no async code, no decision link); a grader could not distinguish a real grep from an asserted one without the transcript, which here did record the grep. Nothing checks that the F1 fix keeps `Sender`'s public signature backward compatible (it does: `now=time.time` is a defaulted kwarg) or that the past-date case waits 0 s rather than going negative, both of which this run handled and tested without being asked.",
+  "execution_metrics": {}
+}
