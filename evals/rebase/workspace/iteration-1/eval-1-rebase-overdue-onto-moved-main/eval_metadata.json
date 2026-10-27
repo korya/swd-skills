@@ -1,0 +1,21 @@
+{
+  "eval_id": 1,
+  "eval_name": "rebase-overdue-onto-moved-main",
+  "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/rebase/make_fixture.sh OUTPUT_DIR/repo`, then work inside OUTPUT_DIR/repo. Rebase my branch feature/overdue onto main. I started it a while ago and main has moved. Nobody is available to answer questions during this run: where the skill would stop for my approval at the risk gate or the plan, write what you would have asked to OUTPUT_DIR/questions.md, state the assumption you proceed on, pick the lowest-risk option, and continue. Write the final report to OUTPUT_DIR/report.md. Do not push anywhere.",
+  "assertions": [
+    "The transcript or report states the three points before any history moved: HEAD of feature/overdue, the merge-base with main, and HEAD of main.",
+    "The untracked debug_notes.md was stashed under a labelled stash before the rebase and restored afterwards: at the end it is present and untracked in OUTPUT_DIR/repo, `git stash list` is empty, and the transcript shows the label.",
+    "The delta inventory names all four changes on main: the rename of due_at to deadline_for, the extracted _line formatter and the export subcommand, INV-006 (time from the store clock), and the CLI test convention in docs/guidelines.md with tests/test_cli.py.",
+    "Each of the three feature commits carries a classification (Untouched, Adjusted, Extended, Obsolete, or Conflicting) with a one-line justification; the service commit is Conflicting or Adjusted because of INV-006, the CLI commit is Adjusted or Extended because of _line, and the specs commit is Untouched or Adjusted.",
+    "OUTPUT_DIR/questions.md exists and names the INV-006 conflict (the branch reads time.time() directly) as the item that needed the user's decision, with the assumption taken (read the clock from the store).",
+    "On the rebased feature/overdue, ticketdesk/tickets.py contains no call to time.time() and the overdue computation reads the current time from the store's clock (store.clock or an equivalent injected clock).",
+    "On the rebased branch, the overdue subcommand in ticketdesk/cli.py prints through the shared _line formatter rather than a second copy of the format string, and the export subcommand still exists.",
+    "A subprocess CLI test for the overdue subcommand exists in tests/test_cli.py on the rebased branch, following the convention added on main.",
+    "`make test` passes on the rebased branch (all tests, including tests/test_cli.py), and `make lint` passes.",
+    "The rebased branch is based on main's HEAD (merge-base of feature/overdue and main equals main's HEAD), the three original commits are still present by subject (possibly with edits), and any new fix is in its own Conventional Commits commit rather than squashed into an original one unless it preserves that commit's intent.",
+    "The transcript shows no `-X theirs`, `-X ours`, or `--no-verify`, and no push.",
+    "OUTPUT_DIR/report.md opens with a headline that says succeeded, succeeded with adjustments, or blocked, then gives a per-commit outcome, the spec or invariant deviations and their resolution, and what the user should still verify by hand.",
+    "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md and OUTPUT_DIR/questions.md reports 0 findings in total.",
+    "Skim test: the headline and the first sentence of each section of report.md carry their claim; no teaser or qualifier-chain leads."
+  ]
+}
