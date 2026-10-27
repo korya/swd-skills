@@ -46,7 +46,7 @@ MAX_PARAGRAPH = 6
 
 CODE_FENCE = re.compile(r"^ {0,3}(```|~~~)")
 INLINE_CODE = re.compile(r"`[^`\n]*`")
-URL = re.compile(r"https?://\S+|www\.\S+")
+URL = re.compile(r"https?://[^\s)]+|www\.[^\s)]+")
 HEADING = re.compile(r"^ {0,3}#{1,6}(\s|$)")
 RULE_LINE = re.compile(r"^ {0,3}(?:[-*_] *){3,}$")
 HTML_LINE = re.compile(r"^ {0,3}<")
