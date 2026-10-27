@@ -94,6 +94,11 @@ class MarkdownSkips(unittest.TestCase):
     def test_inline_code_is_masked(self):
         self.assertEqual(rules("Run `a; b — c`. Done."), [])
 
+    def test_link_at_sentence_end_keeps_the_boundary(self):
+        text = ("The catalog cap is tracked in issue ([#10](https://x.y/issues/10)). "
+                "This second sentence is long enough to push the pair over twenty-five words combined.")
+        self.assertNotIn("long-sentence", rules(text))
+
     def test_url_is_masked(self):
         self.assertEqual(rules("See https://example.test/a;b—c for it."), [])
 
