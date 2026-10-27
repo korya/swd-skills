@@ -1,0 +1,29 @@
+{
+  "skill_name": "blueprint",
+  "evals": [
+    {
+      "id": 1,
+      "name": "plan-overdue-tickets",
+      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/blueprint/make_fixture.sh OUTPUT_DIR/repo`, then work inside OUTPUT_DIR/repo. Plan this change thoroughly, do not implement it: tickets that pass their due time should show as OVERDUE in `ticketdesk list`, and a new `ticketdesk overdue` subcommand should list only overdue tickets, oldest due first. Write the plan to OUTPUT_DIR/plan.md. Nobody is available to answer questions during this run: list them as open questions, state the assumption you proceed on, and continue. Do not change any code or docs in the repo.",
+      "expected_output": "A plan whose headline and approach summary a newcomer can read once; conventions cited from AGENTS.md and docs/guidelines.md with file:line (unittest and make, not pytest); spec IDs cited (TKT-005 due time, TKT-013 listing order, CLI-001 command list, INV-001 and INV-002 so overdue is derived at read time and never written to the log); reuse of the existing due_at value on Ticket; an explicit clock source for now; a test plan in tests/ with unittest; a counterfactual mapping success criteria to steps; open questions listed; lint-clean prose; repo untouched.",
+      "assertions": [
+        "OUTPUT_DIR/plan.md exists and contains, in order, sections for: headline, approach summary, out of scope, plan steps, assumptions, test plan, risks and mitigations, open questions (names may vary slightly).",
+        "The headline is one to three sentences and states what is being built and the chosen approach; the approach summary is prose of three to ten sentences, not bullets.",
+        "The plan states a falsifier for the hypothesis: an observation that would prove the chosen shape wrong, separate from the individual assumptions.",
+        "Project conventions are cited with file:line from AGENTS.md or docs/guidelines.md: the test framework is unittest run by `make test`, lint is `make lint`, and no package manager or test runner from outside the repo (pytest, poetry, npm) is assumed.",
+        "The plan cites the affected spec IDs by name: at least TKT-005 (due time by priority) and TKT-013 (listing order) or CLI-006 (list), and CLI-001 (the command list) as a spec that needs updating for the new subcommand.",
+        "The plan respects INV-001 and INV-002: overdue status is derived from the ticket's due time at read time and is never written to the event log as an edit or a new event, or if an event is proposed, the plan flags it as a spec change needing user approval.",
+        "The plan reuses the existing due_at value on Ticket (or ticketdesk.sla.due_at) instead of recomputing SLA hours in the CLI or a new module.",
+        "The plan names where `now` comes from for the overdue comparison (an injectable clock or time source consistent with EventStore.clock) and validates that assumption against the code.",
+        "Every load-bearing assumption in the assumptions section carries evidence: a file:line citation, a quoted doc passage, or a command output.",
+        "The test plan names unittest test files under tests/ and at least these cases: a ticket exactly at its due time, a closed ticket past due (expected not overdue, or flagged as an open question), and the ordering of the overdue list.",
+        "A counterfactual section maps each stated success criterion to a plan step and records Confirmed, Confirmed with gaps, or Unconfirmed.",
+        "Open questions are listed explicitly (for example whether closed tickets count as overdue, the exit code when nothing is overdue) and none is silently answered in the plan steps without being named as an assumption.",
+        "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/plan.md reports 0 findings.",
+        "Skim test: the first sentence of each paragraph in the headline and approach summary carries a claim a newcomer understands; no step numbers, shorthand, or teaser leads.",
+        "`git status --porcelain` in OUTPUT_DIR/repo is empty: no code or doc was changed."
+      ],
+      "files": []
+    }
+  ]
+}
