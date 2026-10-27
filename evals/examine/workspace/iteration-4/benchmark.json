@@ -1,0 +1,1077 @@
+{
+  "metadata": {
+    "skill_name": "examine",
+    "skill_path": "/Users/dmitri/dev/swd-skills-simplify/skills/examine",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-10-27T18:52:10Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9375,
+        "passed": 15,
+        "failed": 1,
+        "total": 16,
+        "time_seconds": 324.2,
+        "tokens": 105144,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+          "passed": true,
+          "evidence": "wc -c outputs/report.md = 14669 bytes."
+        },
+        {
+          "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+          "passed": true,
+          "evidence": "H3: \"api_redeem({\\\"code\\\": \\\"NOPE\\\"}) returned {\\\"redeemed\\\": True}. except Exception: pass swallowed the KeyError.\" Its condition `row is None or ...` also sends an unknown code into the success branch."
+        },
+        {
+          "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+          "passed": true,
+          "evidence": "H2 (app/users.py:12): \"create_user replaced normalize_email(email) with email.strip()\" ... Cites: docs/invariants.md \u00a71 (Canonical emails)."
+        },
+        {
+          "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+          "passed": true,
+          "evidence": "C1: \"api_create_discount stores int(payload[\\\"percent\\\"]) without a range check\"; \"validate_percent in app/discount_engine/__init__.py:26 has no caller\"; \"The PR description claims compliance with this section.\""
+        },
+        {
+          "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+          "passed": false,
+          "evidence": "No mention of concurrency, race, or atomicity anywhere (grep -i 'concurr|race|atomic' hits only the subagent-limit sentence). H3 only says charge 'never reads or updates uses' and api_redeem is unconnected; that is the neighbouring max_uses-not-enforced defect, not the check-then-act race."
+        },
+        {
+          "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+          "passed": true,
+          "evidence": "L3 [app/billing.py:23]: \"An unchanged line uses floats in a money path, which docs/invariants.md \u00a72 forbids.\""
+        },
+        {
+          "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+          "passed": true,
+          "evidence": "Cap change is not reported as a defect. Q1: \"Can you link FIN-88 and the finance sign-off for the cap of 30%?\" Done well: \"The PR keeps the cap in billing.MAX_DISCOUNT_PERCENT, where docs/invariants.md \u00a74 places it.\""
+        },
+        {
+          "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+          "passed": true,
+          "evidence": "C2 (Critical): \"up() pops plan from every user and writes tier... The migration has no down().\" Fix: \"add tier as an additive step... Drop plan only after a release with dual-read.\" Cites docs/invariants.md \u00a73."
+        },
+        {
+          "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+          "passed": true,
+          "evidence": "Suggestion S1: \"Replace the registry, the ABC, get_strategy, and DISCOUNT_ENGINE_BACKEND with one integer function... billing.py imports PercentDiscount directly and bypasses the registry. get_strategy has no caller.\""
+        },
+        {
+          "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+          "passed": true,
+          "evidence": "H4: \"api_apply_credit strips a leading -, parses the rest, and negates it. This works around the non-negative rule in parse_money.\" (Remedy proposed is an explicit credit model, not extending parse_money; see notes.)"
+        },
+        {
+          "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "IDs C1-C2, H1-H4, M1-M4, L1-L4. Every C/H/M block has a Verdict line: CONFIRMED (C1, H1-H4, M1-M4) and 'CONFIRMED ... PLAUSIBLE' split in C2."
+        },
+        {
+          "text": "Report contains both a Verified section and a Not reviewed section.",
+          "passed": true,
+          "evidence": "'## Verified' and '## Not reviewed' sections both present."
+        },
+        {
+          "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+          "passed": true,
+          "evidence": "git status --short --ignored: empty; branch: feature/discounts; git worktree list shows only the main checkout at e284420; git stash list empty."
+        },
+        {
+          "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+          "passed": true,
+          "evidence": "C1 'Cites: docs/invariants.md \u00a74 (Percentage adjustments)'; C2 '\u00a73'; H2 '\u00a71'."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py (examine-old snapshot) on outputs/report.md: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+          "passed": true,
+          "evidence": "Headline: 'Hold. A customer charge can go negative today, and the migration destroys plan data with no way back.' Finding titles state defect and impact (e.g. 'C1: The API stores any discount percent, so a charge can go negative'); first What sentences are direct, e.g. 'api_create_discount stores int(payload[\"percent\"]) without a range check.' No qualifier chains."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 16,
+        "failed": 0,
+        "total": 16,
+        "time_seconds": 457.5,
+        "tokens": 112872,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+          "passed": true,
+          "evidence": "wc -c outputs/report.md = 18383 bytes."
+        },
+        {
+          "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+          "passed": true,
+          "evidence": "H3: \"Its condition row is None or row[\\\"uses\\\"] < row[\\\"max_uses\\\"] sends an unknown code into the increment branch. The KeyError that follows is swallowed, and the call returns {\\\"redeemed\\\": True}.\""
+        },
+        {
+          "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+          "passed": true,
+          "evidence": "C2 (app/users.py:15): \"The PR removes the normalize_email call from create_user and keeps only email.strip()\" ... Cites: docs/invariants.md \u00a71."
+        },
+        {
+          "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+          "passed": true,
+          "evidence": "C1: \"validate_percent exists at app/discount_engine/__init__.py:26, but no code calls it. The description says the percent 'is validated at the API boundary per docs/invariants.md \u00a74'. That claim is false.\""
+        },
+        {
+          "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+          "passed": true,
+          "evidence": "Known limitations: \"The check and the increment of uses are two steps, so two concurrent redemptions can both pass the check... Fix it when the store moves to a database, with an atomic conditional update.\" Mechanism named, but filed as a limitation and judged 'acceptable here', not as a PLAUSIBLE Issue."
+        },
+        {
+          "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+          "passed": true,
+          "evidence": "Suggestion S2 [app/billing.py:23 (line unchanged, function touched)]: \"int(amount * (1 + TAX_RATE_BP / 10_000)) uses a float in a money path\" ... \"follows docs/invariants.md \u00a72 by construction\"."
+        },
+        {
+          "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+          "passed": true,
+          "evidence": "Cap change not flagged. Q1: \"Where is the FIN-88 sign-off recorded? Must existing codes above 30 percent stop working, or only new ones?\" C1 notes 'The new 30 percent cap from FIN-88 has no effect' (a validation defect, not a cap defect)."
+        },
+        {
+          "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+          "passed": true,
+          "evidence": "C3 (Critical): \"up() pops plan from every user and writes tier. The migration has no down()... No earlier release reads both fields.\" Cites docs/invariants.md \u00a73."
+        },
+        {
+          "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+          "passed": true,
+          "evidence": "Suggestion S1: \"Nothing reads STRATEGY_REGISTRY, and nothing calls get_strategy or reads DISCOUNT_ENGINE_BACKEND... billing imports PercentDiscount directly and skips the engine.\""
+        },
+        {
+          "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+          "passed": true,
+          "evidence": "H2: \"It strips a leading -, parses the rest, and negates the result... The code also defeats the negative guard in parse_money.\" (Remedy is an explicit adjustment type; see notes.)"
+        },
+        {
+          "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "IDs C1-C3, H1-H4, M1-M4, L1-L2; every C/H/M block carries 'Verdict: CONFIRMED'."
+        },
+        {
+          "text": "Report contains both a Verified section and a Not reviewed section.",
+          "passed": true,
+          "evidence": "'## Verified' and '## Not reviewed' sections both present."
+        },
+        {
+          "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+          "passed": true,
+          "evidence": "git status --short --ignored: empty; branch: feature/discounts; git worktree list shows only the main checkout at d3313dd; git stash list empty."
+        },
+        {
+          "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+          "passed": true,
+          "evidence": "C1 cites docs/invariants.md \u00a74 with quote; C2 \u00a71; C3 \u00a73; H4 cites CLAUDE.md 'Every change to app/billing.py requires failure-path tests'."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py (examine-old snapshot) on outputs/report.md: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+          "passed": true,
+          "evidence": "Headline: 'Hold. The branch breaks three project invariants and lets a discount code produce a negative charge.' Titles state the defect (e.g. 'C3: Migration 002 drops the plan field in one step and has no down()'). Weakest first sentences are context-only (H2 'This endpoint is new, and the description does not mention it.'; M1 'These changes ride along...') but the headline carries the defect. No qualifier chains."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 16,
+        "failed": 0,
+        "total": 16,
+        "time_seconds": 363.2,
+        "tokens": 115767,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+          "passed": true,
+          "evidence": "wc -c outputs/report.md = 18885 bytes."
+        },
+        {
+          "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+          "passed": true,
+          "evidence": "M1: \"The condition row is None or row[\\\"uses\\\"] < row[\\\"max_uses\\\"] sends an unknown code into the success branch. STORE.discounts[code] then raises KeyError. The bare except Exception: pass swallows the error, and the function returns {\\\"redeemed\\\": True}.\""
+        },
+        {
+          "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+          "passed": true,
+          "evidence": "H4: \"create_user dropped the call to normalize_email and now only strips.\" Cites: docs/invariants.md \u00a71."
+        },
+        {
+          "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+          "passed": true,
+          "evidence": "C1: \"validate_percent in app/discount_engine/__init__.py:26-30 exists, but no code calls it... The description says the opposite: 'Discount percent is validated at the API boundary per docs/invariants.md \u00a74.'\""
+        },
+        {
+          "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+          "passed": true,
+          "evidence": "Known limitations: \"api_redeem checks and increments uses in two steps, so two concurrent calls can both pass. The store is in memory and single-process today, so the race cannot occur. It becomes real with a database. The fix in H1 should use one atomic update.\" Mechanism named in api_redeem, but downgraded to a limitation and declared not reachable today."
+        },
+        {
+          "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+          "passed": true,
+          "evidence": "L1 [app/billing.py:23]: \"The tax line uses float math, which docs/invariants.md \u00a72 forbids. The line predates the PR, but discounted amounts now flow through it.\""
+        },
+        {
+          "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+          "passed": true,
+          "evidence": "Cap change not flagged. Q2 asks where FIN-88 can be read; Verified: \"The lowered cap affects no existing codes. main has no code path that writes STORE.discounts.\""
+        },
+        {
+          "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+          "passed": true,
+          "evidence": "C2 (Critical): \"The migration has no down(). It removes plan in the same release that introduces tier, with no dual-read release first.\" Cites docs/invariants.md \u00a73."
+        },
+        {
+          "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+          "passed": true,
+          "evidence": "Suggestion S1: \"billing.py:2 imports PercentDiscount directly and never calls get_strategy. The DISCOUNT_ENGINE_BACKEND variable therefore changes nothing... The engine has one implementation.\""
+        },
+        {
+          "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+          "passed": true,
+          "evidence": "H2: \"api_apply_credit strips a leading -, parses the rest, and negates it.\" Evidence: the parse_money docstring says money enters non-negative and adjustments are modeled explicitly; \"This endpoint bypasses that contract.\" (Remedy is a separate credit entry type; see notes.)"
+        },
+        {
+          "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "IDs C1-C2, H1-H5, M1-M3, L1-L4; every C/H/M block carries 'Verdict: CONFIRMED'."
+        },
+        {
+          "text": "Report contains both a Verified section and a Not reviewed section.",
+          "passed": true,
+          "evidence": "'## Verified' and '## Not reviewed' sections both present."
+        },
+        {
+          "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+          "passed": true,
+          "evidence": "git status --short --ignored: empty; branch: feature/discounts; git worktree list shows only the main checkout at e284420; git stash list empty."
+        },
+        {
+          "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+          "passed": true,
+          "evidence": "C1 cites docs/invariants.md \u00a74 and CLAUDE.md; C2 \u00a73; H4 \u00a71."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py (examine-old snapshot) on outputs/report.md: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+          "passed": true,
+          "evidence": "Headline: 'Hold. The PR claims API validation of the discount percent, but nothing calls the validator. A 150% code produces a negative charge.' Titles state the defect; first What sentences are direct ('The migration has no down().'). M2's 'The description presents the PR as discount codes.' is context-only, but the title carries it. No qualifier chains."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 163.6,
+        "tokens": 81707,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty.",
+          "passed": true,
+          "evidence": "outputs/report.md: 62 lines, starts '# Examine: Record an audit event on user creation (feature/audit-log vs main)'."
+        },
+        {
+          "text": "Zero Critical issues and zero High issues are reported.",
+          "passed": true,
+          "evidence": "'## Issues\\nNo qualifying issues.' No Critical or High anywhere."
+        },
+        {
+          "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+          "passed": true,
+          "evidence": "No issues listed. Q1 (description claims 'failure paths covered' but tests are happy-path plus no-email) and S1 (timestamp; support asked 'who was created and when', entry is {event,user_id}) and S2 (test checks key 'email' only, tests/test_audit.py:20 `assertNotIn(\"email\", STORE.audit[0])`) all confirmed against `git diff main...feature/audit-log`."
+        },
+        {
+          "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+          "passed": true,
+          "evidence": "'- [app/users.py:21] The call passes only `user_id`. This follows the CLAUDE.md rule \"Never log or store raw emails outside the users table\".' Plus 4 more file:line credits."
+        },
+        {
+          "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+          "passed": true,
+          "evidence": "Issues bucket holds only 'No qualifying issues.' Findings total 1 question + 2 suggestions, none duplicated, each with a stated reason. 62 lines, the shortest of the four."
+        },
+        {
+          "text": "Report includes a Verified or Not reviewed indication of scope.",
+          "passed": true,
+          "evidence": "Has '## Verified' (problem in base, approach fit, callers, migrations, isolation, top-3 risks, Occam) and '## Not reviewed' (security, deps, architecture, CI, sibling branch)."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "python3 .../snap/examine-old/scripts/prose-lint.py outputs/report.md -> '0 findings in 1 file', exit 0 (path substituted per grader instructions)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 166.3,
+        "tokens": 81071,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty.",
+          "passed": true,
+          "evidence": "outputs/report.md: 98 lines, non-empty."
+        },
+        {
+          "text": "Zero Critical issues and zero High issues are reported.",
+          "passed": true,
+          "evidence": "'## Issues\\n\\nNo qualifying issues.' Headline: 'No issue blocks the merge.'"
+        },
+        {
+          "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+          "passed": true,
+          "evidence": "No issues listed. Q1 timestamp, S1 docstring-only email rule (app/audit.py:5), S2 key-only test, S3 `record` returns the stored dict (app/audit.py:8 `return entry`, same object appended at line 7), Gap on 'failure paths covered' wording: all genuinely present in the diff and framed as optional."
+        },
+        {
+          "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+          "passed": true,
+          "evidence": "'- [`app/users.py:21`] The audit call passes `user_id=user[\"id\"]` and nothing else. This follows the CLAUDE.md rule \"reference users by id\".' Plus 5 more file:line credits."
+        },
+        {
+          "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+          "passed": true,
+          "evidence": "Issues bucket left as 'No qualifying issues.' 1 question + 3 suggestions + 1 gap, no duplicates. S3 is self-described 'a foot-gun for later, not a defect now', but it is a genuine, probed observation rather than filler. Longest report (98 lines) with an extra Approach fit section and a facts table, but findings themselves are not padded."
+        },
+        {
+          "text": "Report includes a Verified or Not reviewed indication of scope.",
+          "passed": true,
+          "evidence": "Has '## Verified' and '## Not reviewed' (no architecture/security/privacy docs, no CI, deps, retention)."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "python3 .../snap/examine-old/scripts/prose-lint.py outputs/report.md -> '0 findings in 1 file', exit 0 (path substituted per grader instructions)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 345.7,
+        "tokens": 107064,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty.",
+          "passed": true,
+          "evidence": "outputs/report.md is 14078 bytes; starts '# Examine: Add discount codes with API validation (feature/discounts vs main)'. Written verbatim by the orchestrator from the agent's final message after the harness blocked the Write (graded as agent content per instructions)."
+        },
+        {
+          "text": "The report states it ran in quick mode (or names the mode and why).",
+          "passed": true,
+          "evidence": "Headline: 'Mode: **quick**, as you asked. This diff touches payments and a migration. Without your choice, the skill would pick full mode.'"
+        },
+        {
+          "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+          "passed": true,
+          "evidence": "Table: 'Base | `main` at `5f1e0b7` (merge-base)', 'Head | `feature/discounts` at `520549a`', 'Files | 8 changed, 129 insertions, 14 deletions' -- matches `git diff --stat main...feature/discounts` (8 files, 129+/14-) and `git merge-base` = 5f1e0b7."
+        },
+        {
+          "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+          "passed": true,
+          "evidence": "4 of 5 caught. Swallowed error: H2 'returns `redeemed: True` for an unknown code ... the `except Exception: pass` hides the `KeyError`'. Email: H4 'replaces `normalize_email(email)` with `email.strip()`'. Percent validation: H1 '`validate_percent` exists, but no code calls it'. support.lookup: M1 '`support.lookup` still catches `NotFound` ... reads `u[\"id\"]` on `None`'. Race: not caught (grep for race/concurren/check-then/atomic: no relevant hit)."
+        },
+        {
+          "text": "No more than 8 issues are reported.",
+          "passed": true,
+          "evidence": "8 Issues: C1, H1, H2, H3, H4, M1, M2, M3 (no Low section). Questions Q1-Q3 and Suggestion S1 not counted."
+        },
+        {
+          "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+          "passed": true,
+          "evidence": "Not reviewed: 'Axes skipped in quick mode: 5e architecture, 5h privacy, and 5m dependencies.' and 'Occam pass and host reviewers: skipped in quick mode.'"
+        },
+        {
+          "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "Every Critical/High/Medium carries a Verdict: C1, H1-H4, M1-M3 all 'CONFIRMED' (e.g. M2 'Verdict: CONFIRMED. `tests/` holds four tests in total'; M3 'Verdict: CONFIRMED. The message and the diff were compared hunk by hunk.')."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 253.7,
+        "tokens": 94985,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty.",
+          "passed": true,
+          "evidence": "outputs/report.md is 12109 bytes; starts '# Examine: Add discount codes with API validation (branch feature/discounts vs main)'."
+        },
+        {
+          "text": "The report states it ran in quick mode (or names the mode and why).",
+          "passed": true,
+          "evidence": "Headline: 'Mode: **quick**, as you asked.'"
+        },
+        {
+          "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+          "passed": true,
+          "evidence": "'The diff is `git diff $(git merge-base HEAD main)`, commit `9437d17`. The working tree was clean'. In outputs/repo, `git log --oneline main..feature/discounts` = '9437d17 feat(discounts): ...' (single commit, so merge-base range = the branch)."
+        },
+        {
+          "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+          "passed": true,
+          "evidence": "4 of 5 caught. Swallowed error: H1 'The `except Exception: pass` then swallows the `KeyError`' / '`api_redeem({\"code\": \"NOPE\"})` returns `{'redeemed': True}`'. Email: H3 '`create_user` dropped `normalize_email`'. Percent validation: C1 '`validate_percent` exists ... but no code calls it'. support.lookup: H2 '`support.lookup` still catches `NotFound` and then reads `u[\"id\"]`'. Race: not caught (no race/concurrency mention)."
+        },
+        {
+          "text": "No more than 8 issues are reported.",
+          "passed": true,
+          "evidence": "8 Issues: C1, C2, H1, H2, H3, H4, M1, L1. Q1-Q3, S1-S2, Gaps not counted."
+        },
+        {
+          "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+          "passed": true,
+          "evidence": "Not reviewed: 'Quick mode skipped these axes: ... 5h privacy, including the new `source` field. ... 5m dependencies. The diff adds none. ... The Occam pass.'"
+        },
+        {
+          "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "All non-Low Issues (C1, C2, H1-H4, M1) carry 'Verdict: CONFIRMED'; H4 'Verdict: CONFIRMED. The verifier read the diff and found only the one new test.' L1 has none, which is allowed."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9375,
+        "passed": 15,
+        "failed": 1,
+        "total": 16,
+        "time_seconds": 334.1,
+        "tokens": 100963,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+          "passed": true,
+          "evidence": "wc -c outputs/report.md = 15381 bytes."
+        },
+        {
+          "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+          "passed": true,
+          "evidence": "H2: \"api_redeem takes the success branch when the code does not exist, and except Exception: pass hides the KeyError.\" Evidence: \"api_redeem({\\\"code\\\": \\\"NOPE\\\"}) returned {\\\"redeemed\\\": True}.\""
+        },
+        {
+          "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+          "passed": true,
+          "evidence": "C3 (app/users.py:12): \"The diff removes the normalize_email call and keeps only .strip().\" Cites: docs/invariants.md \u00a71."
+        },
+        {
+          "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+          "passed": true,
+          "evidence": "C1: \"The description says the percent 'is validated at the API boundary per docs/invariants.md \u00a74'. api_create_discount stores any integer. validate_percent exists in app/discount_engine/__init__.py:26 but nothing calls it.\""
+        },
+        {
+          "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+          "passed": false,
+          "evidence": "No mention of concurrency, race, or atomicity (grep -i 'concurr|race|atomic' hits only the subagent-limit sentence). H2 fix says 'Check and increment uses inside billing.charge in the same step' but never names the check-then-act race or concurrent over-redemption; H2 covers the neighbouring max_uses-not-enforced defect."
+        },
+        {
+          "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+          "passed": true,
+          "evidence": "L1 [app/billing.py:23]: \"Tax uses float arithmetic, which docs/invariants.md \u00a72 forbids. This line exists on main.\""
+        },
+        {
+          "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+          "passed": true,
+          "evidence": "Cap change not flagged as a defect. Q1 asks for the FIN-88 link and about codes created at 31-50%; Done well: 'The cap change carries its policy reference in a comment'. M2 lists the cap change only as a candidate to split out, not as wrong."
+        },
+        {
+          "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+          "passed": true,
+          "evidence": "C2 (Critical): \"up() pops plan from every user and writes a derived tier. The file has no down(). No earlier release reads tier, so the change skips the dual-read step.\" Cites docs/invariants.md \u00a73."
+        },
+        {
+          "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+          "passed": true,
+          "evidence": "M1: \"The package adds a registry, an abstract base class, and a DISCOUNT_ENGINE_BACKEND environment variable for one strategy. billing.py:2 imports PercentDiscount directly. Nothing calls get_strategy.\""
+        },
+        {
+          "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+          "passed": true,
+          "evidence": "H3: \"It strips a leading - to get around the non-negative check in parse_money.\" (Remedy: remove the endpoint, add credits separately; see notes.)"
+        },
+        {
+          "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "IDs C1-C3, H1-H5, M1-M2, L1-L3; every C/H/M block carries a Verdict (CONFIRMED; C2 'CONFIRMED ... PLAUSIBLE for data loss beyond free')."
+        },
+        {
+          "text": "Report contains both a Verified section and a Not reviewed section.",
+          "passed": true,
+          "evidence": "'## Verified' and '## Not reviewed' sections both present."
+        },
+        {
+          "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+          "passed": true,
+          "evidence": "git status --short --ignored: empty; branch: feature/discounts; git worktree list shows only the main checkout at 28cdef8; git stash list empty."
+        },
+        {
+          "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+          "passed": true,
+          "evidence": "C1 cites docs/invariants.md \u00a74; C2 \u00a73; C3 \u00a71 and CLAUDE.md."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py (examine-old snapshot) on outputs/report.md: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+          "passed": true,
+          "evidence": "Headline: 'Hold. The PR claims percent validation that no code performs, ships an irreversible migration, and breaks the email invariant.' Titles state the defect. Three What fields open with context instead of the defect (C1 'The description says...', H3 'This endpoint is not in the description.', H5 'The description says users...'), but titles carry the defect. No qualifier chains."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 16,
+        "failed": 0,
+        "total": 16,
+        "time_seconds": 461.3,
+        "tokens": 121854,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+          "passed": true,
+          "evidence": "wc -c outputs/report.md = 19051 bytes (written by the orchestrator verbatim from the agent's final message; graded as the agent's)."
+        },
+        {
+          "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+          "passed": true,
+          "evidence": "M1: \"The condition row is None or row[\\\"uses\\\"] < row[\\\"max_uses\\\"] sends an unknown code into the increment branch. The increment raises KeyError, and the bare except Exception: pass swallows it. The function then returns {\\\"redeemed\\\": True}.\""
+        },
+        {
+          "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+          "passed": true,
+          "evidence": "C3 (app/users.py:12): \"The PR removes the normalize_email call and keeps only .strip().\" Cites: docs/invariants.md \u00a71."
+        },
+        {
+          "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+          "passed": true,
+          "evidence": "C1: \"validate_percent in app/discount_engine/__init__.py:26 has no caller.\" Why: \"The description claims the opposite\"; Cites docs/invariants.md \u00a74."
+        },
+        {
+          "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+          "passed": true,
+          "evidence": "H1 Fix: \"In a real database, use a conditional update so two charges cannot both take the last use.\" Verified: \"Its race candidate on api_redeem merges into H1, because the H1 fix makes the check and the increment one step.\" Mechanism named, but only in a Fix clause and a Verified bullet, never as its own finding."
+        },
+        {
+          "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+          "passed": true,
+          "evidence": "L1 [app/billing.py:23]: \"The tax line uses float math, int(amount * (1 + TAX_RATE_BP / 10_000)), against docs/invariants.md \u00a72. The line comes from main, but this PR touches the function.\""
+        },
+        {
+          "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+          "passed": true,
+          "evidence": "Cap change not flagged. Q1: \"Where is the FIN-88 sign-off? Does any live code use a percent above 30 and need grandfathering after the cap drops from 50?\""
+        },
+        {
+          "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+          "passed": true,
+          "evidence": "C2 (Critical): \"up() pops plan from every user and writes tier. The migration has no down()... No release reads tier first.\" Cites docs/invariants.md \u00a73."
+        },
+        {
+          "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+          "passed": true,
+          "evidence": "M4: \"STRATEGY_REGISTRY, register, the base class DiscountStrategy, get_strategy, the DISCOUNT_ENGINE_BACKEND environment variable. None of them has a caller. billing.py imports PercentDiscount directly.\""
+        },
+        {
+          "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+          "passed": true,
+          "evidence": "H3: \"The new endpoint removes a leading - before it calls parse_money. This gets around the helper's rule that money enters as a non-negative amount.\" (Remedy: explicit adjustment type; see notes.)"
+        },
+        {
+          "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "IDs C1-C3, H1-H4, M1-M4, L1-L6; every C/H/M block carries 'Verdict: CONFIRMED'."
+        },
+        {
+          "text": "Report contains both a Verified section and a Not reviewed section.",
+          "passed": true,
+          "evidence": "'## Verified' and '## Not reviewed' sections both present."
+        },
+        {
+          "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+          "passed": true,
+          "evidence": "git status --short --ignored: empty; branch: feature/discounts; git worktree list shows only the main checkout at 43be497; git stash list empty."
+        },
+        {
+          "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+          "passed": true,
+          "evidence": "C1 cites docs/invariants.md \u00a74 and \u00a72; C2 \u00a73; C3 \u00a71; H4 CLAUDE.md."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py (examine-old snapshot) on outputs/report.md: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+          "passed": true,
+          "evidence": "Headline: 'Hold. The PR says it validates the discount percent, but nothing calls the validator.' Titles state the defect and impact. H1's 'billing.charge applies a discount whenever the code exists.' is neutral alone, but the title carries it. No qualifier chains."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.9375,
+        "passed": 15,
+        "failed": 1,
+        "total": 16,
+        "time_seconds": 338.8,
+        "tokens": 110861,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+          "passed": true,
+          "evidence": "wc -c outputs/report.md = 17690 bytes."
+        },
+        {
+          "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+          "passed": true,
+          "evidence": "M1: \"The condition row is None or ... sends an unknown code into the increment. The increment raises KeyError, and except Exception: pass swallows it. The endpoint returns {\\\"redeemed\\\": True}.\""
+        },
+        {
+          "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+          "passed": true,
+          "evidence": "C2 (app/users.py:12): \"The diff replaces normalize_email(email) with email.strip().\" Cites: docs/invariants.md \u00a71."
+        },
+        {
+          "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+          "passed": true,
+          "evidence": "Claims table: 'Percent is validated at the API boundary (\u00a74) | False. validate_percent has no caller.' C1: \"validate_percent exists, but no code calls it.\""
+        },
+        {
+          "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+          "passed": false,
+          "evidence": "No mention of concurrency, race, or atomicity (grep -i 'concurr|race|atomic' finds nothing relevant). H2 says charge 'never checks uses against max_uses and never increments uses'; fix says 'in the same step'. That is the neighbouring max_uses-not-enforced defect the task names as not counting for S4."
+        },
+        {
+          "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+          "passed": true,
+          "evidence": "L1 [app/billing.py:23]: \"Tax uses float arithmetic, which breaks \u00a72. The line predates the PR.\""
+        },
+        {
+          "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+          "passed": true,
+          "evidence": "Cap change not flagged. Claims table: 'Cap lowered from 50% to 30% (FIN-88) | The constant changed, but nothing enforces it.' Verified: 'The cap change from 50 to 30 strands no existing codes.' Q1 asks where FIN-88 is recorded."
+        },
+        {
+          "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+          "passed": true,
+          "evidence": "C3 (Critical): \"up() pops plan from every user... The file has no down(). No earlier release added dual-read of tier.\" Cites docs/invariants.md \u00a73."
+        },
+        {
+          "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+          "passed": true,
+          "evidence": "M5: \"STRATEGY_REGISTRY, register, get_strategy, and the DISCOUNT_ENGINE_BACKEND variable. billing.py:2 imports PercentDiscount directly, so the registry and the variable have no effect.\""
+        },
+        {
+          "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+          "passed": true,
+          "evidence": "H3: \"The endpoint strips a leading -, parses the rest, and negates it.\" Why: the parse_money docstring rules; \"This wrapper bypasses both rules.\" (Remedy: explicit credit record; see notes.)"
+        },
+        {
+          "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "IDs C1-C3, H1-H4, M1-M5, L1-L4; every C/H/M block carries 'Verdict: CONFIRMED'."
+        },
+        {
+          "text": "Report contains both a Verified section and a Not reviewed section.",
+          "passed": true,
+          "evidence": "'## Verified' and '## Not reviewed' sections both present."
+        },
+        {
+          "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+          "passed": true,
+          "evidence": "git status --short --ignored: empty; branch: feature/discounts; git worktree list shows only the main checkout at e284420; git stash list empty."
+        },
+        {
+          "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+          "passed": true,
+          "evidence": "C1 cites docs/invariants.md \u00a74 and \u00a72; C2 \u00a71; C3 \u00a73; H3 CLAUDE.md rule 2."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py (examine-old snapshot) on outputs/report.md: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+          "passed": true,
+          "evidence": "Headline: 'Hold. The diff never validates the discount percent, it drops email canonicalization, and it ships a destructive migration with no down().' A PR-claims-vs-code table follows. Titles state the defect; H2 'charge reads the discount row and applies it.' and M3 'After migration 002...' are context-first, but titles carry the defect. No qualifier chains."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8571,
+        "passed": 6,
+        "failed": 1,
+        "total": 7,
+        "time_seconds": 208.0,
+        "tokens": 78203,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty.",
+          "passed": true,
+          "evidence": "outputs/report.md: 93 lines, non-empty."
+        },
+        {
+          "text": "Zero Critical issues and zero High issues are reported.",
+          "passed": true,
+          "evidence": "'### Low (defer)' is the only severity bucket. L1 and L2 are Low. No Critical/High."
+        },
+        {
+          "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+          "passed": true,
+          "evidence": "L1 (tests/test_audit.py:18-20 checks key 'email' only; mutation `who=email` passed) and L2 (description claims 'failure paths covered in tests/test_audit.py' but both tests use valid input) are genuine and Low. 'Not reviewed' names pre-existing main issues (float math in billing.charge, no email normalization in charge/lookup); both are real on main (app/billing.py:19 `int(amount * (1 + TAX_RATE_BP / 10_000))`, support.py:7 passes raw email) and explicitly out of scope, not listed as issues. Line ref 'app/billing.py:18' is off by one (actual line 19)."
+        },
+        {
+          "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+          "passed": true,
+          "evidence": "'- [`app/users.py:21`] The entry carries `user_id` only. This follows the rule in `CLAUDE.md` that bans raw emails outside the users table.' Plus 3 more file:line credits."
+        },
+        {
+          "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+          "passed": false,
+          "evidence": "FAILED. The same missing-timestamp finding appears twice: 'Q1 [`app/audit.py:6`] ... The entry holds no time' and 'S1: Put a timestamp in each audit entry ... Locator: `app/audit.py:6`'. The Gaps bucket holds an item the report itself calls harmless: 'Entries collect across test modules. `TestAudit` clears the list itself, so no test fails today.' Every finding bucket (Issues, Questions, Suggestions, Gaps) is filled, and Not reviewed adds two out-of-scope pre-existing defects."
+        },
+        {
+          "text": "Report includes a Verified or Not reviewed indication of scope.",
+          "passed": true,
+          "evidence": "Has '## Verified' (incl. two host-review candidates marked REFUTED) and '## Not reviewed'."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "python3 .../snap/examine-old/scripts/prose-lint.py outputs/report.md -> '0 findings in 1 file', exit 0 (path substituted per grader instructions)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 175.5,
+        "tokens": 74324,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty.",
+          "passed": true,
+          "evidence": "outputs/report.md: 85 lines, non-empty."
+        },
+        {
+          "text": "Zero Critical issues and zero High issues are reported.",
+          "passed": true,
+          "evidence": "'### Low (defer)' is the only severity bucket, holding L1 and L2. Headline: 'The two Low issues below are optional polish. Neither blocks the merge.'"
+        },
+        {
+          "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+          "passed": true,
+          "evidence": "L1 (app/audit.py:6 entry `{'event': 'user.created', 'user_id': 1}` has no timestamp vs. 'who was created and when') and L2 (tests/test_audit.py:20 checks key name only; probe with key `who` passed) are genuine and Low. Refuted candidate (returned dict mutability) correctly downgraded. Claim 'migrations/001_init.py lists only users and charges' matches its docstring."
+        },
+        {
+          "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+          "passed": true,
+          "evidence": "'- [`app/users.py:21`] The event carries `user_id=user[\"id\"]` and nothing else. This follows the `CLAUDE.md` rule to reference users by id.' Plus 3 more file:line credits."
+        },
+        {
+          "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+          "passed": true,
+          "evidence": "2 Low + 2 questions + 1 suggestion. Q2 relates to L1 but asks a distinct product question ('Does Support need the trail to outlive later edits or deletes ... If yes, L1 matters more'), so not a duplicate. No empty bucket is filled, no Gaps section."
+        },
+        {
+          "text": "Report includes a Verified or Not reviewed indication of scope.",
+          "passed": true,
+          "evidence": "Has '## Verified' (risk table, callers, imports, migrations, merge-tree vs sibling branch) and '## Not reviewed' (security, deps, architecture, assumptions)."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "python3 .../snap/examine-old/scripts/prose-lint.py outputs/report.md -> '0 findings in 1 file', exit 0 (path substituted per grader instructions)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 278.0,
+        "tokens": 97937,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty.",
+          "passed": true,
+          "evidence": "outputs/report.md is 12258 bytes; starts '# Examine: Add discount codes with API validation (branch feature/discounts)'."
+        },
+        {
+          "text": "The report states it ran in quick mode (or names the mode and why).",
+          "passed": true,
+          "evidence": "'**Mode:** quick, because you asked for it. The diff touches a migration and the payment path, so the skill would choose full by default.'"
+        },
+        {
+          "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+          "passed": true,
+          "evidence": "'**Target:** branch `feature/discounts` at `520549a`, diffed against its merge-base with `main` (`5f1e0b7`).' Confirmed: `git merge-base main feature/discounts` = 5f1e0b76...; `git log main..feature/discounts` = one commit 520549a."
+        },
+        {
+          "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+          "passed": true,
+          "evidence": "4 of 5 caught. Swallowed error: H1 '`api_redeem` treats a missing code as redeemable. It then hits a `KeyError` and the bare `except` hides it.' Email: C2 'removes `normalize_email(email)` and stores `email.strip()`'. Percent validation: C1 '`validate_percent` exists ... but no code calls it'. support.lookup: H2 'The diff updated `billing.py` but not `support.py`'. Race: not caught (no race/concurrency mention)."
+        },
+        {
+          "text": "No more than 8 issues are reported.",
+          "passed": true,
+          "evidence": "8 Issues: C1, C2, C3, H1, H2, H3, H4, L1. Q1-Q4, S1, Gaps not counted."
+        },
+        {
+          "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+          "passed": true,
+          "evidence": "Not reviewed: 'Quick mode skipped these axes: 5e architecture, 5f conventions, 5g security, 5h privacy, 5j load-bearing assumptions, 5k reversibility, and 5l dependencies.' and 'Quick mode skipped the Occam pass.'"
+        },
+        {
+          "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "All non-Low Issues carry a verdict: C1, C2, H1, H2, H3 'CONFIRMED' (independent verifier); C3 and H4 'CONFIRMED in a single-context check. The subagent limit stopped its independent verifier.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 371.5,
+        "tokens": 90913,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty.",
+          "passed": true,
+          "evidence": "outputs/report.md is 11139 bytes; starts '# Examine: discount codes with API validation (branch `feature/discounts`)'."
+        },
+        {
+          "text": "The report states it ran in quick mode (or names the mode and why).",
+          "passed": true,
+          "evidence": "Target and mode: '**Mode:** quick, because you asked for it.' plus 'The skill defaults to full mode for migrations and payments. This branch touches both.'"
+        },
+        {
+          "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+          "passed": true,
+          "evidence": "'**Target:** branch `feature/discounts` at `520549a`, diffed from the merge-base with `main` (`5f1e0b7`).' Matches `git merge-base main feature/discounts` = 5f1e0b7."
+        },
+        {
+          "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+          "passed": true,
+          "evidence": "4 of 5 caught. Swallowed error: M1 'The increment raises `KeyError`. The bare `except` swallows it, and the function returns `{\"redeemed\": True}`.' Email: C3 'removes `normalize_email` and keeps only `strip()`'. Percent validation: C1 '`validate_percent` exists ... but nothing calls it'. support.lookup: H1 '`support.lookup` still catches `NotFound`, which never comes. It then subscripts `None`.' Race: not caught (no race/concurrency mention)."
+        },
+        {
+          "text": "No more than 8 issues are reported.",
+          "passed": true,
+          "evidence": "8 Issues: C1, C2, C3, H1, H2, H3, M1, M2 (no Low section). Q1-Q3 not counted."
+        },
+        {
+          "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+          "passed": true,
+          "evidence": "Not reviewed: 'Axes 5e to 5h: architecture, conventions, security, and privacy.', 'Axes 5j to 5l: load-bearing assumptions, reversibility, and dependencies.', 'The Occam pass.'"
+        },
+        {
+          "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+          "passed": true,
+          "evidence": "All eight Issues carry 'Verdict: CONFIRMED. I ran the probe in a detached worktree.' (H3: 'Verdict: CONFIRMED. All four existing tests pass on the branch.')"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9617,
+        "stddev": 0.0547,
+        "min": 0.8571,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 309.6,
+        "stddev": 97.9807,
+        "min": 175.5,
+        "max": 461.3
+      },
+      "tokens": {
+        "mean": 96436.4286,
+        "stddev": 16974.4339,
+        "min": 74324,
+        "max": 121854
+      }
+    },
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.9911,
+        "stddev": 0.0236,
+        "min": 0.9375,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 296.3143,
+        "stddev": 108.0153,
+        "min": 163.6,
+        "max": 457.5
+      },
+      "tokens": {
+        "mean": 99801.4286,
+        "stddev": 14191.9144,
+        "min": 81071,
+        "max": 115767
+      }
+    },
+    "delta": {
+      "pass_rate": "-0.03",
+      "time_seconds": "+13.3",
+      "tokens": "-3365"
+    }
+  },
+  "notes": []
+}

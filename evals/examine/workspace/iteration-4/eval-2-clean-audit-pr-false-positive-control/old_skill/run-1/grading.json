@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md: 62 lines, starts '# Examine: Record an audit event on user creation (feature/audit-log vs main)'."
+    },
+    {
+      "text": "Zero Critical issues and zero High issues are reported.",
+      "passed": true,
+      "evidence": "'## Issues\\nNo qualifying issues.' No Critical or High anywhere."
+    },
+    {
+      "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+      "passed": true,
+      "evidence": "No issues listed. Q1 (description claims 'failure paths covered' but tests are happy-path plus no-email) and S1 (timestamp; support asked 'who was created and when', entry is {event,user_id}) and S2 (test checks key 'email' only, tests/test_audit.py:20 `assertNotIn(\"email\", STORE.audit[0])`) all confirmed against `git diff main...feature/audit-log`."
+    },
+    {
+      "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+      "passed": true,
+      "evidence": "'- [app/users.py:21] The call passes only `user_id`. This follows the CLAUDE.md rule \"Never log or store raw emails outside the users table\".' Plus 4 more file:line credits."
+    },
+    {
+      "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+      "passed": true,
+      "evidence": "Issues bucket holds only 'No qualifying issues.' Findings total 1 question + 2 suggestions, none duplicated, each with a stated reason. 62 lines, the shortest of the four."
+    },
+    {
+      "text": "Report includes a Verified or Not reviewed indication of scope.",
+      "passed": true,
+      "evidence": "Has '## Verified' (problem in base, approach fit, callers, migrations, isolation, top-3 risks, Occam) and '## Not reviewed' (security, deps, architecture, CI, sibling branch)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "python3 .../snap/examine-old/scripts/prose-lint.py outputs/report.md -> '0 findings in 1 file', exit 0 (path substituted per grader instructions)."
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  },
+  "notes": "Assertion 5 is subjective; graded as: fail when the same finding is reported in two buckets or a bucket holds an item the report itself says has no effect. All four reports run 62-98 lines for a 31-line diff, mostly because the skill mandates Verified/Not reviewed sections, so raw length alone was not failed. Assertion 3 says 'genuinely present in the diff', yet the strongest genuine findings (no timestamp despite 'who was created and when', commit message overclaiming 'failure paths covered', key-only no-email test) are gaps in the diff, not lines of it; graded as genuine. Assertion 7 path was substituted with the snapshot prose-lint.py per grader instructions. Eval critique: the 'clean' fixture is not fully clean (missing timestamp vs. stated requirement, overclaimed failure-path tests), so Low/Question findings are correct behavior; the assertions cannot tell a well-calibrated Low from filler. Run-specific: tightest report; all claims checked (app/api.py:5 caller, migrations/001_init.py no-op) are accurate."
+}

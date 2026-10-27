@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md is 12258 bytes; starts '# Examine: Add discount codes with API validation (branch feature/discounts)'."
+    },
+    {
+      "text": "The report states it ran in quick mode (or names the mode and why).",
+      "passed": true,
+      "evidence": "'**Mode:** quick, because you asked for it. The diff touches a migration and the payment path, so the skill would choose full by default.'"
+    },
+    {
+      "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+      "passed": true,
+      "evidence": "'**Target:** branch `feature/discounts` at `520549a`, diffed against its merge-base with `main` (`5f1e0b7`).' Confirmed: `git merge-base main feature/discounts` = 5f1e0b76...; `git log main..feature/discounts` = one commit 520549a."
+    },
+    {
+      "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+      "passed": true,
+      "evidence": "4 of 5 caught. Swallowed error: H1 '`api_redeem` treats a missing code as redeemable. It then hits a `KeyError` and the bare `except` hides it.' Email: C2 'removes `normalize_email(email)` and stores `email.strip()`'. Percent validation: C1 '`validate_percent` exists ... but no code calls it'. support.lookup: H2 'The diff updated `billing.py` but not `support.py`'. Race: not caught (no race/concurrency mention)."
+    },
+    {
+      "text": "No more than 8 issues are reported.",
+      "passed": true,
+      "evidence": "8 Issues: C1, C2, C3, H1, H2, H3, H4, L1. Q1-Q4, S1, Gaps not counted."
+    },
+    {
+      "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+      "passed": true,
+      "evidence": "Not reviewed: 'Quick mode skipped these axes: 5e architecture, 5f conventions, 5g security, 5h privacy, 5j load-bearing assumptions, 5k reversibility, and 5l dependencies.' and 'Quick mode skipped the Occam pass.'"
+    },
+    {
+      "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "All non-Low Issues carry a verdict: C1, C2, H1, H2, H3 'CONFIRMED' (independent verifier); C3 and H4 'CONFIRMED in a single-context check. The subagent limit stopped its independent verifier.'"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  },
+  "notes": "Assertion 4 is lenient: 'at least three of five' let every run pass without catching S4 (the check-then-act redemption race in api_redeem); no run in this iteration mentions a race or concurrency. Assertion 5 does not discriminate here: all four runs report exactly 8 Issues, the cap itself. No assertion checks the S6 trap (FIN-88 cap 50->30) or verification independence; the expected_output's 'still runs verification' is only proxied by verdict labels. Run-specific: closest to the per-candidate verification standard: 7 verifier subagents launched, 5 completed, 2 hit the host limit and the report labels those verdicts as single-context. Explicit severity calibration note ('Seven of eight findings are Critical or High. I checked the calibration.'). Wrote report via shell heredoc after the harness Write guard refused."
+}
