@@ -1,0 +1,77 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/proposal.md exists, lists the feature spec files and their prefixes, and the transcript shows it was written before any docs/ file.",
+      "passed": true,
+      "evidence": "outputs/proposal.md exists with a table listing docs/product-specs/tickets.md (TKT), event-log.md (LOG), cli.md (CLI) plus invariants.md (INV). Transcript step 6 'Wrote OUTPUT_DIR/proposal.md' precedes step 7 'Wrote repo/docs/product-specs/invariants.md ...'. Caveat: the transcript is the executor's own summary (step 13 'Wrote this file'), not a raw tool log."
+    },
+    {
+      "text": "AGENTS.md, docs/README.md, docs/architecture.md, docs/guidelines.md, docs/product-specs/README.md, docs/product-specs/invariants.md exist in OUTPUT_DIR/repo, plus at least two feature spec files under docs/product-specs/.",
+      "passed": true,
+      "evidence": "check_run.py: required_files_present=true; feature_spec_files=[cli.md, event-log.md, tickets.md]. All nine files are non-trivial (41-112 lines each, 592 total)."
+    },
+    {
+      "text": "AGENTS.md is at most 170 lines and contains a documentation index that links every file under docs/.",
+      "passed": true,
+      "evidence": "check_run.py: agents_lines=112, agents_links_all_docs=true. The 'Documents at a glance' table links all 8 files under docs/ with relative markdown links."
+    },
+    {
+      "text": "No generated file still contains a template placeholder: no angle-bracket placeholders such as <PROJECT NAME> or <XXX>, no literal '...' table rows, no HTML comment blocks of template tips.",
+      "passed": true,
+      "evidence": "check_run.py: placeholders_left={}, html_comments_left=[]. The only angle-bracket tokens are intentional output-format markers like `#<id> open <title>` in cli.md, which describe the CLI output, not template slots."
+    },
+    {
+      "text": "Every feature spec file has a `Prefix:` line and at least five items headed `### PREFIX-NNN: Title` with zero-padded three-digit numbers, unique within the file, and no `**Testable:**` lines anywhere.",
+      "passed": true,
+      "evidence": "check_run.py: has_prefix_line=true for all four spec files; items cli=10, event-log=8, tickets=14, invariants=8; duplicates=0 each; testable_lines=0. Headings follow `### TKT-001: Ticket states` form. grep for 'Testable' across AGENTS.md and docs/ hits only prose in docs/README.md explaining that no such appendix is used."
+    },
+    {
+      "text": "Spec bodies are behavioral: no spec names a function, class, method, module or file (such as TicketService, due_at, store.py); it describes observable behavior.",
+      "passed": false,
+      "evidence": "docs/product-specs/tickets.md:27 (TKT-005): '`due_at` equals `created_at` plus the SLA for the priority: ...'. `due_at` is a function in sla.py and a Ticket field, and is one of the assertion's own examples of a forbidden name; `created_at` is also a dataclass field. check_run.py also flags impl_words=1 for tickets.md. The remaining 39 items are behavioral; the executor's own grep in transcript step 10 claimed 'none' and missed this."
+    },
+    {
+      "text": "The specs match the code: SLA hours P1 4, P2 24, P3 72; ticket states open, assigned, closed; a closed ticket cannot be assigned; a resolution note needs at least 10 characters; an unknown priority is rejected.",
+      "passed": true,
+      "evidence": "TKT-005 'P1 4 hours, P2 24 hours, P3 72 hours' matches sla.py SLA_HOURS; TKT-001 'open, assigned, closed' matches tickets.py STATES; TKT-009 'Assigning a closed ticket is rejected with the message ticket <id> is closed' matches TicketService.assign; TKT-010 'at least 10 characters after leading and trailing whitespace are removed' matches len(resolution.strip()) < 10; TKT-003 'any other priority is rejected with a message that names the offending value and the accepted list' matches due_at's ValueError. Spot-checked CLI-001/002/006/009 and LOG-001..007 against cli.py and store.py as well: all accurate, including sort_keys, 1-based line number and state padded to 8."
+    },
+    {
+      "text": "invariants.md has at least two `### INV-NNN:` items and one of them captures the append-only event log as the single source of truth (events never edited or deleted, state rebuilt by replay).",
+      "passed": true,
+      "evidence": "8 items INV-001..008. INV-001 'The event log is the single source of truth: The current state of every ticket is derived by replaying the event log. No other copy of ticket state is persisted'. INV-002 'Events are append-only: Once written, an event is never edited, reordered, or deleted by any code path.'"
+    },
+    {
+      "text": "Cross-links resolve: every `INV-NNN` or `PREFIX-NNN` reference in the docs points to an existing ID, and docs/product-specs/README.md indexes every spec file with its prefix.",
+      "passed": true,
+      "evidence": "check_run.py: dangling_refs=[], ps_readme_indexes_all_specs=true. product-specs/README.md has a Prefix table (invariants INV, tickets TKT, event-log LOG, cli CLI) and an Index table covering the same four files. Only oddity: `TKT-012A` appears as a format example of a letter-suffixed sub-case, not as a reference."
+    },
+    {
+      "text": "docs/architecture.md states only facts true of the repo: a CLI over a JSON-lines event log on disk, no database, no web layer, no network service. It does not invent components.",
+      "passed": true,
+      "evidence": "architecture.md:27 'There is no database, no server, no daemon: every command is a fresh process that replays the whole log, applies one change, appends one event, and exits.' The diagram shows exactly the four modules that exist. Verified claims: CI on [push, pull_request] with Python 3.12 (ci.yml), lint is compileall (Makefile), no locking on append (store.py uses plain open 'a'), injectable clock (EventStore.__init__). SQLite, snapshots, web interface appear only under 'Future migration paths' and are labeled as such."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on AGENTS.md and on every file under docs/ reports 0 findings in total.",
+      "passed": false,
+      "evidence": "Total 76 findings: AGENTS.md 7, docs/README.md 5, architecture.md 13, guidelines.md 11, product-specs/README.md 12, cli.md 11, event-log.md 6, invariants.md 2, tickets.md 9. Dominated by 'semicolon' (e.g. architecture.md:45-49, five list items each joined with a semicolon) and 'dash: Dash used to join clauses' (product-specs/README.md:30-32, 38), plus several long-lead paragraphs (cli.md:39 lead is 32 words)."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of AGENTS.md and docs/architecture.md tells a newcomer what the project is, how it is built, and where to look; no first sentence is a teaser or a qualifier chain.",
+      "passed": true,
+      "evidence": "AGENTS.md leads: 'Operating manual for coding agents (and humans) working on this repo.' / 'ticketdesk: a command-line help desk for a small support team.' / 'Two principles drive everything: the log is the truth ... and fail loud ...' / 'Dependencies point one way (CLI -> domain -> store).' / 'No install step is needed to run from the repo root.' architecture.md leads: 'Three layers, one direction of dependency: CLI depends on domain, domain depends on store, nothing depends upward.' / 'Translates between the shell and the domain: ...' / 'Owns every ticket rule: ...' / 'The only component that knows there is a file.' / 'The package is flat on purpose: four modules, one per layer plus the SLA table.' Each lead states the claim; none defers it to a later sentence."
+    },
+    {
+      "text": "`git status` in OUTPUT_DIR/repo shows only new files under docs/ and AGENTS.md: no code or test file was modified and nothing was committed.",
+      "passed": true,
+      "evidence": "git status --short: '?? AGENTS.md' and '?? docs/' only. git log has the single fixture commit 2a874bc. check_run.py: only_docs_changed=true, commits_made=false. Transcript step 11 shows the executor removed the __pycache__ dirs its test run created."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8462,
+    "passed": 11,
+    "failed": 2,
+    "total": 13
+  },
+  "notes": "The two failures differ in weight: the lint failure is large (76 findings, mostly semicolons and clause-joining dashes), so it genuinely discriminates old skill from new; the behavioral failure hangs on one item (TKT-005 naming `due_at`/`created_at`) out of 40, and the all-or-nothing wording means one slip zeroes the assertion, so consider a per-item count or threshold. The 'written before any docs/ file' ordering rests on an executor-authored transcript summary, not a tool log, so it is attestation rather than evidence; file mtimes or the harness log would make it checkable. Two outcomes no assertion covers: (a) the executor surfaced two genuine code/spec conflicts (unknown priority escaping as a traceback with exit 1; KeyError on replay of an orphan event), exactly what the skill wants, and earns no credit for it; (b) self-reported verification is unreliable: the proposal's conflicts section cites 'CLI-006' for the TODO that lives on CLI-008, and the executor's verification step claimed 'no function/class/file names in spec bodies' while `due_at` was present. The placeholder assertion passes but by-eye grading could false-fail it on legitimate `<id>` output markers; check_run.py handles the distinction. No user_notes.md or metrics.json were produced.",
+  "execution_metrics": {}
+}
