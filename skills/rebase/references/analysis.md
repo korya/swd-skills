@@ -1,10 +1,10 @@
 # Semantic analysis: delta inventory, cross-impact, gaps, derisking
 
-Loaded from `SKILL.md` step 3. Covers steps 3, 4, 6 and 7 — what changed on the new base,
-how each of `curr`'s commits is affected, and which assumptions to re-verify before
-replaying anything.
+Loaded from `SKILL.md` step 3. Covers steps 3, 4, 6 and 7. They establish what changed on
+the new base, how each of `curr`'s commits is affected, and which assumptions to re-verify
+before replaying anything.
 
-## 3. Inventory the delta: `delta = new_base - old_base`
+## 3. Inventory the delta: `new_base` minus `old_base`
 
 ```bash
 git log --oneline <old_base>..<new_base>
@@ -13,45 +13,52 @@ git diff --stat <old_base>..<new_base>
 
 Pay particular attention to:
 
-- **Product specs** (e.g. `docs/product-spec/`, `docs/invariants.md`) — requirements may have changed
-- **Architecture docs** (`docs/architecture.md`, `AGENTS.md`, component-level `AGENTS.md`) — boundaries may have moved
-- **Code conventions / lint rules / `.editorconfig` / formatter configs** — style may have shifted
-- **Schema / migration files** — data shape may have changed
-- **Public APIs and shared utilities** — signatures `curr` depends on may have changed
-- **Files `curr` touches** — direct conflict surface
+- **Product specs**, such as `docs/product-spec/` and `docs/invariants.md`. Requirements
+  may have changed.
+- **Architecture docs**: `docs/architecture.md`, `AGENTS.md`, component-level `AGENTS.md`.
+  Boundaries may have moved.
+- **Code conventions, lint rules, `.editorconfig`, formatter configs.** Style may have
+  shifted.
+- **Schema and migration files.** The data shape may have changed.
+- **Public APIs and shared utilities.** Signatures `curr` depends on may have changed.
+- **Files `curr` touches.** The direct conflict surface.
 
-For non-trivial deltas, delegate the survey to a read-only search subagent (if your host provides one) rather than reading every commit by hand.
+For a non-trivial delta, delegate the survey to a read-only search subagent if your host
+provides one. Do not read every commit by hand.
 
 ## 4. Cross-impact analysis
 
-For each piece of `curr`'s change, classify against `delta`:
+For each piece of `curr`'s change, classify it against the delta:
 
 | Classification | Meaning | Action |
 |---|---|---|
-| **Untouched** | `delta` did not modify the surface `curr` relies on | Replay as-is |
-| **Adjusted** | `delta` modified a dependency; `curr` still applies but needs edits | Plan the edits |
-| **Extended** | `delta` added new surface `curr` should also cover (new caller, new channel, new spec) | Plan the extension |
-| **Obsolete** | `delta` removed the code `curr` modifies, or already solves the problem | Drop the commit; confirm with user |
-| **Conflicting** | `delta` introduces requirements that contradict `curr`'s solution | Stop; escalate |
+| **Untouched** | The delta did not modify the surface `curr` relies on | Replay as is |
+| **Adjusted** | The delta modified a dependency. `curr` still applies but needs edits | Plan the edits |
+| **Extended** | The delta added new surface `curr` should also cover: a new caller, channel, or spec | Plan the extension |
+| **Obsolete** | The delta removed the code `curr` modifies, or already solves the problem | Drop the commit. Confirm with the user |
+| **Conflicting** | The delta introduces requirements that contradict `curr`'s solution | Stop. Escalate |
 
-Also check: has the **original problem** been (partially) solved on `new_base` already? If yes, much of `curr` may be redundant.
+Also check whether the original problem has been solved, in part or in full, on `new_base`
+already. If so, much of `curr` may be redundant.
 
 ## 6. Identify gaps
 
-Enumerate, with file paths:
+List, with file paths:
 
-- New code in `delta` the rebased solution must be **extended to** (e.g. a new channel/handler that needs the same fix)
-- Old code removed in `delta` whose modifications in `curr` are **no longer needed**
-- Existing code modified in `delta` whose modifications in `curr` need **adjustment**
-- Existing code unmodified in `delta` that `curr` can keep **as-is**
+- New code in the delta that the rebased solution must be **extended to**, such as a new
+  channel or handler that needs the same fix.
+- Old code removed in the delta whose modifications in `curr` are **no longer needed**.
+- Existing code modified in the delta whose modifications in `curr` need **adjustment**.
+- Existing code unmodified in the delta that `curr` can keep **as is**.
 
 ## 7. Derisk: validate assumptions
 
 Before committing to the plan, cross-check the riskiest assumptions:
 
-- Re-read the relevant product spec on `new_base` (not on `old_base` — they may differ)
-- Re-read the relevant architecture sections on `new_base`
-- Re-read invariants files on `new_base`
-- For any "I assume X is still true" — verify by reading current code
+- Re-read the relevant product spec on `new_base`, not on `old_base`. They may differ.
+- Re-read the relevant architecture sections on `new_base`.
+- Re-read the invariants files on `new_base`.
+- For every "I assume X is still true", verify by reading current code.
 
-For non-trivial rebases, run three explicit validation passes: assumption pass, spec+architecture pass, edge-case pass.
+A non-trivial rebase gets three explicit validation passes. An assumption pass, a spec and
+architecture pass, and an edge-case pass.
