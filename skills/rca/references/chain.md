@@ -1,16 +1,13 @@
-# The causal chain: 5-whys, cause classification, load-bearing assumptions
+# The causal chain: 5-whys, cause labels, load-bearing assumptions
 
-Loaded from `SKILL.md` step 3. Covers steps 3, 4 and 5.5. Step 3 is the evidence-per-link
-chain. Step 4 separates symptom from proximate from root cause and falsifies the root. Step
-5.5 is the assumption list the fix may rest on.
+Loaded from `SKILL.md` step 4. Covers steps 4, 5, and 7. The worked examples are the
+point of this file. The rules follow each one.
 
-The worked examples are the point of this file. The rules follow each one.
+## 4. Run the 5-whys chain
 
-## 3. Run the 5-whys chain
-
-Start from the symptom. At each step, the answer becomes the next "why". Record the chain as
-a numbered list, with each item carrying the same three fields. Narrative prose makes it
-easy to chain unverified claims fluently. Explicit per-item fields force evidence per link.
+Start from the symptom. Each answer becomes the next "why". Write the chain as a numbered
+list with the same fields on every item. Narrative prose makes it easy to chain unverified
+claims fluently.
 
 1. **Why did the request return 500?**
    - **Answer:** The `customers` query returned 0 rows for an authenticated user.
@@ -40,19 +37,16 @@ easy to chain unverified claims fluently. Explicit per-item fields force evidenc
 
 Rules:
 
-- **Each why is mechanical, not narrative.** Do not jump three layers. One step at a time.
-- **Stop when the answer is "and a fix here prevents siblings".** Above that level you are
-  fixing symptoms. Below that level you are philosophising ("because software is hard").
-- **Evidence is mandatory, per link.** Each Evidence field cites a `file:line`, a query
-  result, a log excerpt, or a commit SHA. A blank or hand-wavy field ("looks like...",
-  "probably because...", "the author must have...") is itself a finding. Mark the row
-  `UNVERIFIED`, and either go get the evidence or stop the chain there. An unverified link
-  cannot support the links below it.
-- **Branch if needed.** Some failures have several parallel causes. Run a chain per branch.
+- **One mechanical step per why.** Do not jump three layers.
+- **Stop at the level whose fix prevents siblings.** Above it you are fixing symptoms.
+  Below it you are philosophising ("because software is hard"). A root cause with no
+  siblings usually means you stopped at a proximate one.
+- **Evidence on every link:** a `file:line`, a query result, a log excerpt, or a commit
+  SHA. "Looks like" or "probably" is not evidence. Mark that link `UNVERIFIED`, then get
+  the evidence or stop the chain there.
+- **Branch when there are parallel causes.** Run a chain per branch.
 
-## 4. Distinguish symptom, proximate cause, root cause
-
-Restate the chain with labels:
+## 5. Label the causes and falsify the root
 
 - **Symptom.** What the user saw.
 - **Proximate cause.** The line of code or condition that directly produced the symptom.
@@ -60,28 +54,25 @@ Restate the chain with labels:
   proximate cause to exist.
 
 A fix at the proximate cause stops this failure. A fix at the root cause stops the class.
-Both are legitimate. The user should choose with eyes open, so present both options.
+Present both so the user chooses with eyes open.
 
-**Then falsify the root cause.** Per-link evidence proves each step. It does not prove the
-synthesis "therefore X is the root cause". A chain can be verified link by link and still
-synthesise to the wrong root. You may have found a real defect, but not the one that
-produced this symptom. Write down:
+**Then falsify the root cause.** Evidence per link proves each step, not the synthesis. A
+chain can verify link by link and still land on a real defect that did not produce this
+symptom. Write down three things:
 
-- **What would we see** in logs, repro, or data if X were not the actual root cause?
-- **Is there a second mechanism** that could produce the same symptom without going through
-  X? If yes, what distinguishes which one fired here?
-- **What is the cheapest disconfirming experiment** available?
+- **What would we see** in logs, the repro, or data if X were not the root cause?
+- **Is there a second mechanism** that produces the same symptom without X? If yes, what
+  tells them apart here?
+- **What is the cheapest disconfirming experiment?**
 
-If a cheap disconfirming experiment exists, run it. If not, surface the falsifier as a known
-limitation: "we believe X is the root cause. We have not ruled out Y". A hypothesis you
-cannot even imagine disproving is religion, not analysis.
+Run it if it is cheap. If not, surface it as a limitation: "we believe X is the root cause.
+We have not ruled out Y."
 
-## 5.5. List and validate load-bearing assumptions
+## 7. List and validate load-bearing assumptions
 
-Before proposing any fix, write down the assumptions the root-cause hypothesis and the
-eventual fix rest on. Use a numbered list with the same three fields per item. Validating as
-you go produces a list of things that happen to be true. Listing first, then validating,
-surfaces the assumptions you depend on.
+Before proposing any fix, list the assumptions the root cause and the fix rest on, then
+validate them. Validating as you go produces a list of what happened to be true. Listing
+first surfaces what you depend on.
 
 1. **Assumption:** `assignOrg()` is the only mechanism that sets `org_id`.
    - **How validated:** `grep -rn "org_id\s*=" .` finds only `assignOrg()` and the seed
@@ -104,12 +95,6 @@ surfaces the assumptions you depend on.
    - **How validated:** none.
    - **Result:** UNVERIFIED. Surface as an open question.
 
-Rules:
-
-- **List the assumption before you validate it.** Otherwise you list what you happened to
-  check, not what you depend on.
-- **An unvalidated assumption is a load-bearing guess.** If you cannot validate one cheaply,
-  that is the finding. Surface it as an open question rather than quietly proceeding.
-- **The fix may only depend on validated assumptions.** If the proposed fix needs an
-  `UNVERIFIED` assumption to be true, it is a hypothesis dressed as a fix. Say so when
-  proposing it.
+An assumption you cannot validate cheaply is the finding. Surface it as an open question.
+A fix that needs an `UNVERIFIED` assumption is a hypothesis dressed as a fix. Say so when
+you propose it.

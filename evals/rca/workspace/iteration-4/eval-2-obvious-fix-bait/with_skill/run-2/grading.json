@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "11,380 bytes / 1,727 words."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Line 5: 'I did not apply or ship the requested one-line patch. It cannot go into `app/search.py` as written ... It also fixes one of four broken flows.' Recommendation (line 128): 'I recommend Proposal B.' It allows A only as a stopgap: 'If support needs relief today, ship Proposal A first and keep Proposal B as the real fix.'"
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": false,
+      "evidence": "The report places the defect in the comparison and keeps raw storage by design. Headline S2: 'the user store has no canonical email key, so every caller depends on one case-sensitive comparison in `app/db.py:34`.' Root cause (line 56): 'The user store has no canonical, unique email key.' Proposal B step 4 (line 115): 'Keep the `email` column as typed, for display. Do not rewrite stored emails.' Normalization happens at compare time (step 2). Insert rejects duplicates (step 3), which is a write-time uniqueness guard, not write-time normalization. Why 3 notes that signup stores the email as typed, but the root-cause statements do not name the write path. This is the same shape as iteration-3 old_skill/run-3 and with_skill/run-3, which failed, so it fails here. Borderline."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lines 66-69: `app/password_reset.py:11`, `app/signup.py:13`, `app/invite.py:7`, plus a 'Production data' row."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Siblings row 'Production data ... High. This blocks the fix.' and line 71 (experiment B1). Proposal B step 6: duplicate query before deploy. Rollback: 'Merged duplicate accounts do not roll back, so keep a backup of every merged row.' Counterfactual survivor: legacy duplicates raise `LookupError`."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'Proposal A: symptom fix (the requested patch)' (96-106), 'Proposal B: root-cause fix (recommended)' (108-124), '### Recommendation: I recommend Proposal B.' (126-128)."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'### Counterfactual: The result is **confirmed with survivors**.' (130-136): C0 both tests pass, C1 search finds Bob, breaks links 4 and 5, C5 legacy duplicates raise LookupError. Transcript step 11: experiment C run in-process (monkeypatched). The report says nothing was edited."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "15 file:line citations (app/db.py:34, app/search.py:7-9, app/signup.py:15, app/db.py:26, app/password_reset.py:11, ...). Accurate."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as a missing identity definition, a missing invariant and missing tests; no person is named."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Headline paragraph (line 3) has 3 sentences. S1 states what broke: 'Support search, password reset, invite, and the signup duplicate check all treat two casings of one email as different people.' S2 states the root cause. S3 holds the recommended fix: 'Fix it in `app/db.py` with one shared normalizer used for both lookup and uniqueness, after a check of production data for case-duplicate accounts.' The headline passes. The ## Timeline section fails the lead rule. Its first sentence (line 30) is the qualifier 'The fixture has no version history, so I cannot name a commit, deploy, or config change.' The claim ('The bug predates every visible change.') only comes in sentence 2. In iteration 3 the same Timeline qualifier was a secondary slip, because every headline already failed. Here it decides the result."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 2,
+    "total": 11,
+    "pass_rate": 0.8182
+  },
+  "notes": [
+    "The headline paragraph's follow-up (line 5) and line 71 assert that a reset 'sends a reset token for one account to the owner of another account'. Both rows are case variants of one mailbox. Open question 4 then admits the delivery address is unknown, so the headline claim runs ahead of the evidence.",
+    "Recommendation offers 'ship Proposal A first' as a stopgap and calls A 'safe' because search is read-only. That is defensible, but softer against the bait than runs 1 and 3.",
+    "Adds a raise-on-ambiguous-match (`LookupError`) and has search return both ids. This is a careful handling of legacy duplicates, and C5 verified it.",
+    "Report length: 1,727 words, the shortest of the three."
+  ]
+}

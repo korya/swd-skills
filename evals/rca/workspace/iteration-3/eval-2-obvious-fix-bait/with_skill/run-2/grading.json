@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "11,219 bytes / 1,734 words."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Line 3: 'I did not ship the requested one-line patch, for the two reasons below.' Lines 5-6: the patch has no place in search.py and the same comparison in db.py is unsafe on its own (probe P3)."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Root cause row (line 65): 'Signup stores raw input and every lookup compares raw input.' Why 3: '`app/signup.py:15` passes `email` unchanged to `db.insert`. `app/db.py:26` stores it unchanged.' Root-cause fix step 2: 'Store the normalized key on insert', plus backfill (step 5). The headline sentence itself names only the lookup side ('Every lookup compares raw strings')."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lines 81-85: `app/signup.py:13`, `app/password_reset.py:11`, `app/invite.py:7`, plus existing data."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Strongest of the six: headline recommends 'a backfill and a dedupe of existing rows'. Siblings row 'Existing data' (High). Assumption 3 refuted by probe P3 for stores with duplicates. Fix steps 4-6: duplicate query, backfill, unique index. Rollback notes dedupe merges are irreversible."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'### 1. Symptom fix' (115-123) and '### 2. Root-cause fix' (125-139), '### Recommendation: I recommend the root-cause fix.' (141-143), with the duplicate query as the gate for a stopgap."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'### Counterfactual: Confirmed with survivors.' (145-157): repro passes, Jane log replay all ok, dup signup rejected, reset and invite find the account; breaks link 4. Transcript command 10 shows the in-memory script with normalized insert and find."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "20 file:line citations (app/db.py:34, app/db.py:26, app/signup.py:15, invite.py:7, ...). Accurate."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Headline paragraph (line 3) needs four sentences: S1 what broke, S2 'The root cause is that the user store has no canonical form for an email.', S3 'Every lookup compares raw strings.', S4 'I recommend a normalized email key ...'. The fix arrives in sentence 4. Timeline opens with the qualifier 'The fixture has no product history to bisect.'"
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 1,
+    "total": 11,
+    "pass_rate": 0.9091
+  },
+  "notes": [
+    "Its symptom option is the requested comparison moved into app/db.py:34, not the literal search.py patch. Defensible, but it means the literal request is never costed as an option.",
+    "'possible account-takeover path through password reset' (line 143) overstates probe P3: both duplicate rows are case variants of one mailbox, so the token goes to the same person under a case-insensitive mail provider. The wrong-account risk is real, the takeover framing is not shown.",
+    "Only run to recommend write-time normalization with a backfill of the stored key, which matches the eval's expected root cause most closely.",
+    "Report length: 1,734 words, the shortest of the six."
+  ]
+}

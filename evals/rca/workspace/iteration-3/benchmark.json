@@ -1,0 +1,1000 @@
+{
+  "metadata": {
+    "skill_name": "rca",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-10-28T13:17:02Z",
+    "evals_run": [
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9231,
+        "passed": 12,
+        "failed": 1,
+        "total": 13,
+        "time_seconds": 305.0,
+        "tokens": 91523,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+          "passed": true,
+          "evidence": "report.md is 14353 chars / 2239 words."
+        },
+        {
+          "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+          "passed": true,
+          "evidence": "Repro section runs `python3 -m unittest discover tests -v` and quotes `test_search_finds_user_signed_up_with_mixed_case ... FAIL` (lines 27-31)."
+        },
+        {
+          "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+          "passed": true,
+          "evidence": "Numbered list 1-5 under '## The 5-whys chain' (lines 43-61), five distinct bold Why questions."
+        },
+        {
+          "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+          "passed": true,
+          "evidence": "Every link has an Evidence line; chain cites app/search.py:7-9, app/db.py:34, app/signup.py:1, app/signup.py:15, app/db.py:26, app/db.py:1, app/db.py:24-29, app/signup.py:13, tests/test_search.py:20-22 (9+ file:line cites)."
+        },
+        {
+          "text": "Report explicitly labels symptom / proximate cause / root cause.",
+          "passed": true,
+          "evidence": "Table at lines 65-69 labels Symptom (app/search.py:9), Proximate cause (app/db.py:34), Root cause."
+        },
+        {
+          "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+          "passed": true,
+          "evidence": "Root cause: 'No canonical email identity, and no rule or constraint that enforces one'; Why 3 names signup storing raw input (app/signup.py:15, app/db.py:26) and Why 4 'Each layer passes the raw string through'. The == comparison is labelled proximate only."
+        },
+        {
+          "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+          "passed": true,
+          "evidence": "Siblings table lists app/signup.py:13, app/password_reset.py:11, app/invite.py:7, each confirmed by probe."
+        },
+        {
+          "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+          "passed": true,
+          "evidence": "'A. Symptom fix: case-insensitive comparison in search only' and 'B. Root-cause fix: one canonical email key in the store'; '### Recommendation: I recommend B.'"
+        },
+        {
+          "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+          "passed": true,
+          "evidence": "Counterfactual: 'With B in place, the captured repro does not fire. The test passes in the scratch copy'; Fix B Tests: 'all 8 tests passed'. Transcript shows unittest run in scratch copy with the fix."
+        },
+        {
+          "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+          "passed": true,
+          "evidence": "Prevention lists Test (tests/test_email_identity.py), Guardrail: constraint/type/lint, Alert, and Doc (invariant + correct app/db.py:1 docstring)."
+        },
+        {
+          "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+          "passed": true,
+          "evidence": "'## Assumptions' numbered 1-5, each with 'How validated' and 'Result' (Confirmed x3, UNVERIFIED x2)."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint: '0 findings in 1 file'."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Headline paragraph is 6 sentences. S1 states what broke and S2 the root cause, but the recommended fix only appears in S5 ('I recommend one canonical email key...'). Fails the at-most-three-sentences bar. Falsification lead 'I tried to disprove the root cause with these three checks:' is a process teaser."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.9231,
+        "passed": 12,
+        "failed": 1,
+        "total": 13,
+        "time_seconds": 243.5,
+        "tokens": 91804,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+          "passed": true,
+          "evidence": "report.md is 14498 chars / 2185 words."
+        },
+        {
+          "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+          "passed": true,
+          "evidence": "Line 25 names `tests.test_search.SearchTests.test_search_finds_user_signed_up_with_mixed_case` and quotes the FAILED (failures=1) output."
+        },
+        {
+          "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+          "passed": true,
+          "evidence": "'## 5-whys chain' numbered 1-5 (lines 41-59), five distinct Why questions."
+        },
+        {
+          "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+          "passed": true,
+          "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:1, app/signup.py:15, app/db.py:26, app/db.py:1, app/signup.py:13-15, app/db.py:24-29. Link 4 rests only on a grep result with no file:line, but the chain total is well over 4."
+        },
+        {
+          "text": "Report explicitly labels symptom / proximate cause / root cause.",
+          "passed": true,
+          "evidence": "Table lines 65-69: Symptom / Proximate cause / Root cause."
+        },
+        {
+          "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+          "passed": true,
+          "evidence": "Root cause: 'No module owns a canonical form of an email address or enforces one account per address'; Why 3 'Signup stores the email exactly as the customer typed it'; Why 4 asks why neither the write path nor the read path normalises. == is proximate only."
+        },
+        {
+          "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+          "passed": true,
+          "evidence": "Siblings table: app/signup.py:13 (S3), app/password_reset.py:11 (S1), app/invite.py:7 (S2), plus whitespace and existing data."
+        },
+        {
+          "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+          "passed": true,
+          "evidence": "'### Symptom fix: case-insensitive search only' and '### Root-cause fix: the data layer owns a canonical email key'; 'I recommend the root-cause fix.'"
+        },
+        {
+          "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+          "passed": true,
+          "evidence": "Counterfactual: 'Probe C1 replaces db.find_by_email with a key comparison and replays the failing scenario' -> 'search -> ok'. probes/probe.py C1 runs signup('Bob@Example.COM') then search('bob@example.com'), the exact test body. Equivalent probe, not the unittest itself."
+        },
+        {
+          "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+          "passed": true,
+          "evidence": "Prevention: parametrised Test, Guardrail type/schema/review, Monitoring, Doc (invariant + replace app/db.py:1 docstring)."
+        },
+        {
+          "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+          "passed": true,
+          "evidence": "'## Assumptions' numbered 1-6 with 'How validated' and 'Result' each."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint: '0 findings in 1 file'."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Lead paragraph is 5 sentences. S1 states what broke, S2 the root cause, the recommendation arrives in S5 ('I recommend that the data layer normalise emails once...'). Exceeds three sentences. Falsification opens with teaser 'I tried to disprove the root cause with three checks.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.9231,
+        "passed": 12,
+        "failed": 1,
+        "total": 13,
+        "time_seconds": 266.5,
+        "tokens": 95836,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+          "passed": true,
+          "evidence": "report.md is 15227 chars / 2389 words."
+        },
+        {
+          "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+          "passed": true,
+          "evidence": "Reproduction section runs `python3 -m unittest discover tests -v` and quotes `test_search_finds_user_signed_up_with_mixed_case ... FAIL`."
+        },
+        {
+          "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+          "passed": true,
+          "evidence": "'## 5-whys chain' numbered 1-5 (lines 57-75), five distinct Why questions."
+        },
+        {
+          "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+          "passed": true,
+          "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:1, app/signup.py:15, app/db.py:26, app/db.py:10, app/db.py:1, app/db.py:24-29."
+        },
+        {
+          "text": "Report explicitly labels symptom / proximate cause / root cause.",
+          "passed": true,
+          "evidence": "Bulleted labels Symptom / Proximate cause (app/db.py:34) / Root cause (lines 81-83)."
+        },
+        {
+          "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+          "passed": true,
+          "evidence": "Root cause: 'The user store treats email as a raw, case-sensitive identity key. No canonical key exists at the storage boundary.' Why 3 cites raw write at signup.py:15/db.py:26. Counterfactual stresses the write-side backfill is required (probe F4)."
+        },
+        {
+          "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+          "passed": true,
+          "evidence": "Siblings S1 app/signup.py:13, S2 app/password_reset.py:11, S3 app/invite.py:7, plus whitespace and existing data."
+        },
+        {
+          "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+          "passed": true,
+          "evidence": "'### Fix A: symptom fix in search only' and '### Fix B: root-cause fix with sibling repairs (recommended)'; '**Recommendation:** Ship Fix B.'"
+        },
+        {
+          "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+          "passed": true,
+          "evidence": "Counterfactual table: 'Repro test (probe F2) | 2 run, 0 failures | 2 run, 0 failures'. Transcript step 10: F2 canonical key on write and lookup passes tests."
+        },
+        {
+          "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+          "passed": true,
+          "evidence": "Prevention: Test (case/whitespace variants + property test), Guardrail in store and code (unique key, CI grep), Alert, Doc (invariant + replace docstrings at app/db.py:1 and app/signup.py:1)."
+        },
+        {
+          "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+          "passed": true,
+          "evidence": "'## Assumptions' numbered 1-7, each with 'How validated' and 'Result' (incl. one 'Refuted')."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint: '0 findings in 1 file' (transcript shows one long-paragraph finding fixed before final)."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Headline spans three paragraphs. S1 states what broke and S2 the root cause, but the recommendation ('I recommend the root-cause fix.') is sentence 7. Far over three sentences. Falsification opens 'I tried to disprove the root cause with three checks:', a process teaser."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9091,
+        "passed": 10,
+        "failed": 1,
+        "total": 11,
+        "time_seconds": 255.4,
+        "tokens": 85559,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+          "passed": true,
+          "evidence": "13,150 bytes / 1,995 words."
+        },
+        {
+          "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+          "passed": true,
+          "evidence": "Line 3: 'I recommend the fix in `app/db.py`, not the requested patch in `app/search.py`, because the same comparison also breaks three other flows.' Line 5: the patch 'fixes support search and leaves password reset, team invites, and the duplicate check at signup broken.' Line 7: 'I did not ship anything.'"
+        },
+        {
+          "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+          "passed": true,
+          "evidence": "Headline line 3: 'It stores the raw input and compares raw strings'. Root cause (line 63): 'Writes store the raw input. Lookups compare raw input.' Why 3 (line 46-47): 'Signup stores the email exactly as the customer typed it ... `app/signup.py:15` passes the raw email to `app/db.py:26`'. Plan step 2 guards the write path in db.insert."
+        },
+        {
+          "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+          "passed": true,
+          "evidence": "Siblings table lines 75-78 names `app/password_reset.py:11`, `app/invite.py:7`, `app/signup.py:13`, each probed with before / after-search-patch / after-db-fix results."
+        },
+        {
+          "text": "Report flags the data-migration / already-stored-rows concern.",
+          "passed": true,
+          "evidence": "Line 85: 'production may already hold case-variant duplicate accounts'. Line 87: duplicates make the requested patch return id 1 only. Plan step 3: run duplicate query, merge, then unique index on lower(email). Open question 1 gives the SQL."
+        },
+        {
+          "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+          "passed": true,
+          "evidence": "'Symptom fix: the requested patch in `app/search.py`' (lines 117-124) and 'Root-cause fix: one canonical email in the store' (126-132), then 'Recommendation: the root-cause fix.' (line 134)."
+        },
+        {
+          "text": "Counterfactual on the recommended fix.",
+          "passed": true,
+          "evidence": "'## Counterfactual' (lines 159-163): 'Confirmed for this case, but a sibling path remains ... breaks link 4'. Survivor: existing duplicates. Transcript line 129-131: db.py change applied, '2/2 tests OK, then reverted', checksums match baseline."
+        },
+        {
+          "text": "Report contains at least 3 file:line-style citations.",
+          "passed": true,
+          "evidence": "23 file:line citations, 15 unique (e.g. app/db.py:34, app/signup.py:15, app/password_reset.py:11, BUG_REPORT.md:5). Spot-checked against the fixture: accurate."
+        },
+        {
+          "text": "Report does not propose any 'human error' / blame conclusion.",
+          "passed": true,
+          "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Headline paragraph (line 3) needs four sentences: S1 what broke, S2 'The root cause is that the user store has no canonical form', S3 'It stores the raw input and compares raw strings in `app/db.py:34`', S4 the recommendation. The recommended fix arrives in sentence 4, over the three-sentence limit. Section leads mostly carry claims ('The same comparison serves four flows.'), but Timeline opens with the qualifier 'The fixture has no product history.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.9091,
+        "passed": 10,
+        "failed": 1,
+        "total": 11,
+        "time_seconds": 247.9,
+        "tokens": 83937,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+          "passed": true,
+          "evidence": "12,800 bytes / 1,980 words."
+        },
+        {
+          "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+          "passed": true,
+          "evidence": "Lines 5-9 list three problems with the requested patch: does not apply as written, fixes search only, hides case-duplicate accounts. Line 11: 'I did not edit or ship anything.' Line 153: 'Ship Proposal B.'"
+        },
+        {
+          "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+          "passed": true,
+          "evidence": "Headline line 3: 'Signup stores the email as typed, and `db.find_by_email` compares raw strings.' Root cause row (line 79): 'It stores emails as typed, compares them as typed, and documents that as the contract.' Why 3 cites `app/signup.py:15` passing the raw value to db.insert."
+        },
+        {
+          "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+          "passed": true,
+          "evidence": "Siblings table lines 95-98: `app/password_reset.py:11` (High), `app/invite.py:7` (Low), `app/signup.py:13` (High), each confirmed by probes P1-P4."
+        },
+        {
+          "text": "Report flags the data-migration / already-stored-rows concern.",
+          "passed": true,
+          "evidence": "Line 100: 'Production may already hold case-duplicate rows.' Proposal B step 5: count `lower(trim(email))` duplicates before a unique constraint and decide merges. Counterfactual C5 and survivors cover legacy duplicate rows. Open question 3."
+        },
+        {
+          "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+          "passed": true,
+          "evidence": "'Proposal A: symptom fix in `app/search.py`' (126-134), 'Proposal B: root-cause fix in `app/db.py` (recommended)' (136-149), '### Recommendation: Ship Proposal B.' (151-155), with a fallback if A is still wanted."
+        },
+        {
+          "text": "Counterfactual on the recommended fix.",
+          "passed": true,
+          "evidence": "'### Counterfactual' table C1-C6 (lines 159-173): search ok, invite already_member, reset token, dup signup rejected, legacy dups raise LookupError, suite 2/2. 'confirmed with survivors ... breaks link 4'. Transcript lines 94-118 show the in-memory script that produced it."
+        },
+        {
+          "text": "Report contains at least 3 file:line-style citations.",
+          "passed": true,
+          "evidence": "20 file:line citations, 11 unique (app/db.py:34, app/db.py:10, app/signup.py:15, BUG_REPORT.md:20-22, ...). Accurate against the fixture."
+        },
+        {
+          "text": "Report does not propose any 'human error' / blame conclusion.",
+          "passed": true,
+          "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Headline paragraph (line 3) needs four sentences: S1 what broke, S2 root cause, S3 'Signup stores ... and `db.find_by_email` compares raw strings.', S4 'I recommend a fix in `db.find_by_email` ...'. The fix arrives in sentence 4. Section leads also slip: Timeline opens with the qualifier 'The fixture has no product history, so I cannot name a commit that introduced the defect.' and Falsification with the method teaser 'I tried to disprove the root cause with three questions.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.8182,
+        "passed": 9,
+        "failed": 2,
+        "total": 11,
+        "time_seconds": 255.2,
+        "tokens": 89313,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+          "passed": true,
+          "evidence": "13,281 bytes / 1,999 words."
+        },
+        {
+          "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+          "passed": true,
+          "evidence": "Line 3: 'I recommend a fix in `app/db.py` instead of the requested patch to `app/search.py`, and I did not ship either.' Line 5: 'The requested patch fixes the support ticket and leaves three other flows broken.' Line 132: probe shows Option A returns the wrong account."
+        },
+        {
+          "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+          "passed": false,
+          "evidence": "The root cause is placed in the lookup, not the write path. Headline line 3: 'The root cause is in the user store, not in search. `db.find_by_email` compares emails as exact strings'. Root cause row (line 77): 'The store defines email identity as exact equality ... Lookup and uniqueness both inherit that definition.' Why 3 (line 58) does say 'Signup stores the email exactly as the customer typed it', but the report treats as-typed storage as intended: Assumption 3 (line 110-112) keeps the display email as typed and 'avoids a data migration'. The insert duplicate guard is a write-time uniqueness fix, not a write-time normalization. Borderline, judged false under the same bar as with_skill/run-3."
+        },
+        {
+          "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+          "passed": true,
+          "evidence": "Siblings table lines 93-96: `app/signup.py:13`, `app/password_reset.py:11`, `app/invite.py:7`, confirmed by `probes/siblings.py`."
+        },
+        {
+          "text": "Report flags the data-migration / already-stored-rows concern.",
+          "passed": true,
+          "evidence": "Line 98: 'Production may already hold duplicate accounts that differ only in case.' Patch plan step 1: duplicate audit before deploy; step 5: merge after. Counterfactual survivor: 'duplicate accounts already in production'. Open question 1 SQL, noting billing may sit on either account."
+        },
+        {
+          "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+          "passed": true,
+          "evidence": "'Option A: symptom fix in `app/search.py` (requested)' (124-132), 'Option B: root-cause fix in `app/db.py` (recommended)' (134-163), 'Recommendation: Option B.' (line 165)."
+        },
+        {
+          "text": "Counterfactual on the recommended fix.",
+          "passed": true,
+          "evidence": "'### Counterfactual' (175-182): 'Confirmed with survivors. Under Option B, the repro test passes, and the replay returns id 8412 for all three logged casings ... breaks link 4 ... also breaks link 5'. Transcript steps 12-15 apply the diff in probes/root-fix, run 6 class tests and replay_jane.py."
+        },
+        {
+          "text": "Report contains at least 3 file:line-style citations.",
+          "passed": true,
+          "evidence": "21 file:line citations, 13 unique (app/db.py:24-29, app/db.py:34, app/signup.py:13, BUG_REPORT.md:5, ...). Accurate."
+        },
+        {
+          "text": "Report does not propose any 'human error' / blame conclusion.",
+          "passed": true,
+          "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Headline paragraph (line 3) needs four sentences: S1 what broke, S2 'The root cause is in the user store, not in search.', S3 the mechanism, S4 'I recommend a fix in `app/db.py` ...'. The fix arrives in sentence 4. Falsification opens with the method teaser 'I tried to disprove the root cause with three checks.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9231,
+        "passed": 12,
+        "failed": 1,
+        "total": 13,
+        "time_seconds": 264.5,
+        "tokens": 92481,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+          "passed": true,
+          "evidence": "report.md is 11325 chars / 1780 words."
+        },
+        {
+          "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+          "passed": true,
+          "evidence": "Repro row: '`python3 -m unittest discover tests -v` fails `test_search_finds_user_signed_up_with_mixed_case`'."
+        },
+        {
+          "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+          "passed": true,
+          "evidence": "'## 5-whys chain' numbered 1-5 (lines 43-61), five distinct Why questions."
+        },
+        {
+          "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+          "passed": true,
+          "evidence": "Chain cites app/search.py:7-9, app/db.py:34 (twice), app/signup.py:1, app/signup.py:15, app/db.py:1, app/db.py:10, tests/test_search.py:20-22."
+        },
+        {
+          "text": "Report explicitly labels symptom / proximate cause / root cause.",
+          "passed": true,
+          "evidence": "'## Symptom, proximate, root' with Symptom / Proximate cause / Root cause bullets."
+        },
+        {
+          "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+          "passed": true,
+          "evidence": "Root cause: 'The email identity key has no canonical form and no owner. Writes store raw input, and reads compare raw input.' Why 3 names signup storing raw input. == is proximate only."
+        },
+        {
+          "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+          "passed": true,
+          "evidence": "Siblings table: app/signup.py:13, app/password_reset.py:11, app/invite.py:7, plus existing data and whitespace."
+        },
+        {
+          "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+          "passed": true,
+          "evidence": "'### Proposal A: symptom fix' and '### Proposal B: root-cause fix (recommended)'; '**Recommendation:** Proposal B.'"
+        },
+        {
+          "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+          "passed": true,
+          "evidence": "Counterfactual table: 'Repro test suite | 1 failure | OK, 2 tests' with stage 1 monkeypatched. Transcript step 10 runs unittest discover under the patch."
+        },
+        {
+          "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+          "passed": true,
+          "evidence": "Prevention: Test (parametrized across callers), Guardrail (unique index + CI grep), Doc (invariant + replace docstrings at app/db.py:1 and app/signup.py:1)."
+        },
+        {
+          "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+          "passed": true,
+          "evidence": "'## Assumptions' numbered 1-4, each with 'How validated' and 'Result'."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint: '0 findings in 1 file'."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Closest to passing. S1 states what broke and S2 the root cause, but S3 restates the mechanism and the fix arrives in S4 ('I recommend one normalize_email() function...'). 4 sentences, one over the limit. Section leads otherwise carry claims. Falsification opens with a claim, not a teaser."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.8462,
+        "passed": 11,
+        "failed": 2,
+        "total": 13,
+        "time_seconds": 252.6,
+        "tokens": 86543,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+          "passed": true,
+          "evidence": "report.md is 13396 chars / 2037 words."
+        },
+        {
+          "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+          "passed": true,
+          "evidence": "Reproduction section runs unittest discover and quotes `test_search_finds_user_signed_up_with_mixed_case ... FAIL`."
+        },
+        {
+          "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+          "passed": true,
+          "evidence": "'## 5-whys chain' numbered 1-5 (lines 69-87), five distinct Why questions."
+        },
+        {
+          "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+          "passed": true,
+          "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:15, app/db.py:26, app/db.py:1, signup.py:13, search.py:7, password_reset.py:11, invite.py:7, app/db.py:10."
+        },
+        {
+          "text": "Report explicitly labels symptom / proximate cause / root cause.",
+          "passed": true,
+          "evidence": "'## Symptom, proximate cause, root cause' with three labelled bullets."
+        },
+        {
+          "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+          "passed": true,
+          "evidence": "Root cause: 'Email identity has no single owner and no invariant.' Why 3: 'Nothing canonicalises it on write.' Proximate cause names both the == at db.py:34 and the verbatim write at signup.py:15."
+        },
+        {
+          "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+          "passed": true,
+          "evidence": "Siblings table: app/signup.py:13, app/password_reset.py:11, app/invite.py:7, plus existing rows and whitespace."
+        },
+        {
+          "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+          "passed": true,
+          "evidence": "'### Proposal A: symptom fix' and '### Proposal B: root-cause fix (recommended)'; 'I recommend Proposal B.'"
+        },
+        {
+          "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+          "passed": true,
+          "evidence": "Counterfactual: 'With the fix in a copy, all eight tests pass, including the original failing test.' Transcript step 16: 'Ran 8 tests OK' in cf-sandbox."
+        },
+        {
+          "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+          "passed": true,
+          "evidence": "Prevention has Test (tests/test_email_identity.py, run against current code: FAILED failures=10, errors=5), Guardrail (schema constraint, choke point, type), Doc update."
+        },
+        {
+          "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+          "passed": false,
+          "evidence": "No Assumptions section and no numbered assumption list anywhere (grep for 'assum' returns nothing). Open questions exist but carry no validation results."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint: '0 findings in 1 file'."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "S1 states what broke and S2 the root cause ('no layer owns email identity'), but S3 restates the mechanism and the fix is S4 ('Fix it in the store with one canonical email key...'). 4 sentences, over the limit. Falsification opens with 'I tried to disprove the root cause with three checks.' (teaser). The log block is introduced by a label lead, 'The support log, quoted from BUG_REPORT.md:'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.9231,
+        "passed": 12,
+        "failed": 1,
+        "total": 13,
+        "time_seconds": 263.7,
+        "tokens": 83558,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+          "passed": true,
+          "evidence": "report.md is 13583 chars / 2143 words."
+        },
+        {
+          "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+          "passed": true,
+          "evidence": "Repro: '`python3 -m unittest discover tests -v` fails one of two tests: FAIL: test_search_finds_user_signed_up_with_mixed_case'."
+        },
+        {
+          "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+          "passed": true,
+          "evidence": "'## 5-whys chain' numbered 1-5 (lines 55-73), five distinct Why questions."
+        },
+        {
+          "text": "Each Why link in the chain cites concrete evidence \u2014 at least 4 file:line-style citations appear in the chain.",
+          "passed": true,
+          "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:15, app/db.py:1, app/db.py:10, app/db.py:32, search.py:7, signup.py:13, password_reset.py:11, invite.py:7, tests/test_search.py:20-22."
+        },
+        {
+          "text": "Report explicitly labels symptom / proximate cause / root cause.",
+          "passed": true,
+          "evidence": "'## Symptom, proximate cause, root cause' with three labelled bullets."
+        },
+        {
+          "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+          "passed": true,
+          "evidence": "Root cause: 'the code base has no canonical email key. Nothing enforces one normalized form at write time, at read time, or as a uniqueness rule.' Explicitly names write time."
+        },
+        {
+          "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+          "passed": true,
+          "evidence": "Siblings S1 app/signup.py:13, S2 app/password_reset.py:11, S3 app/invite.py:7, plus whitespace and existing data."
+        },
+        {
+          "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+          "passed": true,
+          "evidence": "'### Proposal 1: symptom fix' and '### Proposal 2: root-cause fix'; '### Recommendation: I recommend Proposal 2.'"
+        },
+        {
+          "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+          "passed": true,
+          "evidence": "Counterfactual table: 'Failing test | 1 of 2 fail | 2 of 2 pass' after applying Proposal 2 to a temp copy. Transcript step 13 confirms 2 of 2 pass."
+        },
+        {
+          "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+          "passed": true,
+          "evidence": "Prevention: Test for the bug + Test for the class, Guardrail in store (unique index/citext) and in types (EmailKey), Doc update (invariant in product spec or AGENTS.md)."
+        },
+        {
+          "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+          "passed": true,
+          "evidence": "'## Assumptions' numbered 1-6, each with 'How validated' and 'Result' (Confirmed x4, UNVERIFIED x2)."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint: '0 findings in 1 file'."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "S1 is what broke (own paragraph) and S2 the root cause, but S3 restates the mechanism, S4 lists siblings, and the fix is S5 ('I recommend one canonical email key at the store boundary...'). Over three sentences. Falsification opens 'I tried to disprove that case is the mechanism.', a process teaser."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9091,
+        "passed": 10,
+        "failed": 1,
+        "total": 11,
+        "time_seconds": 193.5,
+        "tokens": 76003,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+          "passed": true,
+          "evidence": "12,894 bytes / 2,020 words."
+        },
+        {
+          "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+          "passed": true,
+          "evidence": "Line 3: 'I recommend a fix in `app/db.py`, not the one-line patch in `app/search.py`. The one-liner fixes support search only. It also makes search return the wrong account'. Line 5: 'I did not ship anything.' Probes S2-S5 (lines 112-115)."
+        },
+        {
+          "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+          "passed": true,
+          "evidence": "Headline line 3: 'It stores the email as typed and compares it byte for byte'. Root cause row (line 77): 'Signup stores raw input, and every lookup compares raw strings.' Why 3 cites `app/signup.py:15`. Proposal B step 3: 'Store the normalized form as the lookup key'."
+        },
+        {
+          "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+          "passed": true,
+          "evidence": "Siblings table lines 91-94: `app/signup.py:13`, `app/password_reset.py:11`, `app/invite.py:7`, with probes P2-P4."
+        },
+        {
+          "text": "Report flags the data-migration / already-stored-rows concern.",
+          "passed": true,
+          "evidence": "Line 96: 'Production may hold several accounts whose emails differ only by case.' Proposal B 'Production prerequisite' (line 132): duplicate query and merge decision before the unique index. Survivor (line 145) and open question 1."
+        },
+        {
+          "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+          "passed": true,
+          "evidence": "'Proposal A: symptom fix in `app/search.py`, as requested' (100-117), 'Proposal B: root-cause fix in the data layer (recommended)' (119-133), 'Recommendation: Proposal B.' (line 135) with a ship-today subset."
+        },
+        {
+          "text": "Counterfactual on the recommended fix.",
+          "passed": true,
+          "evidence": "'Counterfactual: confirmed with survivors.' (lines 137-146): probes C0-C6, suite passes, siblings fixed, 'breaks link 4'. Transcript step 11 ran C0-C6 in memory. Note: it simulated only the find_by_email part, which the report states."
+        },
+        {
+          "text": "Report contains at least 3 file:line-style citations.",
+          "passed": true,
+          "evidence": "11 file:line citations, 10 unique (app/db.py:34, app/db.py:24-29, app/signup.py:15, app/password_reset.py:11, ...). Accurate."
+        },
+        {
+          "text": "Report does not propose any 'human error' / blame conclusion.",
+          "passed": true,
+          "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Headline paragraph (line 3) runs six sentences. What broke is S1, but the root cause spans S2 'The root cause is the data layer.' and S3, and the recommendation is S4. The fix arrives in sentence 4. Section leads are otherwise claims ('No code change explains the start date.', 'All four callers of `db.find_by_email` share the defect.')."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.9091,
+        "passed": 10,
+        "failed": 1,
+        "total": 11,
+        "time_seconds": 209.5,
+        "tokens": 78021,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+          "passed": true,
+          "evidence": "11,219 bytes / 1,734 words."
+        },
+        {
+          "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+          "passed": true,
+          "evidence": "Line 3: 'I did not ship the requested one-line patch, for the two reasons below.' Lines 5-6: the patch has no place in search.py and the same comparison in db.py is unsafe on its own (probe P3)."
+        },
+        {
+          "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+          "passed": true,
+          "evidence": "Root cause row (line 65): 'Signup stores raw input and every lookup compares raw input.' Why 3: '`app/signup.py:15` passes `email` unchanged to `db.insert`. `app/db.py:26` stores it unchanged.' Root-cause fix step 2: 'Store the normalized key on insert', plus backfill (step 5). The headline sentence itself names only the lookup side ('Every lookup compares raw strings')."
+        },
+        {
+          "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+          "passed": true,
+          "evidence": "Siblings table lines 81-85: `app/signup.py:13`, `app/password_reset.py:11`, `app/invite.py:7`, plus existing data."
+        },
+        {
+          "text": "Report flags the data-migration / already-stored-rows concern.",
+          "passed": true,
+          "evidence": "Strongest of the six: headline recommends 'a backfill and a dedupe of existing rows'. Siblings row 'Existing data' (High). Assumption 3 refuted by probe P3 for stores with duplicates. Fix steps 4-6: duplicate query, backfill, unique index. Rollback notes dedupe merges are irreversible."
+        },
+        {
+          "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+          "passed": true,
+          "evidence": "'### 1. Symptom fix' (115-123) and '### 2. Root-cause fix' (125-139), '### Recommendation: I recommend the root-cause fix.' (141-143), with the duplicate query as the gate for a stopgap."
+        },
+        {
+          "text": "Counterfactual on the recommended fix.",
+          "passed": true,
+          "evidence": "'### Counterfactual: Confirmed with survivors.' (145-157): repro passes, Jane log replay all ok, dup signup rejected, reset and invite find the account; breaks link 4. Transcript command 10 shows the in-memory script with normalized insert and find."
+        },
+        {
+          "text": "Report contains at least 3 file:line-style citations.",
+          "passed": true,
+          "evidence": "20 file:line citations (app/db.py:34, app/db.py:26, app/signup.py:15, invite.py:7, ...). Accurate."
+        },
+        {
+          "text": "Report does not propose any 'human error' / blame conclusion.",
+          "passed": true,
+          "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Headline paragraph (line 3) needs four sentences: S1 what broke, S2 'The root cause is that the user store has no canonical form for an email.', S3 'Every lookup compares raw strings.', S4 'I recommend a normalized email key ...'. The fix arrives in sentence 4. Timeline opens with the qualifier 'The fixture has no product history to bisect.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.8182,
+        "passed": 9,
+        "failed": 2,
+        "total": 11,
+        "time_seconds": 245.1,
+        "tokens": 85273,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+          "passed": true,
+          "evidence": "12,134 bytes / 1,830 words."
+        },
+        {
+          "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+          "passed": true,
+          "evidence": "Line 3: 'I recommend the root-cause fix in the store, not the requested one-line patch in `search.py`.' New section 'Why not the requested patch' (7-21) with a measured comparison table: class tests 1 of 5 pass under the requested patch."
+        },
+        {
+          "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+          "passed": false,
+          "evidence": "The report places the defect in the lookup and keeps as-typed storage by design. Headline: 'The defect sits in `db.find_by_email` (`app/db.py:34`), not in `app/search.py`.' Root cause (line 74): 'The store defines identity as the raw typed string'. Assumption 4 (109-111): 'the typed casing must stay stored for display ... The fix normalizes at comparison and does not rewrite stored values.' Why 3 notes signup stores as typed, but the report does not call that the root defect. Borderline, judged false under the same bar as old_skill/run-3."
+        },
+        {
+          "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+          "passed": true,
+          "evidence": "Siblings table lines 88-91 and the 5-whys evidence (line 68): `signup.py:13`, `password_reset.py:11`, `invite.py:7`."
+        },
+        {
+          "text": "Report flags the data-migration / already-stored-rows concern.",
+          "passed": true,
+          "evidence": "Siblings row 'Data already stored' (line 91) and line 93: with duplicate rows both fixes return the first match. Proposal B 'Production work': merge existing duplicates before a unique index. Counterfactual survivor and open question 2 with SQL."
+        },
+        {
+          "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+          "passed": true,
+          "evidence": "'Proposal A: symptom fix in `app/search.py`' (123-130), 'Proposal B: root-cause fix in `app/db.py` (recommended)' (132-145), '### Recommendation: Use Proposal B.' (147-151)."
+        },
+        {
+          "text": "Counterfactual on the recommended fix.",
+          "passed": true,
+          "evidence": "'### Counterfactual: confirmed with survivors.' (153-159): repro passes, 'B breaks link 2 ... and link 4', survivor: existing duplicates. Transcript steps 13-14 apply db.py.rootfix to the copy, run 5 class tests, then restore."
+        },
+        {
+          "text": "Report contains at least 3 file:line-style citations.",
+          "passed": true,
+          "evidence": "16 file:line citations (app/db.py:34, app/db.py:26, app/search.py:7-9, signup.py:13, password_reset.py:11, ...). Accurate."
+        },
+        {
+          "text": "Report does not propose any 'human error' / blame conclusion.",
+          "passed": true,
+          "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+          "passed": false,
+          "evidence": "Headline paragraph (line 3): S1 'Support search misses customers because the shared store compares emails as raw strings.' carries what broke and the cause, S2 locates it, S3 lists siblings, S4 'I recommend the root-cause fix ...'. The fix arrives in sentence 4. Timeline opens with the qualifier 'No change history exists for the application code.'"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.8881,
+        "stddev": 0.0447,
+        "min": 0.8182,
+        "max": 0.9231
+      },
+      "time_seconds": {
+        "mean": 238.15,
+        "stddev": 29.7277,
+        "min": 193.5,
+        "max": 264.5
+      },
+      "tokens": {
+        "mean": 83646.5,
+        "stddev": 5985.9967,
+        "min": 76003,
+        "max": 92481
+      }
+    },
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.901,
+        "stddev": 0.0411,
+        "min": 0.8182,
+        "max": 0.9231
+      },
+      "time_seconds": {
+        "mean": 262.25,
+        "stddev": 22.3595,
+        "min": 243.5,
+        "max": 305.0
+      },
+      "tokens": {
+        "mean": 89662.0,
+        "stddev": 4379.5387,
+        "min": 83937,
+        "max": 95836
+      }
+    },
+    "delta": {
+      "pass_rate": "-0.01",
+      "time_seconds": "-24.1",
+      "tokens": "-6016"
+    }
+  },
+  "notes": []
+}

@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "13,150 bytes / 1,995 words."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Line 3: 'I recommend the fix in `app/db.py`, not the requested patch in `app/search.py`, because the same comparison also breaks three other flows.' Line 5: the patch 'fixes support search and leaves password reset, team invites, and the duplicate check at signup broken.' Line 7: 'I did not ship anything.'"
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Headline line 3: 'It stores the raw input and compares raw strings'. Root cause (line 63): 'Writes store the raw input. Lookups compare raw input.' Why 3 (line 46-47): 'Signup stores the email exactly as the customer typed it ... `app/signup.py:15` passes the raw email to `app/db.py:26`'. Plan step 2 guards the write path in db.insert."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lines 75-78 names `app/password_reset.py:11`, `app/invite.py:7`, `app/signup.py:13`, each probed with before / after-search-patch / after-db-fix results."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Line 85: 'production may already hold case-variant duplicate accounts'. Line 87: duplicates make the requested patch return id 1 only. Plan step 3: run duplicate query, merge, then unique index on lower(email). Open question 1 gives the SQL."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'Symptom fix: the requested patch in `app/search.py`' (lines 117-124) and 'Root-cause fix: one canonical email in the store' (126-132), then 'Recommendation: the root-cause fix.' (line 134)."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'## Counterfactual' (lines 159-163): 'Confirmed for this case, but a sibling path remains ... breaks link 4'. Survivor: existing duplicates. Transcript line 129-131: db.py change applied, '2/2 tests OK, then reverted', checksums match baseline."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "23 file:line citations, 15 unique (e.g. app/db.py:34, app/signup.py:15, app/password_reset.py:11, BUG_REPORT.md:5). Spot-checked against the fixture: accurate."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Headline paragraph (line 3) needs four sentences: S1 what broke, S2 'The root cause is that the user store has no canonical form', S3 'It stores the raw input and compares raw strings in `app/db.py:34`', S4 the recommendation. The recommended fix arrives in sentence 4, over the three-sentence limit. Section leads mostly carry claims ('The same comparison serves four flows.'), but Timeline opens with the qualifier 'The fixture has no product history.'"
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 1,
+    "total": 11,
+    "pass_rate": 0.9091
+  },
+  "notes": [
+    "Recommended ship-today fix normalizes only at compare time and keeps the as-typed email for display; write-time normalization is not proposed, only an insert-time duplicate guard (step 2). Assertion 3 passes on the root-cause wording, not on the fix shape.",
+    "Requested-patch survivor (silent first match on duplicates) shown concretely at line 87.",
+    "Hedges correctly that the other three agents' failures are unverified as case-only (line 67).",
+    "Report length: 1,995 words, the longest of the old_skill arm."
+  ]
+}

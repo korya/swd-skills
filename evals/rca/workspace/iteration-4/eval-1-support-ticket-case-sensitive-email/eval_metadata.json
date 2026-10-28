@@ -1,0 +1,5 @@
+{
+  "eval_id": 1,
+  "eval_name": "support-ticket-case-sensitive-email",
+  "prompt": "Customer support filed BUG_REPORT.md \u2014 they can't find users via the search endpoint when the casing of the email doesn't exactly match what was stored. First copy /Users/dmitri/dev/swd-skills/evals/rca/fixture to OUTPUT_DIR/fixture and work only in the copy. The repo at OUTPUT_DIR/fixture has the failing test (tests/test_search.py) and the relevant code under app/. Do a proper root-cause analysis: I want to understand why this happened (not just patch the search), whether the same problem exists elsewhere in the codebase, and what would prevent the whole class of bug. Write the report to OUTPUT_DIR/report.md."
+}

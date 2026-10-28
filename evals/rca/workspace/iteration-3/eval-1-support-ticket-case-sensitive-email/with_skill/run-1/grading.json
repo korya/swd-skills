@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "report.md is 11325 chars / 1780 words."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Repro row: '`python3 -m unittest discover tests -v` fails `test_search_finds_user_signed_up_with_mixed_case`'."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "'## 5-whys chain' numbered 1-5 (lines 43-61), five distinct Why questions."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence — at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Chain cites app/search.py:7-9, app/db.py:34 (twice), app/signup.py:1, app/signup.py:15, app/db.py:1, app/db.py:10, tests/test_search.py:20-22."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "'## Symptom, proximate, root' with Symptom / Proximate cause / Root cause bullets."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause: 'The email identity key has no canonical form and no owner. Writes store raw input, and reads compare raw input.' Why 3 names signup storing raw input. == is proximate only."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Siblings table: app/signup.py:13, app/password_reset.py:11, app/invite.py:7, plus existing data and whitespace."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "'### Proposal A: symptom fix' and '### Proposal B: root-cause fix (recommended)'; '**Recommendation:** Proposal B.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Counterfactual table: 'Repro test suite | 1 failure | OK, 2 tests' with stage 1 monkeypatched. Transcript step 10 runs unittest discover under the patch."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Prevention: Test (parametrized across callers), Guardrail (unique index + CI grep), Doc (invariant + replace docstrings at app/db.py:1 and app/signup.py:1)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": true,
+      "evidence": "'## Assumptions' numbered 1-4, each with 'How validated' and 'Result'."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint: '0 findings in 1 file'."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Closest to passing. S1 states what broke and S2 the root cause, but S3 restates the mechanism and the fix arrives in S4 ('I recommend one normalize_email() function...'). 4 sentences, one over the limit. Section leads otherwise carry claims. Falsification opens with a claim, not a teaser."
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 1,
+    "total": 13,
+    "pass_rate": 0.9231
+  },
+  "notes": [
+    "Shortest report of the six (1780 words) and it still covers every required section.",
+    "Found that lowercasing only the query does not work (probe 7), which strengthens the case for a store-owned key.",
+    "Assumptions list is the thinnest of the passing runs (4 items). Unicode and production-collation assumptions sit in open questions rather than being enumerated.",
+    "Probes ran from stdin with no persisted files. Evidence lives in the transcript only."
+  ]
+}

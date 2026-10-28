@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "13,072 bytes / 1,984 words."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Section 'Why not the one-line patch as asked' (lines 7-16) costs both placements: in `search.py`, reset and invites stay broken (P5). At `db.py:34`, there is no insert guard and existing duplicates become ambiguous (P6). Line 16: 'I did not ship anything.' Recommendation: 'Ship Proposal B.'"
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Why 4 (line 62): 'Why does neither the write nor the read normalize the address?' Root cause (line 76): 'Insert and lookup both use the typed string, and no uniqueness check exists on a normalized form.' Why 3 cites `app/signup.py:15` and `app/db.py:26`. Proposal B stores `email_key` at insert and backfills existing rows (patch plan step 4)."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lines 90-93: `app/signup.py:13`, `app/password_reset.py:11`, `app/invite.py:7`, with probes P2-P4."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "'Data already corrupted' (95-99) gives a read-only audit SQL to run 'before any fix ships'. Line 101: duplicates make a naive fix ambiguous (P6). Patch plan steps 1, 2 and 4: audit, merge decision, backfill `email_key`, unique index after the merge."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'Proposal A: symptom fix' (127-135, the comparison at `app/db.py:34`) and 'Proposal B: root-cause fix (recommended)' (137-181). Line 183: 'Recommendation. Ship Proposal B. Proposal A is acceptable as a stopgap only if the audit finds no duplicates.'"
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'### Counterfactual: Result: confirmed with survivors.' (185-202) has a before/after table: repro FAIL to OK, 1 of 3 to 3 of 3 logged casings, duplicate rejected, reset token issued, invite already_member. 'breaks link 4 ... closes link 5'. Transcript steps 12-13: B applied to the fixture copy, tests and probes run, reverted, checksums OK."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "19 file:line citations (app/db.py:34, app/db.py:24-29, app/search.py:10, app/signup.py:15, evals/rca/.gitignore:1, ...). Accurate against the fixture."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as a missing identity definition, a missing invariant and missing tests; no person is named."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": true,
+      "evidence": "Headline (lines 3-5) has 3 sentences. S1 states what broke: 'Support search returns \"not found\" unless the agent types the email in the exact casing the customer used at signup.' S2 states the root cause: 'the user store has no canonical form for email, so every flow compares the raw typed string.' S3 holds the recommended fix: 'Fix it in `app/db.py` with one normalized email key for lookup and insert, not with a one-line change in `app/search.py`.' Section leads carry claims: 'The requested line does not fit `app/search.py`.', 'The case-sensitive behaviour is part of the design from the first version.', 'All four flows that look up a user by email share the same comparison at `app/db.py:34`.', 'Give the store one canonical email key ...', 'Result: confirmed with survivors.'"
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 0,
+    "total": 11,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "Like iteration-3 with_skill/run-2, the symptom option is the comparison moved to `app/db.py:34`. The literal `search.py` patch is still costed in the 'Why not' section, so both placements are covered.",
+    "The diff uses `lower()` while assumption 4 leaves lower vs casefold UNVERIFIED and open question 2 ties the choice to the database index. Consistent and honest.",
+    "Only run whose Timeline section opens with its claim rather than the 'no version history' qualifier.",
+    "Report length: 1,984 words."
+  ]
+}

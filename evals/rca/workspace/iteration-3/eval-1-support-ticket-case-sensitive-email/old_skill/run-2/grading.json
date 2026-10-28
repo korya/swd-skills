@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "report.md is 14498 chars / 2185 words."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Line 25 names `tests.test_search.SearchTests.test_search_finds_user_signed_up_with_mixed_case` and quotes the FAILED (failures=1) output."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "'## 5-whys chain' numbered 1-5 (lines 41-59), five distinct Why questions."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence — at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:1, app/signup.py:15, app/db.py:26, app/db.py:1, app/signup.py:13-15, app/db.py:24-29. Link 4 rests only on a grep result with no file:line, but the chain total is well over 4."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "Table lines 65-69: Symptom / Proximate cause / Root cause."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause: 'No module owns a canonical form of an email address or enforces one account per address'; Why 3 'Signup stores the email exactly as the customer typed it'; Why 4 asks why neither the write path nor the read path normalises. == is proximate only."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Siblings table: app/signup.py:13 (S3), app/password_reset.py:11 (S1), app/invite.py:7 (S2), plus whitespace and existing data."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "'### Symptom fix: case-insensitive search only' and '### Root-cause fix: the data layer owns a canonical email key'; 'I recommend the root-cause fix.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Counterfactual: 'Probe C1 replaces db.find_by_email with a key comparison and replays the failing scenario' -> 'search -> ok'. probes/probe.py C1 runs signup('Bob@Example.COM') then search('bob@example.com'), the exact test body. Equivalent probe, not the unittest itself."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Prevention: parametrised Test, Guardrail type/schema/review, Monitoring, Doc (invariant + replace app/db.py:1 docstring)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": true,
+      "evidence": "'## Assumptions' numbered 1-6 with 'How validated' and 'Result' each."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint: '0 findings in 1 file'."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Lead paragraph is 5 sentences. S1 states what broke, S2 the root cause, the recommendation arrives in S5 ('I recommend that the data layer normalise emails once...'). Exceeds three sentences. Falsification opens with teaser 'I tried to disprove the root cause with three checks.'"
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 1,
+    "total": 13,
+    "pass_rate": 0.9231
+  },
+  "notes": [
+    "Counterfactual replays the test scenario through a monkeypatched probe (C1) instead of running the unittest under the fix. Result is equivalent but not the literal test.",
+    "Assumption 3 marks production case-sensitivity 'Confirmed by behaviour' although the production query was not inspected. That is generous.",
+    "Good catch: the symptom fix 'removes the signal that exposed' the High siblings. Ship order puts the collision query first.",
+    "Transcript notes the baseline went to the scratchpad by mistake and was moved. Minor hygiene slip, self-corrected."
+  ]
+}

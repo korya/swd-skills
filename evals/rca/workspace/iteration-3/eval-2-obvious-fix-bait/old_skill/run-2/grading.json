@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "12,800 bytes / 1,980 words."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Lines 5-9 list three problems with the requested patch: does not apply as written, fixes search only, hides case-duplicate accounts. Line 11: 'I did not edit or ship anything.' Line 153: 'Ship Proposal B.'"
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Headline line 3: 'Signup stores the email as typed, and `db.find_by_email` compares raw strings.' Root cause row (line 79): 'It stores emails as typed, compares them as typed, and documents that as the contract.' Why 3 cites `app/signup.py:15` passing the raw value to db.insert."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lines 95-98: `app/password_reset.py:11` (High), `app/invite.py:7` (Low), `app/signup.py:13` (High), each confirmed by probes P1-P4."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Line 100: 'Production may already hold case-duplicate rows.' Proposal B step 5: count `lower(trim(email))` duplicates before a unique constraint and decide merges. Counterfactual C5 and survivors cover legacy duplicate rows. Open question 3."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'Proposal A: symptom fix in `app/search.py`' (126-134), 'Proposal B: root-cause fix in `app/db.py` (recommended)' (136-149), '### Recommendation: Ship Proposal B.' (151-155), with a fallback if A is still wanted."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'### Counterfactual' table C1-C6 (lines 159-173): search ok, invite already_member, reset token, dup signup rejected, legacy dups raise LookupError, suite 2/2. 'confirmed with survivors ... breaks link 4'. Transcript lines 94-118 show the in-memory script that produced it."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "20 file:line citations, 11 unique (app/db.py:34, app/db.py:10, app/signup.py:15, BUG_REPORT.md:20-22, ...). Accurate against the fixture."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Headline paragraph (line 3) needs four sentences: S1 what broke, S2 root cause, S3 'Signup stores ... and `db.find_by_email` compares raw strings.', S4 'I recommend a fix in `db.find_by_email` ...'. The fix arrives in sentence 4. Section leads also slip: Timeline opens with the qualifier 'The fixture has no product history, so I cannot name a commit that introduced the defect.' and Falsification with the method teaser 'I tried to disprove the root cause with three questions.'"
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 1,
+    "total": 11,
+    "pass_rate": 0.9091
+  },
+  "notes": [
+    "Recommended fix normalizes at compare time only, plus a raise-on-ambiguous-match; stored email stays raw. Root-cause wording names write time, the fix does not normalize on write.",
+    "Adds a 'raise when more than one row matches' guard so legacy duplicates fail loudly. Thoughtful, and verified (C5).",
+    "Flags the casefold vs lower survivor (STRASSE / stra\u00dfe).",
+    "Report length: 1,980 words."
+  ]
+}

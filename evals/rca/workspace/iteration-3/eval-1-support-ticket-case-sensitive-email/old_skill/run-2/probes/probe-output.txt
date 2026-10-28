@@ -1,0 +1,36 @@
+
+## F1 replay the support log (stored as 'Jane.smith@gmail.com')
+search 'Jane.Smith@gmail.com'       -> {'status': 'not_found'}
+search 'jane.smith@gmail.com'       -> {'status': 'not_found'}
+search 'Jane.smith@gmail.com'       -> {'status': 'ok', 'id': 1, 'email': 'Jane.smith@gmail.com', 'name': 'Jane'}
+
+## F2 second mechanism: whitespace instead of casing
+search 'bob@example.com'      -> ok
+search ' bob@example.com'     -> not_found
+search 'bob@example.com '     -> not_found
+
+## F3 does the search layer add anything beyond db.find_by_email?
+db.find_by_email('bob@example.com') -> None
+
+## S1 password reset with a different casing
+request_reset -> ResetError: no such user
+
+## S2 invite an existing member with a different casing
+send_invite -> {'status': 'invite_sent', 'to': 'bob@example.com'}
+
+## S3 duplicate signup with a different casing
+second signup ACCEPTED -> User(id=2, email='bob@example.com', name='Bob again')
+all_users -> [(1, 'Bob@Example.COM'), (2, 'bob@example.com')]
+
+## S4 duplicate signup with surrounding whitespace
+padded signup ACCEPTED -> User(id=3, email=' Bob@Example.COM', name='Bob padded')
+
+## C1 counterfactual: db.find_by_email compares a canonical key
+search  -> ok
+reset   -> reset-token-for-1
+invite  -> already_member
+dup signup -> rejected: email already registered
+
+## C2 survivor: rows that already collide before the fix
+search bob@example.com -> {'status': 'ok', 'id': 1, 'email': 'Bob@Example.COM', 'name': 'Bob'}
+search BOB@EXAMPLE.COM -> {'status': 'ok', 'id': 1, 'email': 'Bob@Example.COM', 'name': 'Bob'}

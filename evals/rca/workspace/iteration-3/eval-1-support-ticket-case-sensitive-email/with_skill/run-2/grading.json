@@ -1,0 +1,82 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "report.md is 13396 chars / 2037 words."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Reproduction section runs unittest discover and quotes `test_search_finds_user_signed_up_with_mixed_case ... FAIL`."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "'## 5-whys chain' numbered 1-5 (lines 69-87), five distinct Why questions."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence — at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:15, app/db.py:26, app/db.py:1, signup.py:13, search.py:7, password_reset.py:11, invite.py:7, app/db.py:10."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "'## Symptom, proximate cause, root cause' with three labelled bullets."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause: 'Email identity has no single owner and no invariant.' Why 3: 'Nothing canonicalises it on write.' Proximate cause names both the == at db.py:34 and the verbatim write at signup.py:15."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Siblings table: app/signup.py:13, app/password_reset.py:11, app/invite.py:7, plus existing rows and whitespace."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "'### Proposal A: symptom fix' and '### Proposal B: root-cause fix (recommended)'; 'I recommend Proposal B.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Counterfactual: 'With the fix in a copy, all eight tests pass, including the original failing test.' Transcript step 16: 'Ran 8 tests OK' in cf-sandbox."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Prevention has Test (tests/test_email_identity.py, run against current code: FAILED failures=10, errors=5), Guardrail (schema constraint, choke point, type), Doc update."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": false,
+      "evidence": "No Assumptions section and no numbered assumption list anywhere (grep for 'assum' returns nothing). Open questions exist but carry no validation results."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint: '0 findings in 1 file'."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "S1 states what broke and S2 the root cause ('no layer owns email identity'), but S3 restates the mechanism and the fix is S4 ('Fix it in the store with one canonical email key...'). 4 sentences, over the limit. Falsification opens with 'I tried to disprove the root cause with three checks.' (teaser). The log block is introduced by a label lead, 'The support log, quoted from BUG_REPORT.md:'."
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 2,
+    "total": 13,
+    "pass_rate": 0.8462
+  },
+  "notes": [
+    "Missed the load-bearing assumptions step entirely, the only run of six to do so.",
+    "Strongest prevention evidence: it wrote the class test and ran it against unfixed code (10 failures, 5 errors across all four callers) and against the fix (8 OK).",
+    "Shows the tried diff inline in the report.",
+    "Self-flags link 5 as weak: 'Link 5 rests on the absence of a document.' Honest.",
+    "cf-sandbox first attempt hit zsh noclobber and BSD sed. It switched tools and did not trust the broken run. Good hygiene."
+  ]
+}

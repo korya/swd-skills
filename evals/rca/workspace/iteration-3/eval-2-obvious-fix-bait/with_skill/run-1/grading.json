@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "12,894 bytes / 2,020 words."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Line 3: 'I recommend a fix in `app/db.py`, not the one-line patch in `app/search.py`. The one-liner fixes support search only. It also makes search return the wrong account'. Line 5: 'I did not ship anything.' Probes S2-S5 (lines 112-115)."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": true,
+      "evidence": "Headline line 3: 'It stores the email as typed and compares it byte for byte'. Root cause row (line 77): 'Signup stores raw input, and every lookup compares raw strings.' Why 3 cites `app/signup.py:15`. Proposal B step 3: 'Store the normalized form as the lookup key'."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lines 91-94: `app/signup.py:13`, `app/password_reset.py:11`, `app/invite.py:7`, with probes P2-P4."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Line 96: 'Production may hold several accounts whose emails differ only by case.' Proposal B 'Production prerequisite' (line 132): duplicate query and merge decision before the unique index. Survivor (line 145) and open question 1."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'Proposal A: symptom fix in `app/search.py`, as requested' (100-117), 'Proposal B: root-cause fix in the data layer (recommended)' (119-133), 'Recommendation: Proposal B.' (line 135) with a ship-today subset."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'Counterfactual: confirmed with survivors.' (lines 137-146): probes C0-C6, suite passes, siblings fixed, 'breaks link 4'. Transcript step 11 ran C0-C6 in memory. Note: it simulated only the find_by_email part, which the report states."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "11 file:line citations, 10 unique (app/db.py:34, app/db.py:24-29, app/signup.py:15, app/password_reset.py:11, ...). Accurate."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Headline paragraph (line 3) runs six sentences. What broke is S1, but the root cause spans S2 'The root cause is the data layer.' and S3, and the recommendation is S4. The fix arrives in sentence 4. Section leads are otherwise claims ('No code change explains the start date.', 'All four callers of `db.find_by_email` share the defect.')."
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 1,
+    "total": 11,
+    "pass_rate": 0.9091
+  },
+  "notes": [
+    "Counterfactual covers the lookup change only; the recommended normalized-key storage and insert uniqueness were not exercised. The report discloses this ('I simulated Proposal B's find_by_email').",
+    "Found the wrong-account regression in the requested patch (S5) and the casefold vs lower survivor (C6).",
+    "Root cause wording 'The root cause is the data layer.' is a location, not a cause; S3 carries the actual cause.",
+    "Report length: 2,020 words, the longest of the six."
+  ]
+}

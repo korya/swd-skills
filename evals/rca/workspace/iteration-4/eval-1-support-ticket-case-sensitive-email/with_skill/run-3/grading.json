@@ -1,0 +1,82 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "report.md is 13844 chars / 2101 words."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Repro section runs `python3 -m unittest discover tests -v` and quotes `test_search_finds_user_signed_up_with_mixed_case ... FAIL`. The counterfactual table row is `tests/test_search.py`."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "'## 5-whys chain' numbered 1-5 (lines 70-88), five distinct Why questions."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence — at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:15, search.py:7, signup.py:13, password_reset.py:11, invite.py:7, app/db.py:1, tests/test_search.py:20-22."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "Bulleted labels Symptom / Proximate cause / Root cause (lines 94-96)."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause: 'the user store has no canonical identity key for an email.' Headline S2: 'signup stores raw input and every lookup compares raw strings'. Proximate cause names both db.py:34 and signup.py:15 'stores the email without normalisation'."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Siblings table: app/signup.py:13, app/password_reset.py:11, app/invite.py:7, plus search and existing data."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "'### Fix A: symptom fix' and '### Fix B: root-cause fix (recommended)'; 'We recommend Fix B.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Counterfactual table: '`tests/test_search.py` | 1 of 2 fail | 2 of 2 pass' after applying Fix B to a temporary copy. Transcript step 10 shows the verbatim heredoc in cf-tmp."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Prevention: table-driven Test over every entry point, Guardrail (code-owned comparison + lint/review, DB unique index), Doc (invariant + replace app/db.py:1 docstring)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": true,
+      "evidence": "'## Assumptions' numbered 1-5, each with 'How validated' and 'Result'."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint: '0 findings in 1 file'."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "The headline is 3 sentences (lines 5-7). S1 says what broke ('Support cannot find a customer when they type the email in a different casing...'), S2 gives the root cause, and S3 holds the recommended fix ('We recommend one canonical_email() key in app/db.py...'). That part passes. It fails on section leads. '### Falsification' opens 'I tried to disprove the root cause with three questions.', a process teaser. '### Counterfactual' opens with process ('I applied the code change of Fix B to a temporary copy.'), and the outcome only arrives after the table."
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 1,
+    "total": 13,
+    "pass_rate": 0.9231
+  },
+  "notes": [
+    "The headline meets the three-sentence bar. #13 fails on the falsification teaser and a process-first counterfactual lead.",
+    "Shortest of the three iteration-4 runs (2101 words).",
+    "The probe extends the log replay with domain-case and leading-space variants. The repro table is consistent with the ticket log (stored `Jane.smith@gmail.com`).",
+    "Assumption 2 is marked 'Confirmed as the stated requirement' while the report notes RFC 5321 makes it a product rule. iteration-3 with_skill/run-3 marked the same assumption UNVERIFIED. The judgement is defensible either way, but the two runs are inconsistent.",
+    "Hygiene: a SHA-256 baseline was written to run-3/baseline.sha256 and verified at the end, and cf-tmp was deleted."
+  ]
+}

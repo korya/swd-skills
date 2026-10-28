@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "12,134 bytes / 1,830 words."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Line 3: 'I recommend the root-cause fix in the store, not the requested one-line patch in `search.py`.' New section 'Why not the requested patch' (7-21) with a measured comparison table: class tests 1 of 5 pass under the requested patch."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": false,
+      "evidence": "The report places the defect in the lookup and keeps as-typed storage by design. Headline: 'The defect sits in `db.find_by_email` (`app/db.py:34`), not in `app/search.py`.' Root cause (line 74): 'The store defines identity as the raw typed string'. Assumption 4 (109-111): 'the typed casing must stay stored for display ... The fix normalizes at comparison and does not rewrite stored values.' Why 3 notes signup stores as typed, but the report does not call that the root defect. Borderline, judged false under the same bar as old_skill/run-3."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lines 88-91 and the 5-whys evidence (line 68): `signup.py:13`, `password_reset.py:11`, `invite.py:7`."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Siblings row 'Data already stored' (line 91) and line 93: with duplicate rows both fixes return the first match. Proposal B 'Production work': merge existing duplicates before a unique index. Counterfactual survivor and open question 2 with SQL."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'Proposal A: symptom fix in `app/search.py`' (123-130), 'Proposal B: root-cause fix in `app/db.py` (recommended)' (132-145), '### Recommendation: Use Proposal B.' (147-151)."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'### Counterfactual: confirmed with survivors.' (153-159): repro passes, 'B breaks link 2 ... and link 4', survivor: existing duplicates. Transcript steps 13-14 apply db.py.rootfix to the copy, run 5 class tests, then restore."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "16 file:line citations (app/db.py:34, app/db.py:26, app/search.py:7-9, signup.py:13, password_reset.py:11, ...). Accurate."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Headline paragraph (line 3): S1 'Support search misses customers because the shared store compares emails as raw strings.' carries what broke and the cause, S2 locates it, S3 lists siblings, S4 'I recommend the root-cause fix ...'. The fix arrives in sentence 4. Timeline opens with the qualifier 'No change history exists for the application code.'"
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 2,
+    "total": 11,
+    "pass_rate": 0.8182
+  },
+  "notes": [
+    "Best structure for a skim reader: the measured requested-patch vs store-fix table right after the headline answers 'why not the one-liner' in one glance.",
+    "Counterfactual quotes only the repro; the sibling results sit in the earlier table rather than in the counterfactual section.",
+    "Assumption 3 marks the scope of the rule for signup/reset/invite as UNVERIFIED product decision, a fair hedge the other runs skip.",
+    "Report length: 1,830 words."
+  ]
+}
