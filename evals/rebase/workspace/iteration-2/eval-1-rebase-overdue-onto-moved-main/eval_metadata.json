@@ -1,0 +1,5 @@
+{
+  "eval_id": 1,
+  "eval_name": "rebase-overdue-onto-moved-main",
+  "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/rebase/make_fixture.sh OUTPUT_DIR/repo`, then work inside OUTPUT_DIR/repo. Rebase my branch feature/overdue onto main. I started it a while ago and main has moved. Nobody is available to answer questions during this run: where the skill would stop for my approval at the risk gate or the plan, write what you would have asked to OUTPUT_DIR/questions.md, state the assumption you proceed on, pick the lowest-risk option, and continue. Write the final report to OUTPUT_DIR/report.md. Do not push anywhere."
+}
