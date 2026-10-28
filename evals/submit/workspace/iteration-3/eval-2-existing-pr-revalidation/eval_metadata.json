@@ -1,0 +1,5 @@
+{
+  "eval_id": 2,
+  "eval_name": "existing-pr-revalidation",
+  "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/submit/make_fixture.sh OUTPUT_DIR/fx existing-pr`, then work inside OUTPUT_DIR/fx/repo. I'm on branch korya-retry-backoff; a PR is already open for it, and its current title and body are in OUTPUT_DIR/fx/pr/title.txt and OUTPUT_DIR/fx/pr/body.md (treat those files as what the forge would show you). I've now added the token-bucket rate limiter and refreshed docs/BENCHMARKS.md; it's uncommitted. Push this up. This environment has no GitHub: `origin` is the local bare repo at OUTPUT_DIR/fx/origin.git and the `gh` CLI must not be used. If the PR title or body needs editing, write the new title to OUTPUT_DIR/pr-title.txt and the new body to OUTPUT_DIR/pr-body.md; if they do not, say so explicitly. Where the workflow would wait for CI, say that CI is unavailable here and stop."
+}
