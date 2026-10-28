@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+      "passed": true,
+      "evidence": "check_run: branch korya-retry-backoff, pushed true (HEAD == origin ebe0899), origin_main_unchanged true."
+    },
+    {
+      "text": "No commit contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "check_run no_env_or_scratch_committed true; .env and scratch.py remain untracked."
+    },
+    {
+      "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+      "passed": true,
+      "evidence": "5ddc319 docs(readme): Fix the spelling of \"receive\" touches only README.md."
+    },
+    {
+      "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+      "passed": true,
+      "evidence": "Subjects: 'docs(readme): Fix the spelling of \"receive\"', 'feat(ratelimit): Replace the fixed window with a token bucket'; imperative, capitalized, <=72, conventional."
+    },
+    {
+      "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript cmd 13 (after both commits, before push cmd 14): 'make lint && make test' -> lint passed, 'Ran 7 tests ... OK'."
+    },
+    {
+      "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+      "passed": true,
+      "evidence": "Final message table: Body '\"the rate limiter is untouched\", \"No change in behaviour for tenants\"' -> 'Both claims are gone. Both are now false.'; 'The PR title and body were stale'."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+      "passed": true,
+      "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and limit tenants with a token bucket', 70 chars, imperative, both changes."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+      "passed": true,
+      "evidence": "Body: 'A token bucket replaces the fixed-window limiter for each tenant' and 'Tenants that burst are throttled'; no stale claim."
+    },
+    {
+      "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+      "passed": true,
+      "evidence": "Table: 91.2%->99.1%, 1,840->12, 3.4 s->9.8 s, 3 s->31 s, 100/min fixed -> 60/min sustained burst 20; bullet 'now throttled after 20 ... Three tenants on staging hit this.'"
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+      "passed": true,
+      "evidence": "prose-lint.py on pr-body.md: '0 findings in 1 file'."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": true,
+      "evidence": "ebe0899 and 5ddc319 bodies: 0 findings each."
+    },
+    {
+      "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+      "passed": true,
+      "evidence": "Why opens 'Under a flaky gateway, about 9% of notifications were lost.' (10 words). What & how opens with 2 plain sentences before the load-test description and table."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so I stopped before the CI gate.' Transcript: 'No gh command was run. CI is unavailable here.'"
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0,
+    "total": 13,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "PR body 391 words. 'Side effects a reviewer must weigh' bullets restate the table deltas; otherwise well structured.",
+    "Only run besides with_skill/3 to correct 'retries five times' to 'up to five attempts' (matches range(retries)); also questioned how 31 s worst case arises when backoff sleeps sum to 7.5 s.",
+    "BENCHMARKS.md bundled into the feat commit rather than its own docs commit; acceptable.",
+    "Cleaned up __pycache__, the swd-submit marker, and the commit-msg file; did not mark the removed FixedWindowLimiter export as breaking (!) though the body calls it a 'Breaking import'."
+  ]
+}

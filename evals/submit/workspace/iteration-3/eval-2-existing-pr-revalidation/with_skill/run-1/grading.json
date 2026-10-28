@@ -1,0 +1,82 @@
+{
+  "expectations": [
+    {
+      "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+      "passed": true,
+      "evidence": "check_run: branch korya-retry-backoff, pushed true (HEAD == origin b6f8842), origin_main_unchanged true."
+    },
+    {
+      "text": "No commit contains .env or scratch.py.",
+      "passed": true,
+      "evidence": "check_run no_env_or_scratch_committed true; .env and scratch.py untracked."
+    },
+    {
+      "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+      "passed": true,
+      "evidence": "README.md left unstaged (git status ' M README.md'); final message: 'README.md fixes the \"recieve\" typo. It has nothing to do with this PR, so I left it unstaged. Should it go in as a separate commit or a separate PR?' Explicit leave-out with a reason."
+    },
+    {
+      "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+      "passed": true,
+      "evidence": "Single new subject 'feat(ratelimit): Replace the fixed window with a token bucket'; conventional, imperative, capitalized, 61 chars."
+    },
+    {
+      "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+      "passed": true,
+      "evidence": "Transcript cmd 13 (after commit cmd 12, before push cmd 15): make lint exit 0, make test 'Ran 7 tests, OK, exit 0'."
+    },
+    {
+      "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+      "passed": true,
+      "evidence": "Final message: 'The PR title and body were stale' and '\"The rate limiter is untouched.\" No longer true.' / '\"No change in behaviour for tenants.\" False. Bursts now stop at 20'."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+      "passed": true,
+      "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and limit tenants with a token bucket', 70 chars, imperative, both changes."
+    },
+    {
+      "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+      "passed": true,
+      "evidence": "Body: 'Each tenant now gets a token bucket instead of a fixed window' and a 'Tenants:' throttling bullet; no stale claim."
+    },
+    {
+      "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+      "passed": true,
+      "evidence": "Table: 91.2%->99.1%, 3.4 s->9.8 s, 1,840->12, 3 s->31 s, 100/min -> 60/min burst 20; bullet 'now throttled after 20. It then drains at one per second. Three tenants on staging hit this.'"
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+      "passed": true,
+      "evidence": "prose-lint.py on pr-body.md: '0 findings in 1 file' (after fixing a 22-word long-lead)."
+    },
+    {
+      "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+      "passed": true,
+      "evidence": "b6f8842 body: 0 findings."
+    },
+    {
+      "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+      "passed": true,
+      "evidence": "Why opens 'About 9% of notifications were lost under a flaky gateway, and tenants could burst a minute's quota in one second.' (20 words, at the limit). What & how opens with 2 plain sentences before the table."
+    },
+    {
+      "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+      "passed": true,
+      "evidence": "Final message: 'CI is unavailable here, so I stopped there. That means \"unknown\", not \"green\".'"
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0,
+    "total": 13,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "Hidden disadvantage: the user's README typo fix stays uncommitted and unpushed, so the expected outcome (typo fix in its own commit) is not delivered; the run asks instead. PR body does not mention it.",
+    "PR body 373 words; side-effect bullets use qualitative deltas ('almost triples', 'tenfold') next to the table, so little repetition.",
+    "Body keeps 'retries five times' (it is five attempts).",
+    "Did not mark the removed FixedWindowLimiter export as breaking (!) though the body says 'Code that imports it breaks'. Raises the split-the-PR question and the uncapped Retry-After.",
+    "Cleaned up __pycache__ and the swd-submit marker."
+  ]
+}

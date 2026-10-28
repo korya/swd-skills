@@ -1,0 +1,1120 @@
+{
+  "metadata": {
+    "skill_name": "submit",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-10-28T12:53:06Z",
+    "evals_run": [
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 169.0,
+        "tokens": 80762,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+          "passed": true,
+          "evidence": "check_run: branch fixture-notify-backoff-token-bucket, not_on_main true, origin_main_unchanged true, pushed true (HEAD = origin branch = 68e4fd2)."
+        },
+        {
+          "text": "No commit on the feature branch contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true. Commits touch sender.py+test_sender.py / __init__.py+ratelimit.py+test_ratelimit.py / docs/BENCHMARKS.md / README.md. git status shows .env and scratch.py untracked."
+        },
+        {
+          "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+          "passed": true,
+          "evidence": "68e4fd2 'docs(readme): Fix the spelling of \"receive\"' touches only README.md (check_run readme_fix_separate true)."
+        },
+        {
+          "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'feat(sender): Retry with exponential backoff and honor Retry-After', 'feat(ratelimit)!: Replace the fixed window with a token bucket', 'docs(benchmarks): Compare backoff and token bucket against the old setup', 'docs(readme): Fix the spelling of \"receive\"'. All imperative, capitalized, <=72 chars (check_run subjects_conventional true)."
+        },
+        {
+          "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+          "passed": true,
+          "evidence": "d18a60a body after blank line: 'Previously the sender retried 5xx responses three times with a fixed one-second wait. It never retried a 429. Now it retries 429, 500, 502, 503, and 504 up to five times.' 4edfc5d likewise 'Previously a tenant could send its full quota... Now each tenant gets a token bucket.'"
+        },
+        {
+          "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript step 14: commits then 'make test && make lint' -> 'TEST RUN 4: 7 tests OK'. Step 15: git push. No test run after it failed."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+          "passed": true,
+          "evidence": "'feat(notify)!: Add retry backoff and a token-bucket rate limiter', 64 chars, imperative, names retry backoff and rate limiter."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+          "passed": true,
+          "evidence": "Lede: 'When the gateway is unstable, about one message in eleven never arrives, and the gateway rejects many sends with 429.' = 20 words. States lost messages and 429s, no fix, no teaser."
+        },
+        {
+          "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+          "passed": true,
+          "evidence": "Opens with 2 sentences: 'The sender now retries with exponential backoff and honors Retry-After. Each tenant now gets a token bucket in place of the fixed window.' Then table with Delivery success 91.2% -> 99.1%, p99 3.4 s -> 9.8 s, worst-case 3 s -> 31 s, plus 'Slower tail. The p99 latency grows by 6.4 s. The worst-case wait per message grows from 3 s to 31 s.'"
+        },
+        {
+          "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+          "passed": true,
+          "evidence": "'A tenant that sent 100 messages at the top of each minute is now throttled after 20. It then drains at one message per second. Three tenants on staging hit this.' Table row 'Per-tenant cap | 100/min, fixed window | 60/min sustained, burst 20'."
+        },
+        {
+          "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+          "passed": true,
+          "evidence": "No file inventory (Other changes has two prose items). The 'Retry policy, before and after' text block and the 3-line limiter construction snippet are written for the reader, not diff hunks. No journal words (check_run pr_body_journal_words false)."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py pr-body.md: '0 findings in 1 file', exit 0."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "check_run commit_body_lint_findings 0 (max sentence 16 words)."
+        },
+        {
+          "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+          "passed": true,
+          "evidence": "Paragraph leads: lede (what broke); 'The sender retried a 5xx three times with a fixed one-second wait, and it never retried a 429.' (cause); 'The sender now retries with exponential backoff and honors Retry-After.' (change); 'The trade: delivery success rises by 7.9 points and 429 responses drop by 99%.' (gain) with bullet leads 'Slower tail.' / 'Breaking API change.' (cost); 'Out of scope: ...'. Remaining leads are short captions for code/lists. No Because, no count teaser, no qualifier chain."
+        },
+        {
+          "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped before the CI gate.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 211.5,
+        "tokens": 87162,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+          "passed": true,
+          "evidence": "check_run: branch fixture-notify-backoff-token-bucket, not_on_main true, origin_main_unchanged true, pushed true (9cac5de)."
+        },
+        {
+          "text": "No commit on the feature branch contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true. git status: '?? .env', '?? scratch.py'."
+        },
+        {
+          "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+          "passed": true,
+          "evidence": "58c0229 'docs(readme): Fix the spelling of \"receive\"' touches only README.md."
+        },
+        {
+          "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'docs(readme): Fix the spelling of \"receive\"', 'feat(notify)!: Retry gateway sends with exponential backoff', 'feat(notify)!: Replace the fixed window limiter with a token bucket', 'docs(benchmarks): Add load-test results for backoff and token bucket'. All imperative, capitalized, <=72."
+        },
+        {
+          "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+          "passed": true,
+          "evidence": "0db7895 body: 'Previously it retried only 5xx, three times, with a fixed one-second wait. A 429 went straight back to the caller. Now the sender retries 429, 500, 502, 503, and 504, up to five attempts in total.' a6abf0f: 'Previously the fixed window allowed 100 sends... Now each tenant gets a bucket of 20 tokens'."
+        },
+        {
+          "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript step 20: 'make test ran 7 tests, OK, exit 0'; step 21 per-commit unittest OK at 58c0229, 0db7895, a6abf0f; step 22 push."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+          "passed": true,
+          "evidence": "'feat(notify)!: Retry with backoff and limit tenants with a token bucket', 71 chars, imperative, names both."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+          "passed": true,
+          "evidence": "Lede: 'About one notification in eleven fails to deliver when the gateway returns errors or rate-limits us.' = 16 words. Broken behaviour only, no fix, no teaser."
+        },
+        {
+          "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+          "passed": true,
+          "evidence": "Opens: 'The sender now retries 429 and 5xx with exponential backoff and obeys Retry-After. A token bucket replaces the fixed window for each tenant.' Then table (91.2% -> 99.1%, p99 3.4 s -> 9.8 s) and 'Slower tail. The p99 latency rises by 6.4 s. The worst single message waits 31 s instead of 3 s.'"
+        },
+        {
+          "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+          "passed": true,
+          "evidence": "'Lower cap for bursty tenants. A tenant that sends 100 messages at the top of each minute is throttled after 20. It then drains at one per second. Three tenants on staging hit this.' Table row shows 60/min sustained."
+        },
+        {
+          "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+          "passed": true,
+          "evidence": "No file list, no diff hunks; a mermaid flowchart of the send loop written for the reader. 'A local probe of the new sender found three gaps' reports a finding, not a journal."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "check_run commit_body_lint_findings 0 (max sentence 18 words)."
+        },
+        {
+          "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+          "passed": true,
+          "evidence": "Leads: lede (what broke); 'The sender now retries 429 and 5xx with exponential backoff and obeys Retry-After.' (change); 'The trade: delivery rises by 7.9 points and 429 responses nearly disappear.' with bullet leads 'Slower tail.', 'Lower cap for bursty tenants.', 'Breaking API.' (cost); 'The benchmark numbers measure both changes together.'; 'Other 4xx responses still return to the caller on the first attempt.' All claims. Weak spots, not failures: Why paragraph 2 leads with the test setup ('The staging load test sends 10,000 messages...'), so the cause sits in sentences 3-5; 'A local probe ... found three gaps in the handling of Retry-After.' announces a count but names the subject."
+        },
+        {
+          "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped before the CI gate.' Local make test/lint reported as local only."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 233.2,
+        "tokens": 83286,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+          "passed": true,
+          "evidence": "check_run: branch fixture-retry-ratelimit-rework, not_on_main true, origin_main_unchanged true, pushed true (ff7399e)."
+        },
+        {
+          "text": "No commit on the feature branch contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true. git status: .env, scratch.py untracked."
+        },
+        {
+          "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+          "passed": true,
+          "evidence": "2486b75 'docs(readme): Fix the spelling of \"receive\"' touches only README.md."
+        },
+        {
+          "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'feat(sender)!: Retry with exponential backoff and honor Retry-After', 'feat(ratelimit)!: Replace the fixed window with a token bucket', 'docs(readme): Fix the spelling of \"receive\"', 'docs(benchmarks): Compare the load test before and after the rework'. All imperative, capitalized, <=72."
+        },
+        {
+          "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+          "passed": true,
+          "evidence": "93225b5 body: 'Previously the sender retried a 5xx response three times with a fixed 1 s wait. It returned a 429 to the caller at once. Now it retries 429, 500, 502, 503, and 504 up to five times.' 5bec928 states fixed window before, token bucket after."
+        },
+        {
+          "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript step 19: tests + lint OK at each of 4 commits in a worktree and 'TEST RUN at HEAD: 7 tests OK'. Step 21: push."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+          "passed": true,
+          "evidence": "'feat(notify)!: Add retry backoff and a token-bucket rate limiter', 64 chars, imperative, names both."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+          "passed": true,
+          "evidence": "Lede: 'In the staging load test, 8.8% of notifications failed to deliver when the gateway returned errors or throttled the sender.' = 20 words. 8.8% = 100 - 91.2. No fix, no teaser."
+        },
+        {
+          "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+          "passed": true,
+          "evidence": "Opens: 'The sender now retries 429 and 5xx responses with exponential backoff and obeys Retry-After. Each tenant's rate limit is now a token bucket of 60 sends per minute with a burst of 20.' Then table (91.2% -> 99.1%, p99 3.4 s -> 9.8 s, 3 s -> 31 s) and 'Slower tail. The p99 latency grows by 6.4 s and the worst-case wait grows from 3 s to 31 s.'"
+        },
+        {
+          "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+          "passed": true,
+          "evidence": "'Lower cap for bursty tenants. A tenant that sent 100 messages at the start of each minute is now throttled after 20 and drains at one per second. Three tenants on staging hit this.'"
+        },
+        {
+          "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+          "passed": true,
+          "evidence": "No file list or diff hunks; mermaid flowchart written for the reader; 'Other changes' has three prose items describing changes. No journal words."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "check_run commit_body_lint_findings 0 (max sentence 20 words)."
+        },
+        {
+          "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+          "passed": true,
+          "evidence": "Leads: lede; 'The sender now retries 429 and 5xx responses with exponential backoff and obeys Retry-After.'; side-effect bullet leads 'Slower tail.', 'Lower cap for bursty tenants.', 'Breaking API.'; 'Details a reviewer should not miss:' list with claim leads ('429 is now retryable.', 'Jitter is off by default.'); Known limitations bullets 'Retry-After has no cap.' All claims. Weak spot: Why paragraph 2 leads with the test setup ('The test sends 10,000 messages...'), cause in later sentences."
+        },
+        {
+          "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI isn't available here, so I stopped before the CI gate.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 158.8,
+        "tokens": 77252,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+          "passed": true,
+          "evidence": "check_run: branch korya-retry-backoff, not_on_main true, pushed true (HEAD == origin/korya-retry-backoff 522176d), origin_main_unchanged true."
+        },
+        {
+          "text": "No commit contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true; git status still shows ?? .env and ?? scratch.py."
+        },
+        {
+          "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+          "passed": true,
+          "evidence": "522176d docs(readme): Fix the spelling of \"receive\" touches only README.md (readme_fix_separate true)."
+        },
+        {
+          "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'feat(ratelimit): Replace the fixed window with a token bucket', 'docs(benchmarks): Compare the new retry and limiter with the old', 'docs(readme): Fix the spelling of \"receive\"'; all imperative, capitalized, <=72 chars, subjects_conventional true."
+        },
+        {
+          "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript cmd 12 (after commits, before push cmd 13): make lint exit 0, make test 'Ran 7 tests, OK'. Then pushed 642df10..522176d."
+        },
+        {
+          "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+          "passed": true,
+          "evidence": "Final message: 'The PR title and body were stale' and 'Body claimed \"No change in behaviour for tenants; the rate limiter is untouched.\" That is now false.' Title covered only the first commit."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+          "passed": true,
+          "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and limit tenants with a token bucket', 70 chars, imperative, names retry and token-bucket limit."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+          "passed": true,
+          "evidence": "Body says 'A token bucket replaces the fixed window' and lists tenants throttled after 20; neither stale claim appears."
+        },
+        {
+          "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+          "passed": true,
+          "evidence": "Table has 91.2%->99.1%, 3.4 s->9.8 s, 3 s->31 s, 1,840->12, cap '100/min, fixed window' -> '60/min sustained, burst 20'; bullet 'The limiter now throttles them after 20 ... Three tenants on staging hit this.'"
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+          "passed": true,
+          "evidence": "prose-lint.py on pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "Each of d5d05a6, 4595ada, 522176d bodies (trailer stripped) piped to prose-lint.py: 0 findings each."
+        },
+        {
+          "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+          "passed": true,
+          "evidence": "Why opens 'About 9% of notifications never reached the gateway when it was flaky.' (12 words). What & how opens with 3 plain sentences (retry/backoff, token bucket replaces window, 1/s sustained burst 20) before the table."
+        },
+        {
+          "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped before the CI gate.' and 'The PR is not verified green.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 160.6,
+        "tokens": 77271,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+          "passed": true,
+          "evidence": "check_run: branch korya-retry-backoff, pushed true (HEAD == origin ebe0899), origin_main_unchanged true."
+        },
+        {
+          "text": "No commit contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true; .env and scratch.py remain untracked."
+        },
+        {
+          "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+          "passed": true,
+          "evidence": "5ddc319 docs(readme): Fix the spelling of \"receive\" touches only README.md."
+        },
+        {
+          "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'docs(readme): Fix the spelling of \"receive\"', 'feat(ratelimit): Replace the fixed window with a token bucket'; imperative, capitalized, <=72, conventional."
+        },
+        {
+          "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript cmd 13 (after both commits, before push cmd 14): 'make lint && make test' -> lint passed, 'Ran 7 tests ... OK'."
+        },
+        {
+          "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+          "passed": true,
+          "evidence": "Final message table: Body '\"the rate limiter is untouched\", \"No change in behaviour for tenants\"' -> 'Both claims are gone. Both are now false.'; 'The PR title and body were stale'."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+          "passed": true,
+          "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and limit tenants with a token bucket', 70 chars, imperative, both changes."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+          "passed": true,
+          "evidence": "Body: 'A token bucket replaces the fixed-window limiter for each tenant' and 'Tenants that burst are throttled'; no stale claim."
+        },
+        {
+          "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+          "passed": true,
+          "evidence": "Table: 91.2%->99.1%, 1,840->12, 3.4 s->9.8 s, 3 s->31 s, 100/min fixed -> 60/min sustained burst 20; bullet 'now throttled after 20 ... Three tenants on staging hit this.'"
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+          "passed": true,
+          "evidence": "prose-lint.py on pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "ebe0899 and 5ddc319 bodies: 0 findings each."
+        },
+        {
+          "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+          "passed": true,
+          "evidence": "Why opens 'Under a flaky gateway, about 9% of notifications were lost.' (10 words). What & how opens with 2 plain sentences before the load-test description and table."
+        },
+        {
+          "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped before the CI gate.' Transcript: 'No gh command was run. CI is unavailable here.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 174.9,
+        "tokens": 79272,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+          "passed": true,
+          "evidence": "check_run: branch korya-retry-backoff, pushed true (HEAD == origin 423243d), origin_main_unchanged true."
+        },
+        {
+          "text": "No commit contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true; .env and scratch.py untracked."
+        },
+        {
+          "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+          "passed": true,
+          "evidence": "423243d docs(readme): Fix the spelling of \"receive\" touches only README.md."
+        },
+        {
+          "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'feat(ratelimit)!: Replace the fixed window limiter with a token bucket' (71), 'docs(benchmarks): Compare the old and new retry and limiter setups', 'docs(readme): Fix the spelling of \"receive\"'; all conventional, imperative, capitalized, <=72."
+        },
+        {
+          "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript cmd 16 (on committed HEAD, before push cmd 17): make test 7 tests OK, make lint exit 0."
+        },
+        {
+          "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+          "passed": true,
+          "evidence": "Final message: 'the PR title and body were out of date' and 'The body made false claims. It said \"the rate limiter is untouched\" and \"no change in behaviour for tenants.\" Both stopped being true with this push.'"
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+          "passed": true,
+          "evidence": "pr-title.txt: 'feat(notify)!: Retry with backoff and limit tenants with a token bucket', 71 chars, imperative, both changes."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+          "passed": true,
+          "evidence": "Body: 'A per-tenant token bucket replaces the fixed window limiter' and 'bursty tenants are throttled sooner'; no stale claim."
+        },
+        {
+          "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+          "passed": true,
+          "evidence": "Table: 91.2%->99.1%, 3.4 s->9.8 s, 1,840->12, 3 s->31 s, 100/min -> 60/min burst 20; bullet 'Lower cap for tenants. The sustained cap drops from 100 to 60 ... throttled after 20 ... Three tenants on staging hit this.'"
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+          "passed": true,
+          "evidence": "prose-lint.py on pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "cf29cb8, 998df55, 423243d bodies: 0 findings each."
+        },
+        {
+          "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+          "passed": true,
+          "evidence": "Why opens 'About 9% of notifications were lost when the gateway was flaky, and bursty tenants caused 429 storms.' (17 words). What & how opens with 3 plain sentences before the table."
+        },
+        {
+          "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped before the CI check.' and 'CI: unavailable in this environment, so I stopped there.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 231.8,
+        "tokens": 83129,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+          "passed": true,
+          "evidence": "check_run: branch fixture-retry-ratelimit-rework, not_on_main true, origin_main_unchanged true, pushed true (c83fe85)."
+        },
+        {
+          "text": "No commit on the feature branch contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true. git status: '?? .env', '?? scratch.py'."
+        },
+        {
+          "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+          "passed": true,
+          "evidence": "14e532d 'docs(readme): Fix the spelling of \"receive\"' touches only README.md."
+        },
+        {
+          "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'docs(readme): Fix the spelling of \"receive\"', 'feat(notify)!: Retry sends with exponential backoff and Retry-After', 'feat(notify)!: Replace the fixed window limiter with a token bucket', 'docs(benchmarks): Compare the backoff and token bucket load test'. All imperative, capitalized, <=72."
+        },
+        {
+          "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+          "passed": true,
+          "evidence": "79031a8 body: 'Previously the sender retried any 5xx response three times with a fixed one-second wait. It did not retry a 429.' ... 'Now the sender retries 429, 500, 502, 503, and 504.' 0554421 has the same Previously/Now shape."
+        },
+        {
+          "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript step 21: 'make lint && make test' -> 'Test run 6: 7 tests, OK at branch tip'. Step 22: push."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+          "passed": true,
+          "evidence": "'feat(notify)!: Retry with backoff and limit tenants with a token bucket', 71 chars, imperative, names both."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+          "passed": true,
+          "evidence": "Lede: 'About one message in eleven is not delivered when the gateway returns errors or a 429 storm.' = 17 words. No fix, no teaser."
+        },
+        {
+          "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+          "passed": true,
+          "evidence": "Opens: 'The sender now retries with exponential backoff and obeys Retry-After. Each tenant now gets a token bucket that allows 60 sends per minute, with a burst of 20.' Then table and bullets 'Better delivery. Success goes from 91.2% to 99.1%.' 'Slower tail. p99 latency goes from 3.4 s to 9.8 s. The worst-case wait for one message goes from 3 s to 31 s.'"
+        },
+        {
+          "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+          "passed": true,
+          "evidence": "'Tenants that burst are throttled. A tenant that sent 100 messages at the start of each minute now gets 20, then one per second. Three tenants on staging hit this.'"
+        },
+        {
+          "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+          "passed": true,
+          "evidence": "No file list. The 'API change' block is a short before/after of constructor calls written for the reader, not a diff hunk. Retry schedule is a table. 'A probe with Retry-After: 3600 made the sender wait one hour' is a finding, not a journal."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "check_run commit_body_lint_findings 0 (max sentence 22 words)."
+        },
+        {
+          "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+          "passed": true,
+          "evidence": "Leads: lede; 'The sender now retries with exponential backoff and obeys Retry-After.'; side-effect bullets 'Better delivery.', 'Slower tail.', 'Tenants that burst are throttled.', 'Breaking API change.', 'Fewer statuses are retried.'; 'A token bucket refills continuously.'; open-question bullets lead with claims ('The 31 s worst case does not follow from the defaults.'). Weak spots, not failures: Why paragraph 2 leads with the test setup, and 'The current sender and limiter work like this:' is a pointer that defers to the bullets."
+        },
+        {
+          "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI isn't available here, so I stopped at phase 6. Nothing is verified green beyond local runs.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 172.6,
+        "tokens": 77277,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+          "passed": true,
+          "evidence": "check_run: branch fixture-backoff-token-bucket, not_on_main true, origin_main_unchanged true, pushed true (72e4cbb)."
+        },
+        {
+          "text": "No commit on the feature branch contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true. git status: .env, scratch.py untracked."
+        },
+        {
+          "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+          "passed": true,
+          "evidence": "ab5655d 'docs(readme): Fix the spelling of \"receive\"' touches only README.md."
+        },
+        {
+          "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'docs(readme): Fix the spelling of \"receive\"', 'feat(sender)!: Retry with exponential backoff and honor Retry-After', 'feat(ratelimit)!: Replace the fixed window with a token bucket', 'docs(benchmarks): Compare the load test before and after the rework'. All imperative, capitalized, <=72."
+        },
+        {
+          "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+          "passed": true,
+          "evidence": "bf8ff37 body: 'Previously the sender retried only 5xx responses, three attempts with a fixed wait of one second. It returned a 429 to the caller without a retry.' ... 'Now the sender retries 429, 500, 502, 503, and 504, with up to five attempts.'"
+        },
+        {
+          "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript step 16: 'make lint && make test && git push ...' -> 'Test run 3 (final HEAD): 7 tests, OK. Pushed.' The && chain means the push only ran after the tests passed."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+          "passed": true,
+          "evidence": "'Retry with backoff and rate-limit tenants with a token bucket', 61 chars, imperative, names both. No Conventional Commits prefix, which this assertion does not require."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+          "passed": true,
+          "evidence": "Lede: 'When the gateway fails or throttles, almost one message in eleven never reaches it.' = 14 words. Lost messages, no fix, no teaser. (Wording is imprecise; see notes.)"
+        },
+        {
+          "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+          "passed": true,
+          "evidence": "Opens: 'The sender now retries 429 and 5xx responses with exponential backoff and obeys Retry-After. Each tenant now gets a token bucket instead of a fixed window.' Then table (91.2% -> 99.1%) and 'The p99 latency rises from 3.4 s to 9.8 s. The worst-case wait per message rises from 3 s to 31 s.'"
+        },
+        {
+          "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+          "passed": true,
+          "evidence": "'Bursty tenants are throttled earlier. A tenant that sends 100 messages in the first second of a minute now stops after 20. It then drains at one per second. Three tenants on staging hit this cap.' Also 'The sustained cap drops. Each tenant gets 60 sends per minute instead of 100.'"
+        },
+        {
+          "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+          "passed": true,
+          "evidence": "No diff hunks. Short before/after constructor snippet and a schedule table, both written for the reader. 'Other changes' keys its two bullets by file name ('`README.md`: fix the spelling...') but describes changes, not a file inventory. 'I confirmed the first two with a probe against the branch.' is one verification sentence, not a journal."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "check_run commit_body_lint_findings 0 (max sentence 18 words)."
+        },
+        {
+          "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+          "passed": true,
+          "evidence": "Leads: lede; 'In the load test, only 91.2% of 10,000 sends arrive.'; 'The sender now retries 429 and 5xx responses with exponential backoff and obeys Retry-After.'; side-effect bullets are all full claims ('More messages arrive.', 'The tail gets slower.', 'Bursty tenants are throttled earlier.', 'The sustained cap drops.', 'The public API breaks.'); 'A Retry-After header on any retryable response replaces the computed wait.' Weak spots, not failures: the captions 'The API changes like this:' and 'Without a Retry-After header, a message that keeps failing follows this schedule with the defaults:' (a pointer with two qualifiers), and 'This PR does not fix the gaps below.'"
+        },
+        {
+          "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped before phase 6.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 227.9,
+        "tokens": 79485,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Work is committed on a branch other than main, and origin/main still points at the fixture's initial commit.",
+          "passed": true,
+          "evidence": "check_run: branch fixture-notify-backoff-token-bucket, not_on_main true, origin_main_unchanged true, pushed true (a0d35e1)."
+        },
+        {
+          "text": "No commit on the feature branch contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true. git status: .env, scratch.py untracked."
+        },
+        {
+          "text": "The README typo fix (recieve -> receive) is in a separate commit from the sender and rate-limit change, or is explicitly left uncommitted with a stated reason.",
+          "passed": true,
+          "evidence": "0d52b46 'docs(readme): Fix the spelling of \"receive\" in the README' touches only README.md."
+        },
+        {
+          "text": "Every commit subject on the feature branch matches Conventional Commits (type(scope): Subject), is imperative, starts with a capital letter, and is at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'docs(readme): Fix the spelling of \"receive\" in the README', 'feat(sender)!: Retry with exponential backoff and honor Retry-After', 'feat(ratelimit)!: Replace the fixed window limiter with a token bucket', 'docs(benchmarks): Compare load-test results before and after the rework'. All imperative, capitalized, <=72."
+        },
+        {
+          "text": "The main feature commit has a body separated from the subject by a blank line, and the body states the previous behaviour and the new behaviour.",
+          "passed": true,
+          "evidence": "f8e3a36 body: 'Previously the sender made 3 attempts on any 5xx response, with a fixed wait of 1 second after each. It did not retry a 429.' ... 'Now the sender makes up to 5 attempts on 429, 500, 502, 503, and 504.'"
+        },
+        {
+          "text": "The last test run before the push (make test or python -m unittest) passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript step 17: make test at HEAD 7 OK (EXIT=0), plus tests and lint pass at each of the 4 commits. Step 19: push."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists, is at most 72 characters, is imperative, and names both the retry change and the rate-limit change (not just one).",
+          "passed": true,
+          "evidence": "'feat(notify)!: Retry with backoff and limit tenants with a token bucket', 71 chars, imperative, names both."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists, and its problem section opens with one sentence of at most 20 words that states what was broken (lost messages / 429 storms) without describing the fix and without a teaser such as 'Two things went wrong.'",
+          "passed": true,
+          "evidence": "Lede: 'In the staging load test, 8.8% of notifications failed to deliver when the gateway returned errors or throttled us.' = 20 words. No fix, no teaser."
+        },
+        {
+          "text": "The solution section of pr-body.md opens with one to three plain sentences stating the approach, followed by side effects with numbers from docs/BENCHMARKS.md: at least the success-rate improvement (91.2% -> 99.1%) AND the p99 or worst-case latency regression (3.4 s -> 9.8 s, or 3 s -> 31 s).",
+          "passed": true,
+          "evidence": "Opens: 'The sender now retries failed and throttled sends with exponential backoff and honors Retry-After. Each tenant now gets a token bucket of 20 that refills at 1 per second, instead of 100 per fixed minute.' Then table and 'Better: delivery success rises by 7.9 points...' 'Worse: p99 latency grows from 3.4 s to 9.8 s. The worst-case wait per message grows from 3 s to 31 s.'"
+        },
+        {
+          "text": "pr-body.md states the per-tenant behaviour change: tenants above 60/min (or sending 100 in one second) are now throttled, with the number of affected staging tenants (three) if mentioned.",
+          "passed": true,
+          "evidence": "'Who is affected: tenants that send 100 messages at the start of each minute are now throttled after 20. They then drain at 1 per second. Three staging tenants hit this.'"
+        },
+        {
+          "text": "pr-body.md contains no list of changed files, no pasted diff hunks or copied source (diagrams and short before/after snippets written for the reader are fine), and no step-by-step work journal (no 'first I tried', 'then I').",
+          "passed": true,
+          "evidence": "No file list or diff hunks. Short before/after API snippet and a mermaid diagram written for the reader. 'I checked the first two with a scripted client.' is one verification sentence, not a journal."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+          "passed": true,
+          "evidence": "prose-lint.py pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "check_run commit_body_lint_findings 0 (max sentence 19 words)."
+        },
+        {
+          "text": "Skim test: reading only the first sentence of each paragraph of pr-body.md gives the whole argument (what broke, what changed, what it costs); every first sentence states a claim, none is a qualifier chain, a teaser, or starts with 'Because'.",
+          "passed": true,
+          "evidence": "Leads: lede; 'The load test sent 10,000 messages per run...' (setup), then 'The old sender gave up early, and the old limiter allowed full-quota bursts:' as sentence 2; 'The sender now retries failed and throttled sends...'; side-effect bullets 'Better: ...', 'Worse: ...', 'Who is affected: ...', 'Breaking: ...', 'Risk: ...' (labelled claims with numbers); Known gaps bullets lead with claims. Weak spots, not failures: Why paragraph 2 leads with setup, 'The public API changes as follows:' is a pointer caption, and 'These gaps exist on the branch.' is a thin lead."
+        },
+        {
+          "text": "The final message to the user states that CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped at the CI gate.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 198.3,
+        "tokens": 77362,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+          "passed": true,
+          "evidence": "check_run: branch korya-retry-backoff, pushed true (HEAD == origin b6f8842), origin_main_unchanged true."
+        },
+        {
+          "text": "No commit contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true; .env and scratch.py untracked."
+        },
+        {
+          "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+          "passed": true,
+          "evidence": "README.md left unstaged (git status ' M README.md'); final message: 'README.md fixes the \"recieve\" typo. It has nothing to do with this PR, so I left it unstaged. Should it go in as a separate commit or a separate PR?' Explicit leave-out with a reason."
+        },
+        {
+          "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+          "passed": true,
+          "evidence": "Single new subject 'feat(ratelimit): Replace the fixed window with a token bucket'; conventional, imperative, capitalized, 61 chars."
+        },
+        {
+          "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript cmd 13 (after commit cmd 12, before push cmd 15): make lint exit 0, make test 'Ran 7 tests, OK, exit 0'."
+        },
+        {
+          "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+          "passed": true,
+          "evidence": "Final message: 'The PR title and body were stale' and '\"The rate limiter is untouched.\" No longer true.' / '\"No change in behaviour for tenants.\" False. Bursts now stop at 20'."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+          "passed": true,
+          "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and limit tenants with a token bucket', 70 chars, imperative, both changes."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+          "passed": true,
+          "evidence": "Body: 'Each tenant now gets a token bucket instead of a fixed window' and a 'Tenants:' throttling bullet; no stale claim."
+        },
+        {
+          "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+          "passed": true,
+          "evidence": "Table: 91.2%->99.1%, 3.4 s->9.8 s, 1,840->12, 3 s->31 s, 100/min -> 60/min burst 20; bullet 'now throttled after 20. It then drains at one per second. Three tenants on staging hit this.'"
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+          "passed": true,
+          "evidence": "prose-lint.py on pr-body.md: '0 findings in 1 file' (after fixing a 22-word long-lead)."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "b6f8842 body: 0 findings."
+        },
+        {
+          "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+          "passed": true,
+          "evidence": "Why opens 'About 9% of notifications were lost under a flaky gateway, and tenants could burst a minute's quota in one second.' (20 words, at the limit). What & how opens with 2 plain sentences before the table."
+        },
+        {
+          "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped there. That means \"unknown\", not \"green\".'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 184.9,
+        "tokens": 78950,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+          "passed": true,
+          "evidence": "check_run: branch korya-retry-backoff, pushed true (HEAD == origin 74d3563), origin_main_unchanged true."
+        },
+        {
+          "text": "No commit contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true; .env and scratch.py untracked."
+        },
+        {
+          "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+          "passed": true,
+          "evidence": "74d3563 docs(readme): Fix the spelling of receive touches only README.md."
+        },
+        {
+          "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'feat(ratelimit)!: Replace the fixed window limiter with a token bucket' (71), 'docs(benchmarks): Compare the load test before and after the branch', 'docs(readme): Fix the spelling of receive'; conventional, imperative, capitalized, <=72."
+        },
+        {
+          "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript cmd 18 (after all commits, before push cmd 19): lint exit 0, make test 7 tests OK, verbose 7/7 ok."
+        },
+        {
+          "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+          "passed": true,
+          "evidence": "Final message 'Why the PR text was stale': 'The body said \"the rate limiter is untouched\" and \"No change in behaviour for tenants\". Both are false now.'"
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+          "passed": true,
+          "evidence": "pr-title.txt: 'feat(notify)!: Retry with backoff and limit tenants with a token bucket', 71 chars, imperative, both changes (file lacks a trailing newline)."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+          "passed": true,
+          "evidence": "Body: 'A token bucket replaces the fixed window limiter' and 'Tenants that send more than 20 messages at once are now throttled'; no stale claim."
+        },
+        {
+          "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+          "passed": true,
+          "evidence": "Table plus bullets: 'Delivery success rises from 91.2% to 99.1%', 'p99 latency grows from 3.4 s to 9.8 s. The worst-case wait per message grows from 3 s to 31 s.', table 1,840->12, 100/min -> 60/min burst 20; throttling bullet with three staging tenants."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+          "passed": true,
+          "evidence": "prose-lint.py on pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "810fed2, 64fd4cd, 74d3563 bodies: 0 findings each."
+        },
+        {
+          "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+          "passed": true,
+          "evidence": "Why opens 'A flaky gateway lost about 9% of notifications, and a tenant could send a whole minute's quota in one second.' (20 words, at the limit). What & how opens with 3 plain sentences before the table."
+        },
+        {
+          "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable here, so I stopped at phase 6.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 184.2,
+        "tokens": 75410,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The new work is committed on korya-retry-backoff (not main) and pushed; origin/main is unchanged.",
+          "passed": true,
+          "evidence": "check_run: branch korya-retry-backoff, pushed true (HEAD == origin 6d33f41), origin_main_unchanged true."
+        },
+        {
+          "text": "No commit contains .env or scratch.py.",
+          "passed": true,
+          "evidence": "check_run no_env_or_scratch_committed true; .env and scratch.py untracked."
+        },
+        {
+          "text": "The README typo fix is in its own commit or explicitly left out with a reason.",
+          "passed": true,
+          "evidence": "6d33f41 docs(readme): Fix the spelling of \"receive\" touches only README.md."
+        },
+        {
+          "text": "Every new commit subject matches Conventional Commits, is imperative, capitalized, and at most 72 characters.",
+          "passed": true,
+          "evidence": "Subjects: 'feat(ratelimit): Replace the fixed window with a token bucket', 'docs(benchmarks): Compare the old and new sender in the load test', 'docs(readme): Fix the spelling of \"receive\"'; conventional, imperative, capitalized, <=72."
+        },
+        {
+          "text": "The last test run before the push passed; a push after a failed or unread test result fails this assertion.",
+          "passed": true,
+          "evidence": "Transcript cmd 17 (after commits, before push cmd 18): make lint exit 0, make test 'Ran 7 tests ... OK', exit 0."
+        },
+        {
+          "text": "The transcript or final message explicitly states that the existing PR title and body are stale and why (the body claims the rate limiter is untouched and tenant behaviour is unchanged).",
+          "passed": true,
+          "evidence": "Final message: 'PR revalidation: stale, edited.' and 'the old one said \"the rate limiter is untouched\" and \"No change in behaviour for tenants\". Both are false now.'"
+        },
+        {
+          "text": "OUTPUT_DIR/pr-title.txt exists and names both the retry change and the rate-limit change, at most 72 characters, imperative.",
+          "passed": true,
+          "evidence": "pr-title.txt: 'feat(notify): Retry with backoff and limit tenants with a token bucket', 70 chars, imperative, both changes."
+        },
+        {
+          "text": "OUTPUT_DIR/pr-body.md exists and no longer claims the rate limiter is untouched or that tenant behaviour is unchanged.",
+          "passed": true,
+          "evidence": "Body: 'A per-tenant token bucket replaces the fixed window' and tenant throttling bullet; no stale claim."
+        },
+        {
+          "text": "pr-body.md gives the side effects with numbers from docs/BENCHMARKS.md: success rate 91.2% -> 99.1%, p99 3.4 s -> 9.8 s or worst-case wait 3 s -> 31 s, 429s 1,840 -> 12, and the throttling of tenants above 60/min.",
+          "passed": true,
+          "evidence": "Bullets: 'Delivery success goes from 91.2% to 99.1%, and 429 responses drop from 1,840 to 12', 'p99 latency grows from 3.4 s to 9.8 s, and the worst-case wait per message grows from 3 s to 31 s', 'Tenants that send more than 20 messages at once are now throttled to one per second'; table 100/min -> 60/min burst 20."
+        },
+        {
+          "text": "Running `python3 /Users/dmitri/dev/swd-skills-sbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/pr-body.md reports 0 findings.",
+          "passed": true,
+          "evidence": "prose-lint.py on pr-body.md: '0 findings in 1 file'."
+        },
+        {
+          "text": "Running the same linter on each new commit body (git log --format=%b, without the Co-Authored-By line) reports 0 findings.",
+          "passed": true,
+          "evidence": "279c254, 36055cb, 6d33f41 bodies: 0 findings each."
+        },
+        {
+          "text": "pr-body.md problem section opens with one sentence of at most 20 words stating the pain, and the solution section opens with one to three plain sentences before any detail.",
+          "passed": true,
+          "evidence": "Why opens 'About 9% of notifications were lost when the gateway was flaky.' (11 words). What & how opens with 2 plain sentences, then the glance bullets."
+        },
+        {
+          "text": "The final message states CI is unavailable here rather than claiming checks passed.",
+          "passed": true,
+          "evidence": "Final message: 'CI is unavailable in this environment, so I stopped at the CI gate.' and 'CI: unavailable here, so no checks were run or waited on.'"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 199.95,
+        "stddev": 24.5802,
+        "min": 172.6,
+        "max": 231.8
+      },
+      "tokens": {
+        "mean": 78602.1667,
+        "stddev": 2641.0835,
+        "min": 75410,
+        "max": 83129
+      }
+    },
+    "old_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 184.6667,
+        "stddev": 30.5438,
+        "min": 158.8,
+        "max": 233.2
+      },
+      "tokens": {
+        "mean": 80834.1667,
+        "stddev": 3847.7684,
+        "min": 77252,
+        "max": 87162
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.00",
+      "time_seconds": "+15.3",
+      "tokens": "-2232"
+    }
+  },
+  "notes": []
+}
