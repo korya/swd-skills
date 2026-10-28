@@ -1,0 +1,91 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/plan.md exists and contains, in order, sections for: headline, approach summary, out of scope, plan steps, assumptions, test plan, risks and mitigations, open questions (names may vary slightly).",
+      "passed": true,
+      "evidence": "H2 sections in order: Headline (l3), Approach summary (l7), Out of scope (l13), Plan (l22), Assumptions validated (l86), [Spec cross-check, Conventions, Sweep, Success criteria counterfactual], Test plan (l181), Risks and mitigations (l220), Open questions (l228). check_run.py reports sections_in_order=false only because it matched the H3 'Step 4. Add unit tests' (l57) for 'test'; the H2 order is correct."
+    },
+    {
+      "text": "The headline is one to three sentences and states what is being built and the chosen approach; the approach summary is prose of three to ten sentences, not bullets.",
+      "passed": false,
+      "evidence": "Headline (l5) has 4 sentences ('...past its due time.' / '...earliest due time first.' / '...not stored as an event or a fourth state.' / 'The four spec changes below need sign-off...'), over the 1-3 limit. Approach summary is prose but has 11 sentences (5 in l9, 6 in l11), over the 3-10 limit."
+    },
+    {
+      "text": "The plan states a falsifier for the hypothesis: an observation that would prove the chosen shape wrong, separate from the individual assumptions.",
+      "passed": true,
+      "evidence": "'### Hypothesis falsifier' (l101-105): 'The shape is wrong if overdue must be a recorded transition. That would mean an event when the due time passes, or a flag that survives closing.' Separate from the assumption list."
+    },
+    {
+      "text": "Project conventions are cited with file:line from AGENTS.md or docs/guidelines.md: the test framework is unittest run by `make test`, lint is `make lint`, and no package manager or test runner from outside the repo (pytest, poetry, npm) is assumed.",
+      "passed": false,
+      "evidence": "make lint and make test are cited from AGENTS.md (l82: 'Run `make lint && make test` (`AGENTS.md:88-89`, `Makefile:1-5`)'), and no foreign tool appears (foreign_tools=[]). But unittest is never stated with an AGENTS.md or docs/guidelines.md citation: it appears once, uncited, at l96 ('runs under unittest discovery'). l140 cites AGENTS.md:19-25 (the range holds the Tests row) but its text says only 'Python 3.11 or later with no dependencies'. Narrow miss."
+    },
+    {
+      "text": "The plan cites the affected spec IDs by name: at least TKT-005 (due time by priority) and TKT-013 (listing order) or CLI-006 (list), and CLI-001 (the command list) as a spec that needs updating for the new subcommand.",
+      "passed": true,
+      "evidence": "TKT-005 (l28 'its due time (TKT-005)', l112), TKT-013 (l75, l113), CLI-006 (l31, l117), CLI-001 named for update at l30 'change **CLI-001** from four subcommands to five, adding `overdue`'."
+    },
+    {
+      "text": "The plan respects INV-001 and INV-002: overdue status is derived from the ticket's due time at read time and is never written to the event log as an edit or a new event, or if an event is proposed, the plan flags it as a spec change needing user approval.",
+      "passed": true,
+      "evidence": "l5 'Overdue is computed at read time ... not stored as an event or a fourth state'; TKT-014 text l28 'Computing it appends no event'; cross-check l126 'INV-001 ... Holds' and l127 'INV-002 ... Untouched. No write path changes.'"
+    },
+    {
+      "text": "The plan reuses the existing due_at value on Ticket (or ticketdesk.sla.due_at) instead of recomputing SLA hours in the CLI or a new module.",
+      "passed": true,
+      "evidence": "Step 2 l40 rule is `now > ticket.due_at`; assumption l90 cites tickets.py:34-37 where replay sets due_at; reuse note l151 'the `due_at` field from replay'. No SLA recomputation."
+    },
+    {
+      "text": "The plan names where `now` comes from for the overdue comparison (an injectable clock or time source consistent with EventStore.clock) and validates that assumption against the code.",
+      "passed": true,
+      "evidence": "Step 2 l41 adds `TicketService.now()` returning `self.store.clock()`; assumption l92 validates via `ticketdesk/store.py:14-16` (public `clock` attribute) and experiment E2 (event count stayed at 4 after a `store.clock()` call)."
+    },
+    {
+      "text": "Every load-bearing assumption in the assumptions section carries evidence: a file:line citation, a quoted doc passage, or a command output.",
+      "passed": true,
+      "evidence": "All 10 assumptions (l90-99) carry evidence: file:line (tickets.py:34-37, store.py:14-16, cli.py:15-18, cli.py:30) or experiment/command output (E1, E2, probe test, `make lint`/`make test` 7 tests passing). Scratch holds exp1_crafted_log.sh, exp2_prototype.py, probe."
+    },
+    {
+      "text": "The test plan names unittest test files under tests/ and at least these cases: a ticket exactly at its due time, a closed ticket past due (expected not overdue, or flagged as an open question), and the ordering of the overdue list.",
+      "passed": true,
+      "evidence": "Files: tests/test_tickets.py (l59) and new tests/test_cli.py (l72). Cases: `test_due_time_boundary` (l65, now == due_at not overdue), `test_closed_ticket_never_overdue` (l64), `test_overdue_sorted_by_due_time` (l66) plus tie-break (l67)."
+    },
+    {
+      "text": "A counterfactual section maps each stated success criterion to a plan step and records Confirmed, Confirmed with gaps, or Unconfirmed.",
+      "passed": true,
+      "evidence": "'## Success criteria counterfactual' (l161-179): 'Verdict: confirmed with gaps', table maps 6 criteria to plan steps (l165-172), plus observations that would prove failure (l174-179). Verdict is overall, not per row."
+    },
+    {
+      "text": "Open questions are listed explicitly (for example whether closed tickets count as overdue, the exit code when nothing is overdue) and none is silently answered in the plan steps without being named as an assumption.",
+      "passed": true,
+      "evidence": "7 numbered open questions (l232-238), each with an Assumption, including closed tickets (Q2), exact boundary (Q3), tie order (Q5). The exit code for an empty `overdue` (0) is not an open question but is grounded in an existing spec (cross-check l119 'CLI-008 exit 0'), so not silently answered."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/plan.md reports 0 findings.",
+      "passed": true,
+      "evidence": "prose-lint.py (both swd-skills and swd-skills-bpsimplify copies): '0 findings in 1 file'."
+    },
+    {
+      "text": "Skim test: the first sentence of each paragraph in the headline and approach summary carries a claim a newcomer understands; no step numbers, shorthand, or teaser leads.",
+      "passed": false,
+      "evidence": "Headline lead l5 and approach lead l9 are fine, but the second approach paragraph opens with a teaser lead: 'The approach stands on one fact.' (l11), which announces a fact without stating it."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo is empty: no code or doc was changed.",
+      "passed": true,
+      "evidence": "check_run.py repo_clean=true, repo_status=[]."
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 3,
+    "total": 15,
+    "pass_rate": 0.8
+  },
+  "notes": [
+    "238 lines; the longest-but-one plan. Thorough: experiments E1/E2 plus a probe, a full spec cross-check table, and an E2E-2 hand-written log with expected output that is arithmetically correct (overdue order #1, #5, #2 by due time).",
+    "Does not notice that the catch-all `else:` at cli.py:28 would route `overdue` into the list branch, though step 3 does replace it with explicit branches (l52), so the plan works.",
+    "Design is sound: rule in the service, now from store.clock, CLI only maps to a label. The plan would work as written.",
+    "Facts checked against the fixture are accurate (store.py:14-16, tickets.py:34-37, cli.py:30 padding, AGENTS.md:102 test count)."
+  ]
+}
