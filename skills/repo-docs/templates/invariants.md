@@ -1,11 +1,8 @@
 # System Invariants
 
-Conditions that hold across the product. Unlike feature specs, invariants need not be
-testable in isolation. They are properties of the system as a whole. Code reviews,
-architecture decisions, and process uphold them together.
-
-Breaking an invariant is a deliberate decision, not a side effect. If a change requires it,
-surface it for discussion before proceeding.
+Conditions that hold across the product. Code reviews, architecture, and process uphold
+them together, so they need not be testable in isolation. Breaking one is a deliberate
+decision that the user confirms first.
 
 Prefix: `INV`.
 
@@ -13,21 +10,18 @@ Prefix: `INV`.
 
 ### INV-001: <Short title>
 
-<1 to 3 sentences on the condition. Examples: "All writes append to change_log", "The
-storage adapter is the only Sheets-aware code", "No raw cell writes from agents or UI".>
+<1 to 3 sentences on the condition.>
 
 ### INV-002: <Short title>
 
 <...>
 
 <!--
-  Common invariants worth considering (delete this comment when the file is filled in):
-  - Single source of truth for data
-  - Schema validation at startup
-  - Stable IDs (not row numbers or array indices)
-  - Soft deletes only
-  - All writes audited (change log)
-  - No silent corruption (fail fast on schema drift)
-  - Doc and code reconciliation rule
-  - Doc changes require user confirmation
+  Places to look (delete this comment when the file is filled in). Record only what the
+  code enforces:
+  - single source of truth for data
+  - append-only or audited writes
+  - stable IDs, not row numbers or array indices
+  - soft deletes only
+  - fail fast on schema drift
 -->
