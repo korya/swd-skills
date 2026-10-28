@@ -5,25 +5,20 @@ description: Rebase a work-in-progress or completed branch onto a new base, ensu
 
 # Rebase a branch onto a new base
 
-The point is not `git rebase`. Git can replay commits. It cannot tell you whether the
-replayed solution still makes sense. This skill is the thinking around a rebase:
-re-validate the work against a codebase that moved on, then do the mechanics carefully.
+Git can replay commits. It cannot tell you whether the replayed solution still makes sense
+on a codebase that moved on. This skill re-validates the work against the new base, then
+does the mechanics carefully.
 
-Invoke it for "rebase `<branch>` on `<new-base>`" or "rebase my WIP onto master". Invoke
-it before merging a long-lived branch, to check it still fits current architecture, specs,
-and conventions. Do not invoke it for a trivial fast-forward with no semantic delta. That is
-just `git rebase`.
+Do not invoke it for a fast-forward with no semantic delta. That is just `git rebase`.
 
 ## Required references
 
-Paths are relative to this file. `<plugin root>` is two directories above it. Read each
-file at the step named.
+Paths are relative to this file. `<plugin root>` is two directories above it.
 
 | File | Read at | Holds |
 |---|---|---|
-| `references/stash.md` | step 0, only if the tree is dirty | the labeled stash, the restore, conflicted-pop handling |
-| `references/analysis.md` | step 3 | the delta checklist, the classification table, gaps, derisk passes |
-| `../../assets/writing.md` | step 8, before writing the plan | the writing rules for every text a person reads |
+| `references/stash.md` | step 0, only if the tree is dirty | the labeled stash, the restore, a conflicted pop |
+| `../../assets/writing.md` | step 7, before writing the plan | the writing rules for every text a person reads |
 | `references/rationalizations.md` | when tempted to skip a step | why each shortcut fails |
 
 ## Inputs
@@ -33,74 +28,83 @@ file at the step named.
   `new_base`.
 - `new_base`: the target. Default: `master` or `main`. Confirm with the user.
 
-If any is ambiguous, ask. A wrong base pick silently invalidates the whole analysis.
+If any is ambiguous, ask. A wrong base silently invalidates the whole analysis.
 
 ## Workflow
 
-0. **Preflight.** Run `git status --porcelain`. Clean: go to step 1. Dirty: read
-   `references/stash.md` now. The uncommitted work is a fourth point that must survive the
-   rebase, so it is stashed under a label you record for step 9.5. Never silently.
-1. **Three points.** Run `git rev-parse HEAD`, `git merge-base <curr> <new_base>`, and
-   `git rev-parse <new_base>`. State all three to the user. If `old_base` equals
-   `new_base`, there is nothing to do. Say so and stop.
-2. **Inventory `curr`.** Run `git log --oneline <old_base>..<curr>` and `git diff --stat`.
-   Per commit, record the subject, the intent, the files, and the spec or invariant it
-   claims to satisfy. This is what must be preserved.
-3. **Inventory the delta,** `new_base` minus `old_base`. Read `references/analysis.md`
-   now. Cover specs, architecture docs, conventions and lint config, schemas and
-   migrations, shared APIs, and the files `curr` touches. Delegate a large delta to a
-   read-only search subagent.
-4. **Cross-impact.** Classify each piece of `curr` against the delta per the table:
-   Untouched, Adjusted, Extended, Obsolete, or Conflicting. Also ask whether `new_base`
-   already solves the original problem.
+0. **Preflight.** If `git status --porcelain` is not empty, read `references/stash.md`
+   now. The uncommitted work must survive the rebase. Stash it under a label, never
+   silently.
+1. **Three points.** State the hashes of `curr`, `old_base`, and `new_base` to the user. If
+   `old_base` equals `new_base`, there is nothing to do. Say so and stop.
+2. **Inventory `curr`.** Per commit, record the subject, the intent, the files, and the
+   spec or invariant it claims to satisfy. This is what must survive.
+3. **Inventory the delta** from `old_base` to `new_base`. Read each of these on
+   `new_base`, never from memory:
+   - the specs and invariants. Requirements may have changed.
+   - the architecture docs and every `AGENTS.md`. Boundaries may have moved.
+   - the conventions: lint, formatter, and test config, and the guidelines.
+   - the schemas and migrations.
+   - the shared APIs and utilities `curr` calls.
+   - the files `curr` touches.
+
+   A change outside `curr`'s files can still break it: a renamed helper, a new invariant,
+   a tighter type. Delegate a large delta to a read-only search subagent.
+4. **Classify** each commit against the delta, with a one-line justification. Name the
+   files for every class other than Untouched.
+
+   | Class | Meaning | Action |
+   |---|---|---|
+   | **Untouched** | The delta did not change the surface `curr` relies on | Replay as is |
+   | **Adjusted** | The delta changed a dependency. `curr` still applies with edits | Plan the edits |
+   | **Extended** | The delta added surface `curr` should also cover: a caller, a channel, a spec, a test convention | Plan the extension |
+   | **Obsolete** | The delta removed the code `curr` modifies, or already solves the problem | Drop only after the user agrees |
+   | **Conflicting** | The delta adds a requirement that `curr`'s solution contradicts | Stop at step 5 |
+
+   Also ask whether `new_base` already solves the original problem, in part or in full.
 5. **Risk gate.** Stop and talk to the user before touching code in four cases. Something
    is Conflicting. The architecture invalidates `curr`'s approach. The problem is already
-   solved differently. The replay would break an invariant the delta added.
-   Headline first, then the conflicts, then the options.
-6. **Gaps.** List them with file paths. New code the fix must extend to. Removed code
-   whose edits are no longer needed. Modified code whose edits need adjustment. Unchanged
-   code kept as is.
-7. **Derisk.** Re-read the spec, the architecture, and the invariants on `new_base`.
-   Verify every "I assume X is still true" against current code. Non-trivial rebases get
-   three passes: assumptions, spec and architecture, edge cases.
-8. **Present the plan.** Read `../../assets/writing.md` now. Per commit: replay, replay
-   with edits, drop, split, or new commit, with the specific files and changes for edits
-   and new commits. Ask the open questions now, not mid-rebase. Wait for approval unless
-   in auto mode and the rebase is low-risk.
-9. **Execute commit by commit.** Resolve conflicts by reading both sides. Never use
-   `-X theirs` or `-X ours` blindly. Edits that preserve the original intent go in the
-   same commit. A new fix discovered during the rebase goes in its own. Lint and unit-test
-   the affected area after each commit. Risky commits (shared code, schemas, auth, billing)
-   also get an e2e check or an explicit ask. Never `--no-verify`.
-9.5. **Restore the stash** if step 0 made one, before final verification, per
-   `references/stash.md` § 9.5. A conflicted pop is surfaced, never cleared with
-   `checkout --` or `reset --hard`.
-10. **Final verification.** Run the project's full lint and unit-test commands on the
-    affected components. Run an e2e sanity check for the behavior the branch was meant to
-    deliver. Re-read the original spec or PR description against the result. Sanity-check
-    the surfaces the delta touched and `curr` did not. They are the easiest to break and
-    to miss.
+   solved differently. The replay would break an invariant the delta added. Headline
+   first, then the conflicts, then the options.
+6. **Derisk.** Verify every "I assume X is still true" against the code on `new_base`. A
+   non-trivial rebase gets three passes: assumptions, spec and architecture, edge cases.
+7. **Present the plan.** Read `../../assets/writing.md` now. Per commit: replay, replay
+   with edits, drop, split, or new commit, with the files and changes for each edit. Ask
+   the open questions now, not mid-rebase. Wait for approval unless in auto mode and the
+   rebase is low-risk.
+8. **Execute commit by commit.**
+   - Resolve each conflict by reading both sides. Never `-X theirs` or `-X ours`.
+   - An edit that preserves a commit's intent goes into that commit. A new fix found
+     during the rebase gets its own commit.
+   - Lint and unit-test the affected area after each commit. Never `--no-verify`.
+   - A risky commit, in shared code, schemas, auth, or billing, also gets an e2e check or
+     an explicit ask.
+9. **Restore the stash** if step 0 made one, per `references/stash.md`. A conflicted pop
+   goes to the user, never through `checkout --` or `reset --hard`.
+10. **Verify.** Run the full lint and unit tests on the affected components, and an e2e
+    sanity check of the behavior the branch delivers. Re-read the original spec or PR
+    description against the result. Check the surfaces the delta touched and `curr` did
+    not. They are the easiest to break and to miss.
 11. **Report** as an inverted pyramid. The headline says succeeded, succeeded with
     adjustments, or blocked. Then the per-commit outcome, the spec or invariant deviations
-    and their resolution, and what the user should still verify by hand. Run `<plugin root>/scripts/prose-lint.py`
-    on the report and fix every finding in the text.
+    and their resolution, and what the user should still verify by hand. Run
+    `<plugin root>/scripts/prose-lint.py` on the report and fix every finding.
 
 ## Definition of done
 
-Each item is answerable with evidence, not a vibe. One you cannot tick honestly sends you
-back to the step that produces it.
+Each item is answerable with evidence. One you cannot tick honestly sends you back to the
+step that produces it.
 
-- [ ] Tree was clean before history moved, or preflight stashed it under a label. In the
-  second case step 9.5 restored it or asked the user about a conflicted pop.
-- [ ] Three points stated to the user. `old_base` differs from `new_base`.
-- [ ] Every commit on `curr` classified, with a one-line justification. Every Conflicting
-  or Obsolete one surfaced and resolved, never silently dropped or forced.
-- [ ] Specs, invariants, and architecture re-read on `new_base`, not from memory.
-- [ ] Each edited or new commit landed discrete, lint-clean, and test-clean. No
-  `--no-verify`. No `-X theirs` or `-X ours` on a conflict you did not read both sides of.
-- [ ] Full lint and unit tests pass on the affected components. Risky commits got an e2e
-  check or an explicit user-deferred note.
-- [ ] Original acceptance criteria restated and still met. Surfaces the delta touched and
-  `curr` did not were checked. "Nothing broken there" is a finding, not an assumption.
-- [ ] Report delivered as an inverted pyramid with the manual-verify list, and it passes
-  `prose-lint.py` with no findings.
+- [ ] The tree was clean before history moved, or its changes were stashed under a label
+  and restored. A conflicted pop went to the user.
+- [ ] Three points stated, and `old_base` differs from `new_base`.
+- [ ] Every commit classified with a justification. No Obsolete or Conflicting commit was
+  dropped or forced without the user.
+- [ ] Specs, invariants, and architecture read on `new_base`.
+- [ ] Each commit landed lint-clean and test-clean. No `--no-verify`, `-X theirs`, or
+  `-X ours`.
+- [ ] Full lint and unit tests pass. Risky commits got an e2e check or a user-deferred
+  note.
+- [ ] The original acceptance criteria are still met. The surfaces the delta touched and
+  `curr` did not were checked, and "nothing broken there" is a finding.
+- [ ] The report passes `prose-lint.py` with no findings.

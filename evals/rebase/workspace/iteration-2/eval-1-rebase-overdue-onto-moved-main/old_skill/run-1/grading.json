@@ -1,0 +1,87 @@
+{
+  "expectations": [
+    {
+      "text": "The transcript or report states the three points before any history moved: HEAD of feature/overdue, the merge-base with main, and HEAD of main.",
+      "passed": true,
+      "evidence": "transcript.md cmd 6: `git rev-parse HEAD && git merge-base feature/overdue main && git rev-parse main` -> \"three points 638b218 / d29de19 / b8411e7\". History first moves at cmd 20 (`git rebase -i main`). questions.md:5-11 also tabulates them."
+    },
+    {
+      "text": "The untracked debug_notes.md was stashed under a labelled stash before the rebase and restored afterwards: at the end it is present and untracked in OUTPUT_DIR/repo, `git stash list` is empty, and the transcript shows the label.",
+      "passed": true,
+      "evidence": "transcript.md cmd 5: `git stash push --include-untracked --message \"$STASH_LABEL\"` -> `swd-rebase-preflight-20261028-080351`; cmd 28 pops it by label. check_run: debug_notes_untracked=true, status [\"?? debug_notes.md\"], stash_list_empty=true, stash_label_in_transcript=true."
+    },
+    {
+      "text": "The delta inventory names all four changes on main: the rename of due_at to deadline_for, the extracted _line formatter and the export subcommand, INV-006 (time from the store clock), and the CLI test convention in docs/guidelines.md with tests/test_cli.py.",
+      "passed": true,
+      "evidence": "transcript.md cmd 8: \"Rename `due_at()` to `deadline_for()`, `_line` and `export`, INV-006, CLI test convention, `tests/test_cli.py`\". report.md:26-31 repeats all four (INV-006, `_line` and `export`, CLI test convention citing `tests/test_cli.py`, rename)."
+    },
+    {
+      "text": "Each of the three feature commits carries a classification (Untouched, Adjusted, Extended, Obsolete, or Conflicting) with a one-line justification; the service commit is Conflicting or Adjusted because of INV-006, the CLI commit is Adjusted or Extended because of _line, and the specs commit is Untouched or Adjusted.",
+      "passed": true,
+      "evidence": "report.md:20-22: 4348871 Conflicting (\"reads `self.store.clock()` instead of `time.time()`\"), ec61e0d \"Adjusted and Extended\" (\"Lines print with `_line(t)`. Added 2 subprocess tests\"), 638b218 Untouched (\"The patch is byte-identical\")."
+    },
+    {
+      "text": "OUTPUT_DIR/questions.md exists and names the INV-006 conflict (the branch reads time.time() directly) as the item that needed the user's decision, with the assumption taken (read the clock from the store).",
+      "passed": true,
+      "evidence": "questions.md:21-32 \"Risk gate: commit 1 breaks INV-006 on main ... Commit `4348871` reads `time.time()` in `TicketService.overdue()`\"; option 1 picked: \"`overdue()` reads `self.store.clock()` when the caller passes no `now`\"; \"Assumption. INV-006 is intentional and the branch must comply.\""
+    },
+    {
+      "text": "On the rebased feature/overdue, ticketdesk/tickets.py contains no call to time.time() and the overdue computation reads the current time from the store's clock (store.clock or an equivalent injected clock).",
+      "passed": true,
+      "evidence": "check_run: time_time_in_tickets=false, store_clock_used=true. `git diff main feature/overdue -- ticketdesk/tickets.py`: `if now is None: now = self.store.clock()`, no `import time`."
+    },
+    {
+      "text": "On the rebased branch, the overdue subcommand in ticketdesk/cli.py prints through the shared _line formatter rather than a second copy of the format string, and the export subcommand still exists.",
+      "passed": true,
+      "evidence": "check_run: overdue_uses_line=true, export_present=true. cli.py diff: `elif args.cmd == \"overdue\": for t in svc.overdue(): print(_line(t))`; `sub.add_parser(\"export\")` retained."
+    },
+    {
+      "text": "A subprocess CLI test for the overdue subcommand exists in tests/test_cli.py on the rebased branch, following the convention added on main.",
+      "passed": true,
+      "evidence": "check_run: overdue_cli_test=true. tests/test_cli.py adds `test_overdue_prints_list_lines_oldest_due_first` and `test_overdue_prints_nothing_when_nothing_is_overdue`, both via the main-provided `run(...)` subprocess helper, inside the CLI commit 56c75cf."
+    },
+    {
+      "text": "`make test` passes on the rebased branch (all tests, including tests/test_cli.py), and `make lint` passes.",
+      "passed": true,
+      "evidence": "check_run: tests_pass=true, lint_pass=true (14 tests per report.md:3)."
+    },
+    {
+      "text": "The rebased branch is based on main's HEAD (merge-base of feature/overdue and main equals main's HEAD), the three original commits are still present by subject (possibly with edits), and any new fix is in its own Conventional Commits commit rather than squashed into an original one unless it preserves that commit's intent.",
+      "passed": true,
+      "evidence": "check_run: rebased_onto_main_head=true, original_subjects_present=true; `git log main..feature/overdue` lists the three original subjects. The clock fix and tests were amended into f58a7ae / 56c75cf; they keep each commit's intent (overdue detection, overdue subcommand), which the assertion allows."
+    },
+    {
+      "text": "The transcript shows no `-X theirs`, `-X ours`, or `--no-verify`, and no push.",
+      "passed": true,
+      "evidence": "grep of transcript.md for `-X theirs`, `-X ours`, `no-verify`, `git push`: no hits; check_run forbidden_flags=[]. transcript.md:67 \"Nothing was pushed. The repo has no remote.\""
+    },
+    {
+      "text": "OUTPUT_DIR/report.md opens with a headline that says succeeded, succeeded with adjustments, or blocked, then gives a per-commit outcome, the spec or invariant deviations and their resolution, and what the user should still verify by hand.",
+      "passed": true,
+      "evidence": "report.md:3 \"**Succeeded with adjustments.**\"; per-commit table :18-22; \"Deviations and how I resolved them\" :24-33; \"What you should still check by hand\" :58-68."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rbsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md and OUTPUT_DIR/questions.md reports 0 findings in total.",
+      "passed": true,
+      "evidence": "check_run lint: report 0, questions 0."
+    },
+    {
+      "text": "Skim test: the headline and the first sentence of each section of report.md carry their claim; no teaser or qualifier-chain leads.",
+      "passed": true,
+      "evidence": "Headline report.md:3 carries the result. Section leads carry claims: \"Two of the three new commits on main forced edits to the branch. The rename forced none.\" (:26); \"The untracked `debug_notes.md` was stashed as ... before the rebase.\" (:56). Three points / per-commit / verification sections lead with tables. No teaser or qualifier-chain lead found."
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 0,
+    "total": 14,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "Kept `overdue(self, now=None)` and only replaced the default with `self.store.clock()`; the original signature is preserved.",
+    "Added two CLI tests for one subcommand although the new guideline says \"one test per subcommand\"; the report flags this (report.md:30).",
+    "Did a mutation check (put `time.time()` back, new service test fails), a good proof that the INV-006 test is meaningful.",
+    "Left `backup/feature-overdue-pre-rebase` in the repo and told the user to delete it.",
+    "Wrote a temporary file to the session scratchpad outside the run dir (cmd 22), deleted in cmd 23."
+  ]
+}
