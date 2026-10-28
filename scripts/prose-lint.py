@@ -9,7 +9,8 @@ Rules (all hard, exit 1 on any finding):
   long-sentence   a sentence over MAX_SENTENCE words
   long-lead       the first sentence of a paragraph over MAX_LEAD words
   long-paragraph  a paragraph with more than MAX_PARAGRAPH sentences
-  teaser-lead     a paragraph lead that announces a count of things without naming them
+  teaser-lead     a paragraph lead that announces content instead of stating it: a count of
+                  unnamed things, a method without its result, or a pointer to a table
   semicolon       any semicolon outside code
   dash            an em dash, a spaced en dash, or a spaced double hyphen outside code
 
@@ -60,12 +61,32 @@ MAX_SUBJECT = 72
 SUBJECT = re.compile(r"^(?:feat|fix|chore|refactor|test|docs|perf|build|ci|style|revert)(?:\([^)]+\))?!?: [A-Z]")
 TRAILER = re.compile(r"^[A-Za-z-]+: \S")
 
-# "Two things went wrong." as a paragraph opener: a count of unnamed things is not a claim.
-TEASER = re.compile(
-    r"^(?:Two|Three|Four|Five|Several|A few|Some|Multiple|Many)\s+"
+# A paragraph lead that announces content instead of stating it. Tuned on the leads of every
+# skill and eval output in the repo: each pattern matched only teasers there.
+COUNT = r"(?:two|three|four|five|six|seven|eight|nine|ten|several|a few|a couple of|multiple|many|some)"
+VAGUE_NOUN = (
     r"(?:things|designs|principles|reasons|factors|causes|changes|points|problems|issues|"
-    r"parts|decisions|behaviou?rs|rules|forces|ideas|effects|concerns|aspects|observations)\b"
-    r"[^.!?]{0,60}[.!?]$", re.I)
+    r"parts|decisions|behaviou?rs|rules|forces|ideas|effects|concerns|aspects|observations|"
+    r"facts|questions|checks|steps|ways|assumptions|findings|options|gaps|risks|lessons|"
+    r"layers|pieces|areas|phases|angles|caveats|categories|kinds|outcomes|trade-?offs)")
+TEASERS = [
+    # "Two things went wrong."
+    (re.compile(rf"^{COUNT}\s+{VAGUE_NOUN}\b[^.!?]{{0,60}}[.!?]$", re.I),
+     "Lead announces a count of things without naming them. State the claim instead."),
+    # "The plan stands on two facts." "The goal has two parts."
+    (re.compile(rf"\b(?:has|have|had|with|on|into|takes|needs|involves)\s+(?:these\s+)?{COUNT}\s+"
+                rf"(?:\w+\s+)?{VAGUE_NOUN}[.:!?]$", re.I),
+     "Lead ends on a count of unnamed things. Name them, or state what they show."),
+    # "I tried to disprove the root cause." A clause with the result passes.
+    (re.compile(r"^(?:I|We)\s+(?:tried|attempted|set out|wanted)\s+to\b"
+                r"(?![^.!?:]*\b(?:and|but|which|so)\b)", re.I),
+     "Lead announces a method without its result. State what it showed."),
+    # "The table shows the load test." "The alternatives were the following."
+    (re.compile(r"^(?:The|This|These)\s+(?:table|list|diagram|chart|section|bullets|steps)\s+"
+                r"(?:below\s+|above\s+)?(?:shows?|lists?|gives?|summari[sz]es?|describes?|compares?)\b"
+                r"|\b(?:as follows|the following)\.$", re.I),
+     "Lead points at content instead of stating it. Say what the content shows."),
+]
 
 SEMICOLON = re.compile(r";")
 DASH = re.compile(r"—|(?<=\s)–(?=\s)|(?<=\s)--(?=\s)")
@@ -137,10 +158,11 @@ class Block:
 
         for i, (start, end) in enumerate(spans):
             n = count_words(joined[start:end])
-            if i == 0 and self.kind == "paragraph" and TEASER.match(joined[start:end].strip()):
-                out.append(finding(filename, line_of(start), "teaser-lead",
-                                   "Lead announces a count of things without naming them. "
-                                   "State the claim instead."))
+            if i == 0 and self.kind == "paragraph":
+                lead = joined[start:end].strip()
+                message = next((m for p, m in TEASERS if p.search(lead)), None)
+                if message:
+                    out.append(finding(filename, line_of(start), "teaser-lead", message))
             if i == 0 and self.kind == "paragraph" and n > MAX_LEAD:
                 out.append(finding(filename, line_of(start), "long-lead",
                                    f"Paragraph lead has {n} words (max {MAX_LEAD}). "

@@ -71,6 +71,32 @@ class TeaserLead(unittest.TestCase):
     def test_only_the_lead_is_checked(self):
         self.assertEqual(rules("The sender lost messages. Two things went wrong."), [])
 
+    def test_lead_ending_on_unnamed_count_is_flagged(self):
+        for lead in ("The plan stands on two facts.", "The goal has two parts.",
+                     "I tried to disprove the root cause with three questions."):
+            self.assertEqual(rules(lead + " Detail follows."), ["teaser-lead"], lead)
+        caption = "The requested patch has three problems:\n\n- one\n- two\n- three"
+        self.assertEqual(rules(caption), ["teaser-lead"])
+
+    def test_method_without_result_is_flagged(self):
+        self.assertEqual(rules("I tried to falsify the root cause. Detail."), ["teaser-lead"])
+
+    def test_method_with_result_passes(self):
+        self.assertEqual(rules("I tried to disprove the root cause, and it held. Detail."), [])
+        self.assertEqual(rules("We tried three fixes and all failed. Detail."), [])
+
+    def test_pointer_is_flagged(self):
+        for lead in ("The table shows the staging load test.",
+                     "The alternatives considered were the following."):
+            self.assertEqual(rules(lead + " Detail follows."), ["teaser-lead"], lead)
+
+    def test_count_inside_a_claim_passes(self):
+        for lead in ("The second commit adds two tests.",
+                     "The plan stands on two facts, and experiments confirmed both.",
+                     "A fix at link 5 prevents every sibling below.",
+                     "The API changes like this:"):
+            self.assertEqual(rules(lead + " Detail follows."), [], lead)
+
 
 class PunctuationRules(unittest.TestCase):
     def test_semicolon(self):
