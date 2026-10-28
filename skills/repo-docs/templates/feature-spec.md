@@ -8,25 +8,15 @@ Prefix: `<XXX>`.
 
 ### <XXX>-001: <Short title>
 
-<1 to 3 sentences of behavior. Precise enough that a test falls out of it directly. No
-"Testable:" appendix. If the body needs one, rewrite the body.>
+<1 to 3 sentences of behavior, in the format of [`README.md`](README.md).>
 
 ### <XXX>-002: <Short title>
 
 <...>
 
-### <XXX>-003: <Short title>
-
-<...>
-
 <!--
   Tips (delete this comment when the file is filled in):
-  - Keep each spec to one assertion.
-  - Use exact value lists when defining enums ("one of: A, B, C").
-  - Reference settings or config keys when behavior is configurable
-    ("Configurable via `settings.foo`").
-  - Cross-reference other specs by ID where relevant ("see XXX-005").
-  - Do not include implementation details (function names, schema names).
-  - Avoid future tense and aspirational language. Specs describe current expected
-    behavior, not the roadmap.
+  - Give exact value lists for enums ("one of: A, B, C") and exact numbers for limits.
+  - Cite other specs and invariants by ID ("see INV-002").
+  - Describe current behavior, not the roadmap.
 -->
