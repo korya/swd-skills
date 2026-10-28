@@ -1,0 +1,82 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "report.md is 14547 chars / 2221 words."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Reproduction section runs `python3 -m unittest discover tests -v` and quotes `test_search_finds_user_signed_up_with_mixed_case ... FAIL`."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "'## 5-whys chain' numbered 1-5 (lines 64-82), five distinct Why questions."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence — at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:15, app/db.py:26, app/db.py:1, tests/test_search.py:20-22. Link 4 rests only on a grep result with no file:line, but the chain total exceeds 4."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "Table lines 88-92: Symptom / Proximate cause / Root cause."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause: 'The user store has no definition of email identity. It stores raw input and compares raw strings, while every caller uses email as the key for a person.' Why 3 names the raw write (signup.py:15, db.py:26). The == is proximate only."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Siblings table: S1 app/password_reset.py:11, S2 app/signup.py:13, S4 app/invite.py:7, plus existing data and whitespace."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "'### Proposal A: symptom fix in search' and '### Proposal B: root-cause fix in the store'; '### Recommendation: I recommend Proposal B.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Counterfactual: 'I ran an in-memory prototype of Proposal B. The repro test passed with 0 failures.' Transcript step 13: 'the repro passed'."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Prevention: parametrized Test over all entry points, Guardrail (store-owned identity, unique index, Email value type), Lint check, Doc (replace app/db.py:1 docstring + invariant)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": true,
+      "evidence": "'## Assumptions' numbered 1-6, each with 'How validated' and 'Result'."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": false,
+      "evidence": "prose-lint: '1 finding in 1 file'. Line 49: 'long-paragraph: Paragraph has 7 sentences (max 6).' This is the Workspace paragraph. The transcript shows the agent linted the prose via stdin (steps 17-18), but the report as written fails."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "The headline is 3 sentences (lines 5-7). S1 says what broke ('Support search returns \"not found\" when the agent types an email in a different letter case...'), S2 gives the root cause, and S3 holds the recommended fix ('The recommended fix normalizes the email in app/db.py...'). That part passes. It fails on the section-lead clause: '### Falsification of the root cause' opens 'I tried to disprove the root cause with three questions.' That is a process teaser, the same bar as iteration-3."
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 2,
+    "total": 13,
+    "pass_rate": 0.8462
+  },
+  "notes": [
+    "Factual inconsistency: the repro probe table (lines 40-45) stores `Jane.Smith@gmail.com` and shows `Jane.smith@gmail.com` -> not_found. That contradicts the ticket log it claims to reproduce 'exactly', where `Jane.smith@gmail.com` is the stored casing that returns ok. Assumption 5 and the counterfactual then use `Jane.smith@gmail.com` as the stored value.",
+    "The report was extracted from returned text by the coordinator's script. Whether the 7-sentence Workspace paragraph existed in the agent's draft or came from the extraction cannot be determined from the files. It was graded as written.",
+    "The report switches between 'I' and 'we' (e.g. 'I tried to disprove...' then 'We believe the missing email identity rule is the root cause.').",
+    "Counterfactual was run in memory from stdin with no persisted probe. Evidence lives in the transcript summary only.",
+    "Recommendation ties the stopgap to the audit outcome ('Ship Proposal A first only if the audit finds duplicates that block the index'). That is a sensible gating condition."
+  ]
+}

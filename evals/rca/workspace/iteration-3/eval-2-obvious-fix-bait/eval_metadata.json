@@ -1,0 +1,5 @@
+{
+  "eval_id": 2,
+  "eval_name": "obvious-fix-bait",
+  "prompt": "First copy /Users/dmitri/dev/swd-skills/evals/rca/fixture to OUTPUT_DIR/fixture and work only in the copy. There's a bug in OUTPUT_DIR/fixture: search by email is case-sensitive when it should be case-insensitive. Just patch app/search.py to do `email.lower() == u.email.lower()` and ship it. The fix is one line. Write your analysis and the patch plan to OUTPUT_DIR/report.md."
+}

@@ -1,0 +1,12 @@
+--- /Users/dmitri/dev/swd-skills-rcsimplify/evals/rca/workspace/iteration-3/eval-1-support-ticket-case-sensitive-email/old_skill/run-1/outputs/fixture/app/search.py	2026-10-28 09:02:06.287054000 -0400
++++ app/search.py	2026-10-28 09:03:24.548752623 -0400
+@@ -4,7 +4,8 @@
+ 
+ 
+ def search_by_email(email: str) -> dict:
+-    user = db.find_by_email(email)
++    want = email.strip().casefold()
++    user = next((u for u in db.all_users() if u.email.strip().casefold() == want), None)
+     if user is None:
+         return {"status": "not_found"}
+     return {"status": "ok", "id": user.id, "email": user.email, "name": user.name}

@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>1000 chars).",
+      "passed": true,
+      "evidence": "report.md is 13583 chars / 2143 words."
+    },
+    {
+      "text": "Report cites or runs the failing test (mentions tests/test_search.py or test_search_finds_user_signed_up_with_mixed_case).",
+      "passed": true,
+      "evidence": "Repro: '`python3 -m unittest discover tests -v` fails one of two tests: FAIL: test_search_finds_user_signed_up_with_mixed_case'."
+    },
+    {
+      "text": "Report contains a 5-whys chain as a numbered list with at least 4 distinct Why questions.",
+      "passed": true,
+      "evidence": "'## 5-whys chain' numbered 1-5 (lines 55-73), five distinct Why questions."
+    },
+    {
+      "text": "Each Why link in the chain cites concrete evidence — at least 4 file:line-style citations appear in the chain.",
+      "passed": true,
+      "evidence": "Chain cites app/search.py:7-9, app/db.py:34, app/signup.py:15, app/db.py:1, app/db.py:10, app/db.py:32, search.py:7, signup.py:13, password_reset.py:11, invite.py:7, tests/test_search.py:20-22."
+    },
+    {
+      "text": "Report explicitly labels symptom / proximate cause / root cause.",
+      "passed": true,
+      "evidence": "'## Symptom, proximate cause, root cause' with three labelled bullets."
+    },
+    {
+      "text": "Root cause identified is the missing email normalization at write time, NOT merely 'search uses == comparison'.",
+      "passed": true,
+      "evidence": "Root cause: 'the code base has no canonical email key. Nothing enforces one normalized form at write time, at read time, or as a uniqueness rule.' Explicitly names write time."
+    },
+    {
+      "text": "Sibling sweep identifies at least two of: app/password_reset.py, app/invite.py, app/signup.py.",
+      "passed": true,
+      "evidence": "Siblings S1 app/signup.py:13, S2 app/password_reset.py:11, S3 app/invite.py:7, plus whitespace and existing data."
+    },
+    {
+      "text": "Report presents both a symptom fix and a root-cause fix as distinct options with a recommendation.",
+      "passed": true,
+      "evidence": "'### Proposal 1: symptom fix' and '### Proposal 2: root-cause fix'; '### Recommendation: I recommend Proposal 2.'"
+    },
+    {
+      "text": "Counterfactual section confirms the recommended fix would make the failing test pass.",
+      "passed": true,
+      "evidence": "Counterfactual table: 'Failing test | 1 of 2 fail | 2 of 2 pass' after applying Proposal 2 to a temp copy. Transcript step 13 confirms 2 of 2 pass."
+    },
+    {
+      "text": "Prevention proposal includes at least one of: regression test, guardrail, or doc update.",
+      "passed": true,
+      "evidence": "Prevention: Test for the bug + Test for the class, Guardrail in store (unique index/citext) and in types (EmailKey), Doc update (invariant in product spec or AGENTS.md)."
+    },
+    {
+      "text": "Load-bearing assumptions are enumerated as a numbered list with validation results.",
+      "passed": true,
+      "evidence": "'## Assumptions' numbered 1-6, each with 'How validated' and 'Result' (Confirmed x4, UNVERIFIED x2)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint: '0 findings in 1 file'."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "S1 is what broke (own paragraph) and S2 the root cause, but S3 restates the mechanism, S4 lists siblings, and the fix is S5 ('I recommend one canonical email key at the store boundary...'). Over three sentences. Falsification opens 'I tried to disprove that case is the mechanism.', a process teaser."
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 1,
+    "total": 13,
+    "pass_rate": 0.9231
+  },
+  "notes": [
+    "Most careful fix design: AmbiguousEmail surfaces legacy duplicates instead of returning an arbitrary row, and probe P8 justifies lower() over casefold() with ß/ss.",
+    "Counterfactual table covers 8 probes, including the survivors.",
+    "First counterfactual attempt hit zsh noclobber and ran on unfixed code. The agent discarded that output and reran with >|. Correct handling, but it echoes the noclobber trap in the eval hygiene memory.",
+    "Assumption 4 (case-insensitive local part) is honestly marked UNVERIFIED and tied to open question 1."
+  ]
+}

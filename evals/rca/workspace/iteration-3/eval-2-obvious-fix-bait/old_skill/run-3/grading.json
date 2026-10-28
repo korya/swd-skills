@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty (>800 chars).",
+      "passed": true,
+      "evidence": "13,281 bytes / 1,999 words."
+    },
+    {
+      "text": "Report does NOT accept the user's one-line search-only patch as sufficient.",
+      "passed": true,
+      "evidence": "Line 3: 'I recommend a fix in `app/db.py` instead of the requested patch to `app/search.py`, and I did not ship either.' Line 5: 'The requested patch fixes the support ticket and leaves three other flows broken.' Line 132: probe shows Option A returns the wrong account."
+    },
+    {
+      "text": "Report identifies that the root defect is at write time (signup stores email as-typed).",
+      "passed": false,
+      "evidence": "The root cause is placed in the lookup, not the write path. Headline line 3: 'The root cause is in the user store, not in search. `db.find_by_email` compares emails as exact strings'. Root cause row (line 77): 'The store defines email identity as exact equality ... Lookup and uniqueness both inherit that definition.' Why 3 (line 58) does say 'Signup stores the email exactly as the customer typed it', but the report treats as-typed storage as intended: Assumption 3 (line 110-112) keeps the display email as typed and 'avoids a data migration'. The insert duplicate guard is a write-time uniqueness fix, not a write-time normalization. Borderline, judged false under the same bar as with_skill/run-3."
+    },
+    {
+      "text": "Sibling sweep names at least two of: app/password_reset.py, app/invite.py.",
+      "passed": true,
+      "evidence": "Siblings table lines 93-96: `app/signup.py:13`, `app/password_reset.py:11`, `app/invite.py:7`, confirmed by `probes/siblings.py`."
+    },
+    {
+      "text": "Report flags the data-migration / already-stored-rows concern.",
+      "passed": true,
+      "evidence": "Line 98: 'Production may already hold duplicate accounts that differ only in case.' Patch plan step 1: duplicate audit before deploy; step 5: merge after. Counterfactual survivor: 'duplicate accounts already in production'. Open question 1 SQL, noting billing may sit on either account."
+    },
+    {
+      "text": "Report presents both a symptom-level option and a root-cause-level option, with a recommendation.",
+      "passed": true,
+      "evidence": "'Option A: symptom fix in `app/search.py` (requested)' (124-132), 'Option B: root-cause fix in `app/db.py` (recommended)' (134-163), 'Recommendation: Option B.' (line 165)."
+    },
+    {
+      "text": "Counterfactual on the recommended fix.",
+      "passed": true,
+      "evidence": "'### Counterfactual' (175-182): 'Confirmed with survivors. Under Option B, the repro test passes, and the replay returns id 8412 for all three logged casings ... breaks link 4 ... also breaks link 5'. Transcript steps 12-15 apply the diff in probes/root-fix, run 6 class tests and replay_jane.py."
+    },
+    {
+      "text": "Report contains at least 3 file:line-style citations.",
+      "passed": true,
+      "evidence": "21 file:line citations, 13 unique (app/db.py:24-29, app/db.py:34, app/signup.py:13, BUG_REPORT.md:5, ...). Accurate."
+    },
+    {
+      "text": "Report does not propose any 'human error' / blame conclusion.",
+      "passed": true,
+      "evidence": "grep for 'human error|blame|careless|negligen|should have known' finds nothing. Causes are framed as missing canonical form, missing invariant and missing tests; no person is named."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-rcsimplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: the headline states what broke, the root cause, and the recommended fix in at most three sentences, with what broke in the first; the first sentence of each section carries its claim, and none is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "Headline paragraph (line 3) needs four sentences: S1 what broke, S2 'The root cause is in the user store, not in search.', S3 the mechanism, S4 'I recommend a fix in `app/db.py` ...'. The fix arrives in sentence 4. Falsification opens with the method teaser 'I tried to disprove the root cause with three checks.'"
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 2,
+    "total": 11,
+    "pass_rate": 0.8182
+  },
+  "notes": [
+    "Strongest empirical work in the old arm: actually applied Option A in probes/symptom-fix and found the wrong-account regression (id 1 vs id 2), and wrote a 6-case class test.",
+    "Why 3 asserts agents copy from 'for example in Stripe' without marking it UNVERIFIED; the bug report only says customers are visible on Stripe.",
+    "Survivor list puts whitespace and Gmail aliases 'out of scope' after its own fix dropped strip() (transcript step 15), a choice the report does not explain.",
+    "Report length: 1,999 words."
+  ]
+}

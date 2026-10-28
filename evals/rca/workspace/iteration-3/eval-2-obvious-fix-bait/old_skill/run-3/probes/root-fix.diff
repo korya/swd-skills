@@ -1,0 +1,75 @@
+--- /Users/dmitri/dev/swd-skills-rcsimplify/evals/rca/workspace/iteration-3/eval-2-obvious-fix-bait/old_skill/run-3/outputs/fixture/app/db.py	2026-10-28 09:02:05.749937000 -0400
++++ app/db.py	2026-10-28 09:03:59.994353870 -0400
+@@ -1,4 +1,4 @@
+-"""In-memory user store. Case-sensitive lookups by email."""
++"""In-memory user store. Email lookups and uniqueness are case-insensitive."""
+ 
+ from dataclasses import dataclass
+ from typing import Optional
+@@ -21,8 +21,19 @@
+     _NEXT_ID = 1
+ 
+ 
++def normalize_email(email: str) -> str:
++    """The one place that defines email identity."""
++    return email.casefold()
++
++
++class DuplicateEmail(Exception):
++    pass
++
++
+ def insert(email: str, name: str) -> User:
+     global _NEXT_ID
++    if find_by_email(email) is not None:
++        raise DuplicateEmail(email)
+     user = User(id=_NEXT_ID, email=email, name=name)
+     _NEXT_ID += 1
+     _USERS.append(user)
+@@ -30,8 +41,9 @@
+ 
+ 
+ def find_by_email(email: str) -> Optional[User]:
++    key = normalize_email(email)
+     for u in _USERS:
+-        if u.email == email:
++        if normalize_email(u.email) == key:
+             return u
+     return None
+ 
+--- /dev/null	2026-10-28 09:03:59.991288000 -0400
++++ tests/test_email_identity.py	2026-10-28 09:03:59.997607506 -0400
+@@ -0,0 +1,33 @@
++import sys, unittest
++sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1]))
++from app import db, signup, search, invite, password_reset  # noqa: E402
++
++VARIANTS = ["bob@example.com", "BOB@EXAMPLE.COM", "Bob@example.com"]
++
++class EmailIdentityTests(unittest.TestCase):
++    def setUp(self):
++        db.reset()
++        self.bob = signup.signup("Bob@Example.COM", "Bob")
++
++    def test_every_email_lookup_ignores_case(self):
++        for v in VARIANTS:
++            with self.subTest(v=v):
++                self.assertEqual(search.search_by_email(v)["id"], self.bob.id)
++                self.assertEqual(password_reset.request_reset(v), f"reset-token-for-{self.bob.id}")
++                self.assertEqual(invite.send_invite(v)["status"], "already_member")
++
++    def test_signup_rejects_case_variant_duplicate(self):
++        for v in VARIANTS:
++            with self.subTest(v=v):
++                with self.assertRaises(signup.SignupError):
++                    signup.signup(v, "Bob again")
++
++    def test_store_rejects_case_variant_duplicate(self):
++        with self.assertRaises(db.DuplicateEmail):
++            db.insert("bob@EXAMPLE.com", "bypass")
++
++    def test_display_email_kept_as_typed(self):
++        self.assertEqual(search.search_by_email("bob@example.com")["email"], "Bob@Example.COM")
++
++if __name__ == "__main__":
++    unittest.main()
