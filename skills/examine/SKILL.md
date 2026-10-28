@@ -15,106 +15,78 @@ description: >-
 # Examine: production-risk-first code review
 
 Find what would break in production. Verify the change's claims instead of trusting them.
-Judge whether the solution is right-sized. The host's built-in review asks "does this
-introduce a bug?". `/examine` asks "is this the right, production-safe, right-sized change?".
-Skip it for typo and doc-only changes.
+Judge whether the solution is right-sized. Skip this skill for typo and doc-only changes.
 
 ## Required references
 
-Paths are relative to this file. `<plugin root>` is two directories above it. Read each
-file at the step named.
+Paths are relative to this file. `<plugin root>` is two directories above it.
 
 | File | Read at | Holds |
 |---|---|---|
-| `references/audit.md` | step 5 | axes 5a to 5m, the Occam pass |
-| `references/verify.md` | step 7 | dedup, the CONFIRMED / PLAUSIBLE / REFUTED rubric, the gap sweep |
-| `../../assets/writing.md` | step 8, before writing the report | the writing rules for every text a person reads |
-| `references/report.md` | step 8 | signals, severities, locators, template, definition of done |
+| `references/audit.md` | step 5 | the audit axes and the Occam pass |
+| `references/verify.md` | step 7 | the verdict rubric and the gap sweep |
+| `../../assets/writing.md` | step 8 | the writing rules for the report |
+| `references/report.md` | step 8 | severities, locators, the template, the definition of done |
 | `references/rationalizations.md` | when tempted to skip a step | why each shortcut fails |
 
 ## Principles
 
-- **Trust nothing, verify everything.** The description, the diff, and green tests are
-  claims. So are your own candidates. They become findings only after step 7.
-- **Project rules over generic best practice.** Read the rulebook before judging. Cite it
-  per finding.
-- **The simplest solution that satisfies the constraints wins.** Sketch the obvious fix
-  before reading the diff. Divergence is a question to investigate, never proof.
-- **No side effects.** Read and run anything locally, but experiment in a detached worktree
+- **Trust nothing.** The description, the diff, green tests, and your own candidates are
+  claims. They become findings only after step 7.
+- **Judge against the project's rules, not generic practice.** A finding cites its rule.
+- **No side effects.** Read and run anything locally. Experiment in a detached worktree
   (`git worktree add --detach`) or outside the repo, never in the primary checkout. Never
-  push, comment, trigger CI, or contact anyone. If evidence needs that, ask. Consent from an
-  earlier task does not carry over.
+  push, comment, trigger CI, or contact anyone unless the user asks during this review.
 
 ## Target and mode
 
-- **PR:** `gh pr view <N>` for title, body, base, head, and files. Then `gh pr diff <N>` and
-  `gh pr checks <N>`.
-- **Branch or no argument:** compare against the upstream when it is ahead, else the local
-  base branch: `git diff $(git merge-base HEAD <ref>)`. Add `git diff HEAD` when the tree is
-  dirty or the range is empty.
-- **Range or path:** exactly that. Read pre-change code from the base snapshot with
-  `git show <merge-base>:<path>`.
-- Record the baseline: branch, `HEAD`, `git status --porcelain`. The end check proves the
-  checkout is untouched. Posting to the PR defaults to no.
+- **PR:** `gh pr view <N>`, `gh pr diff <N>`, and `gh pr checks <N>`.
+- **Branch or no argument:** diff from the merge-base with the upstream, else with the local
+  base branch. Add `git diff HEAD` when the tree is dirty.
+- **Range or path:** exactly that. Read pre-change code with `git show <merge-base>:<path>`.
+- Record the branch, `HEAD`, and `git status --porcelain`. The end check compares them.
 
-`/examine [quick|full] <target>`. When unspecified, use **full** for migrations, auth,
-payments, personal data, dependencies, infra, or more than about 15 files. Otherwise use
-**quick**, and state the choice. Quick runs steps 1, 2 (instruction files only), 3
-(three-bullet sketches), 4, 5a to 5d plus 5k, 7, and 9. Skipped axes go under Not reviewed.
-No Occam pass, no host reviewers, at most 8 Issues. Never pad toward a cap.
+`/examine [quick|full] <target>`. Default to **full** for migrations, auth, payments,
+personal data, dependencies, infra, or more than about 15 files. Otherwise use **quick**.
+State the mode and why. Quick runs steps 1 to 5 with axes 5a to 5d and 5i only, then steps
+7 and 9. It skips host reviewers and the Occam pass, lists skipped axes under Not reviewed,
+and reports at most 8 Issues. Never pad toward the cap.
 
 ## Workflow
 
 Delegate independent passes to read-only subagents when the host has them. You own severity
 and synthesis.
 
-1. **Intent.** From the description, else from the commits and the user's framing: the
-   stated problem, the approach, the constraints and non-goals, the non-obvious decisions.
-   Read any linked ticket. Drift from it is a finding. A missing description is finding #1
-   (`scope: PR`). Mark inferred intent as derived, not stated.
-2. **Rulebook.** Read every agent instruction file that governs a changed file: user-level,
-   repo root, ancestor directories. Read in full the project docs the diff makes
-   load-bearing: invariants, security, privacy, the touched spec, testing. Skim architecture
-   and guidelines. A finding on any of those cites its rule (file and section) or downgrades
-   to a Suggestion. With no project rule, name the standard (OWASP, GDPR). An absent doc the
-   diff does not need is one line under Not reviewed.
+1. **Intent.** Extract the problem, approach, constraints, and non-obvious decisions from
+   the description, else from the commits. Read any linked ticket. A missing description is
+   finding #1 (`scope: PR`). Mark inferred intent as inferred.
+2. **Rulebook.** Read every agent instruction file that governs a changed file. Read in full
+   the project docs the diff makes load-bearing: invariants, security, privacy, the touched
+   spec, testing. Skim the rest.
 3. **Baseline, before opening the diff.** Confirm the problem exists in the base snapshot.
-   "Already solved by an existing utility" or "misdiagnosed symptom" reframes the review and
-   is finding #1. Sketch two or three obvious approaches, a sentence each, scaled to the
-   blast radius.
-4. **Approach gate.** The change matches a sketch: proceed. Whatever it does beyond the
-   sketch needs a constraint and feeds step 6. The change diverges: assume your sketch missed
-   a constraint and hunt for it in the ticket, docs, history, and adjacent code. Found: note
-   it under Verified. Not found: the approach-level question is the headline, and every line
-   finding is provisional. Wrong on its face: point the author at `/blueprint`.
-5. **Audit.** Read `references/audit.md` now. Track each axis in your task tool. 5a alignment
-   with the claimed approach. 5b solves the stated problem. 5c correctness, five angles. 5d
-   cross-file tracer. 5e to 5m architecture, conventions, security, privacy, testing,
-   load-bearing assumptions, risk coverage, reversibility, dependencies. Every issue-shaped
-   observation becomes a candidate with a one-line failure scenario, never dropped silently.
-   In full mode the host's built-in review runs in a subagent, pointed at the reviewed
-   checkout, as one more candidate source, never as the report. `--no-host-reviewers` skips
-   it.
-6. **Occam pass** (full mode, rules in `audit.md` § 6): premature optimization, speculative
-   generality, over-defence, reinvention, band-aids, deletion candidates. Simplifications
-   clear the same evidence bar and default to Suggestion.
-7. **Verify and sweep.** Read `references/verify.md` now. Dedup. Then give every Medium+
-   candidate an independent verdict: a subagent holding only the diff, the files, and the
-   candidate, else an adversarial self-pass. Keep CONFIRMED and PLAUSIBLE. REFUTED moves to
-   Verified with its citation. Then one fresh-eyes sweep for what the list missed, verified
-   the same way. An empty sweep is a valid result.
-8. **Synthesize.** Read `../../assets/writing.md` and `references/report.md` now. Issues
-   carry a severity (impact) and a Verdict (confidence). Critical and High are scarce. An
-   absence the author must address is an Issue. A nice-to-note one is a Gap. A doubt with no
-   named mechanism is a Question.
-9. **Report locally**, findings first, per the template. Write the report to a file, run
-   `<plugin root>/scripts/prose-lint.py` on it, and fix every finding in the text. If the
-   host has a structured findings tool, call it once with the Issues. The terminal report is
-   the deliverable.
-10. **Post to the PR only if asked.** Comments are public and durable.
+   If it does not, or an existing utility already solves it, that is finding #1. Sketch two
+   or three obvious approaches, one sentence each.
+4. **Approach gate.** If the change matches a sketch, proceed. If it diverges, assume your
+   sketch missed a constraint and look for it in the ticket, docs, history, and adjacent
+   code. Found: note it under Verified. Not found: the approach question is the headline,
+   and every line finding is provisional.
+5. **Audit.** Read `references/audit.md` now and walk every axis that applies. Record each
+   issue-shaped observation as a candidate with a one-line failure scenario. In full mode,
+   also run the host's built-in review in a subagent on the reviewed checkout, as one more
+   source of candidates. `--no-host-reviewers` skips it.
+6. **Occam pass** (full mode, `audit.md` § 6). Ask whether the change is more solution than
+   the problem needs.
+7. **Verify and sweep.** Read `references/verify.md` now. Give every Medium or higher
+   candidate an independent verdict from a subagent that sees only the diff, the files, and
+   the candidate. Then make one fresh-eyes sweep for what the list missed.
+8. **Synthesize.** Read `../../assets/writing.md` and `references/report.md` now. Assign
+   severities and build the report.
+9. **Report locally.** Write the report to a file and run
+   `<plugin root>/scripts/prose-lint.py` on it. Fix every finding in the text. If the host
+   has a structured findings tool, call it once with the Issues. The terminal report is the
+   deliverable. Post to the PR only if the user asks.
 
 ## Done when
 
-Every item in `report.md` § Definition of done is answerable with evidence. One you cannot
-tick honestly sends you back to the step that produces it. A step you are tempted to skip
-sends you to `references/rationalizations.md`.
+Every item in `report.md` § Definition of done holds, with evidence. If one does not, go
+back to the step that produces it.

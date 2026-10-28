@@ -1,0 +1,91 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is substantial (>2000 chars).",
+      "passed": true,
+      "evidence": "wc -c outputs/report.md = 17690 bytes."
+    },
+    {
+      "text": "S1: flags that api_redeem swallows exceptions so redeeming an unknown code appears to succeed (app/api.py, try/except around STORE.discounts[code]).",
+      "passed": true,
+      "evidence": "M1: \"The condition row is None or ... sends an unknown code into the increment. The increment raises KeyError, and except Exception: pass swallows it. The endpoint returns {\\\"redeemed\\\": True}.\""
+    },
+    {
+      "text": "S2: flags that users.create_user dropped email lowercasing/normalization, citing docs/invariants.md \u00a71 or util.normalize_email.",
+      "passed": true,
+      "evidence": "C2 (app/users.py:12): \"The diff replaces normalize_email(email) with email.strip().\" Cites: docs/invariants.md \u00a71."
+    },
+    {
+      "text": "S3: flags that discount percent is never validated at the API boundary even though the PR description claims it is (validate_percent defined but uncalled).",
+      "passed": true,
+      "evidence": "Claims table: 'Percent is validated at the API boundary (\u00a74) | False. validate_percent has no caller.' C1: \"validate_percent exists, but no code calls it.\""
+    },
+    {
+      "text": "S4: flags the check-then-act race on uses vs max_uses in api_redeem allowing over-redemption under concurrency.",
+      "passed": false,
+      "evidence": "No mention of concurrency, race, or atomicity (grep -i 'concurr|race|atomic' finds nothing relevant). H2 says charge 'never checks uses against max_uses and never increments uses'; fix says 'in the same step'. That is the neighbouring max_uses-not-enforced defect the task names as not counting for S4."
+    },
+    {
+      "text": "S5: surfaces the float tax computation in billing.charge (amount * (1 + TAX_RATE_BP / 10_000)) as a pre-existing violation of the integer-cents invariant in touched code.",
+      "passed": true,
+      "evidence": "L1 [app/billing.py:23]: \"Tax uses float arithmetic, which breaks \u00a72. The line predates the PR.\""
+    },
+    {
+      "text": "S6 (trap, inverted): does NOT report the MAX_DISCOUNT_PERCENT 50\u219230 change as a defect; if mentioned, it is acknowledged as deliberate per FIN-88.",
+      "passed": true,
+      "evidence": "Cap change not flagged. Claims table: 'Cap lowered from 50% to 30% (FIN-88) | The constant changed, but nothing enforces it.' Verified: 'The cap change from 50 to 30 strands no existing codes.' Q1 asks where FIN-88 is recorded."
+    },
+    {
+      "text": "S7: flags migrations/002_drop_plan.py as irreversible (destructive pop + backfill in one step, no down()), severity Critical or High, citing docs/invariants.md \u00a73.",
+      "passed": true,
+      "evidence": "C3 (Critical): \"up() pops plan from every user... The file has no down(). No earlier release added dual-read of tier.\" Cites docs/invariants.md \u00a73."
+    },
+    {
+      "text": "S8: questions or flags the discount_engine strategy registry as over-engineering (one implementation, env-var backend, get_strategy unused by billing).",
+      "passed": true,
+      "evidence": "M5: \"STRATEGY_REGISTRY, register, get_strategy, and the DISCOUNT_ENGINE_BACKEND variable. billing.py:2 imports PercentDiscount directly, so the registry and the variable have no effect.\""
+    },
+    {
+      "text": "S9: flags the negative-amount special case in api_apply_credit as a shallow fix that belongs in util.parse_money.",
+      "passed": true,
+      "evidence": "H3: \"The endpoint strips a leading -, parses the rest, and negates it.\" Why: the parse_money docstring rules; \"This wrapper bypasses both rules.\" (Remedy: explicit credit record; see notes.)"
+    },
+    {
+      "text": "Issues are classified into severities with stable IDs (C1/H1/M1/L1-style), and non-Low issues carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "IDs C1-C3, H1-H4, M1-M5, L1-L4; every C/H/M block carries 'Verdict: CONFIRMED'."
+    },
+    {
+      "text": "Report contains both a Verified section and a Not reviewed section.",
+      "passed": true,
+      "evidence": "'## Verified' and '## Not reviewed' sections both present."
+    },
+    {
+      "text": "The fixture repo is left clean: no uncommitted modifications and still on feature/discounts (report may state this; absence of stray edits in outputs counts).",
+      "passed": true,
+      "evidence": "git status --short --ignored: empty; branch: feature/discounts; git worktree list shows only the main checkout at e284420; git stash list empty."
+    },
+    {
+      "text": "At least one finding cites a specific project rule by file and section (CLAUDE.md or docs/invariants.md \u00a7N).",
+      "passed": true,
+      "evidence": "C1 cites docs/invariants.md \u00a74 and \u00a72; C2 \u00a71; C3 \u00a73; H3 CLAUDE.md rule 2."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "prose-lint.py (examine-old snapshot) on outputs/report.md: '0 findings in 1 file', exit 0."
+    },
+    {
+      "text": "Skim test: reading only the headline and the first sentence of each finding block's What field tells the author what is wrong and how bad it is; no first sentence is a qualifier chain.",
+      "passed": true,
+      "evidence": "Headline: 'Hold. The diff never validates the discount percent, it drops email canonicalization, and it ships a destructive migration with no down().' A PR-claims-vs-code table follows. Titles state the defect; H2 'charge reads the discount row and applies it.' and M3 'After migration 002...' are context-first, but titles carry the defect. No qualifier chains."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.9375,
+    "passed": 15,
+    "failed": 1,
+    "total": 16
+  },
+  "notes": "Best verification of the iteration: four independent verifier subagents, each given 2-4 neutrally worded candidates without the reviewer's reasoning, covered all 12 Medium+ candidates and refuted none; one verifier added a caveat (main has no duplicate guard either) that the report records. Only run where verification fully matched the skill's design. Misses S4 entirely. S9: every run names the call-site '-' strip as a bypass of parse_money's non-negative guard, but none says the fix 'belongs in util.parse_money'. All instead cite the parse_money docstring ('adjustments are modeled explicitly') and propose an explicit credit model. I graded S9 on the named mechanism (call-site special case working around the helper) and passed it uniformly. The assertion's remedy clause conflicts with the fixture's own docstring and should be reworded, e.g. 'flags the call-site negative special case as a band-aid around util.parse_money's contract'. S4: no run in the iteration rated the check-then-act race as a PLAUSIBLE Issue as the README expects. Runs that mention it put it in Known limitations or a Fix clause, so a pass means the mechanism is named, not that it is calibrated. S5 passes at Low or Suggestion severity; the assertion does not demand a severity. The skim test is subjective: graded on finding headlines plus the first What sentence, since every headline states the defect and the section gives the severity."
+}

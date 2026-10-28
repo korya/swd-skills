@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md: 93 lines, non-empty."
+    },
+    {
+      "text": "Zero Critical issues and zero High issues are reported.",
+      "passed": true,
+      "evidence": "'### Low (defer)' is the only severity bucket. L1 and L2 are Low. No Critical/High."
+    },
+    {
+      "text": "The report does not fabricate defects: any issues listed are genuinely present in the diff and at most minor (Low) or framed as suggestions/questions.",
+      "passed": true,
+      "evidence": "L1 (tests/test_audit.py:18-20 checks key 'email' only; mutation `who=email` passed) and L2 (description claims 'failure paths covered in tests/test_audit.py' but both tests use valid input) are genuine and Low. 'Not reviewed' names pre-existing main issues (float math in billing.charge, no email normalization in charge/lookup); both are real on main (app/billing.py:19 `int(amount * (1 + TAX_RATE_BP / 10_000))`, support.py:7 passes raw email) and explicitly out of scope, not listed as issues. Line ref 'app/billing.py:18' is off by one (actual line 19)."
+    },
+    {
+      "text": "What-was-done-well (or equivalent praise section) credits at least one concrete choice with a file reference, such as audit entries carrying user_id instead of email per CLAUDE.md.",
+      "passed": true,
+      "evidence": "'- [`app/users.py:21`] The entry carries `user_id` only. This follows the rule in `CLAUDE.md` that bans raw emails outside the users table.' Plus 3 more file:line credits."
+    },
+    {
+      "text": "The report is concise \u2014 no walls of padded findings; empty severity buckets are left empty or omitted rather than filled.",
+      "passed": false,
+      "evidence": "FAILED. The same missing-timestamp finding appears twice: 'Q1 [`app/audit.py:6`] ... The entry holds no time' and 'S1: Put a timestamp in each audit entry ... Locator: `app/audit.py:6`'. The Gaps bucket holds an item the report itself calls harmless: 'Entries collect across test modules. `TestAudit` clears the list itself, so no test fails today.' Every finding bucket (Issues, Questions, Suggestions, Gaps) is filled, and Not reviewed adds two out-of-scope pre-existing defects."
+    },
+    {
+      "text": "Report includes a Verified or Not reviewed indication of scope.",
+      "passed": true,
+      "evidence": "Has '## Verified' (incl. two host-review candidates marked REFUTED) and '## Not reviewed'."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings: no sentence over 25 words, no paragraph lead over 20 words, no semicolons, no em dashes.",
+      "passed": true,
+      "evidence": "python3 .../snap/examine-old/scripts/prose-lint.py outputs/report.md -> '0 findings in 1 file', exit 0 (path substituted per grader instructions)."
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.8571,
+    "passed": 6,
+    "failed": 1,
+    "total": 7
+  },
+  "notes": "Assertion 5 is subjective; graded as: fail when the same finding is reported in two buckets or a bucket holds an item the report itself says has no effect. All four reports run 62-98 lines for a 31-line diff, mostly because the skill mandates Verified/Not reviewed sections, so raw length alone was not failed. Assertion 3 says 'genuinely present in the diff', yet the strongest genuine findings (no timestamp despite 'who was created and when', commit message overclaiming 'failure paths covered', key-only no-email test) are gaps in the diff, not lines of it; graded as genuine. Assertion 7 path was substituted with the snapshot prose-lint.py per grader instructions. Eval critique: the 'clean' fixture is not fully clean (missing timestamp vs. stated requirement, overclaimed failure-path tests), so Low/Question findings are correct behavior; the assertions cannot tell a well-calibrated Low from filler. Run-specific: strongest empirical evidence (mutation test proving the weak no-email test, bad-input probe), but the most bucket-filling."
+}

@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md is 12109 bytes; starts '# Examine: Add discount codes with API validation (branch feature/discounts vs main)'."
+    },
+    {
+      "text": "The report states it ran in quick mode (or names the mode and why).",
+      "passed": true,
+      "evidence": "Headline: 'Mode: **quick**, as you asked.'"
+    },
+    {
+      "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+      "passed": true,
+      "evidence": "'The diff is `git diff $(git merge-base HEAD main)`, commit `9437d17`. The working tree was clean'. In outputs/repo, `git log --oneline main..feature/discounts` = '9437d17 feat(discounts): ...' (single commit, so merge-base range = the branch)."
+    },
+    {
+      "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+      "passed": true,
+      "evidence": "4 of 5 caught. Swallowed error: H1 'The `except Exception: pass` then swallows the `KeyError`' / '`api_redeem({\"code\": \"NOPE\"})` returns `{'redeemed': True}`'. Email: H3 '`create_user` dropped `normalize_email`'. Percent validation: C1 '`validate_percent` exists ... but no code calls it'. support.lookup: H2 '`support.lookup` still catches `NotFound` and then reads `u[\"id\"]`'. Race: not caught (no race/concurrency mention)."
+    },
+    {
+      "text": "No more than 8 issues are reported.",
+      "passed": true,
+      "evidence": "8 Issues: C1, C2, H1, H2, H3, H4, M1, L1. Q1-Q3, S1-S2, Gaps not counted."
+    },
+    {
+      "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+      "passed": true,
+      "evidence": "Not reviewed: 'Quick mode skipped these axes: ... 5h privacy, including the new `source` field. ... 5m dependencies. The diff adds none. ... The Occam pass.'"
+    },
+    {
+      "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "All non-Low Issues (C1, C2, H1-H4, M1) carry 'Verdict: CONFIRMED'; H4 'Verdict: CONFIRMED. The verifier read the diff and found only the one new test.' L1 has none, which is allowed."
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  },
+  "notes": "Assertion 4 is lenient: 'at least three of five' let every run pass without catching S4 (the check-then-act redemption race in api_redeem); no run in this iteration mentions a race or concurrency. Assertion 5 does not discriminate here: all four runs report exactly 8 Issues, the cap itself. No assertion checks the S6 trap (FIN-88 cap 50->30) or verification independence; the expected_output's 'still runs verification' is only proxied by verdict labels. Run-specific: one independent subagent verified all eight candidates (disclosed). Pre-existing float tax line surfaced as Suggestion S1 with a 0-20,000,000-cent probe. Wrote report via shell heredoc after the harness Write guard refused."
+}

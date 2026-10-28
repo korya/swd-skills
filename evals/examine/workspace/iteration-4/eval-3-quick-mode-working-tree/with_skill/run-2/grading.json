@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md is 11139 bytes; starts '# Examine: discount codes with API validation (branch `feature/discounts`)'."
+    },
+    {
+      "text": "The report states it ran in quick mode (or names the mode and why).",
+      "passed": true,
+      "evidence": "Target and mode: '**Mode:** quick, because you asked for it.' plus 'The skill defaults to full mode for migrations and payments. This branch touches both.'"
+    },
+    {
+      "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+      "passed": true,
+      "evidence": "'**Target:** branch `feature/discounts` at `520549a`, diffed from the merge-base with `main` (`5f1e0b7`).' Matches `git merge-base main feature/discounts` = 5f1e0b7."
+    },
+    {
+      "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+      "passed": true,
+      "evidence": "4 of 5 caught. Swallowed error: M1 'The increment raises `KeyError`. The bare `except` swallows it, and the function returns `{\"redeemed\": True}`.' Email: C3 'removes `normalize_email` and keeps only `strip()`'. Percent validation: C1 '`validate_percent` exists ... but nothing calls it'. support.lookup: H1 '`support.lookup` still catches `NotFound`, which never comes. It then subscripts `None`.' Race: not caught (no race/concurrency mention)."
+    },
+    {
+      "text": "No more than 8 issues are reported.",
+      "passed": true,
+      "evidence": "8 Issues: C1, C2, C3, H1, H2, H3, M1, M2 (no Low section). Q1-Q3 not counted."
+    },
+    {
+      "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+      "passed": true,
+      "evidence": "Not reviewed: 'Axes 5e to 5h: architecture, conventions, security, and privacy.', 'Axes 5j to 5l: load-bearing assumptions, reversibility, and dependencies.', 'The Occam pass.'"
+    },
+    {
+      "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "All eight Issues carry 'Verdict: CONFIRMED. I ran the probe in a detached worktree.' (H3: 'Verdict: CONFIRMED. All four existing tests pass on the branch.')"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  },
+  "notes": "Assertion 4 is lenient: 'at least three of five' let every run pass without catching S4 (the check-then-act redemption race in api_redeem); no run in this iteration mentions a race or concurrency. Assertion 5 does not discriminate here: all four runs report exactly 8 Issues, the cap itself. No assertion checks the S6 trap (FIN-88 cap 50->30) or verification independence; the expected_output's 'still runs verification' is only proxied by verdict labels. Run-specific: weakest verification of the four. 'Verification ran in a single context. No independent subagent checked the candidates.' No reason (such as a host limit) is given, so every verdict rests on the author's own probes; the labels pass the assertion but the independence the skill asks for is absent. Float-tax probe covered only 0-2000.00 (others: 0-200,000.00). The swallowed-redeem defect (S1) was rated only Medium. Wrote report via shell heredoc after the harness Write guard refused."
+}

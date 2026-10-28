@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "Report file exists at outputs/report.md and is non-empty.",
+      "passed": true,
+      "evidence": "outputs/report.md is 14078 bytes; starts '# Examine: Add discount codes with API validation (feature/discounts vs main)'. Written verbatim by the orchestrator from the agent's final message after the harness blocked the Write (graded as agent content per instructions)."
+    },
+    {
+      "text": "The report states it ran in quick mode (or names the mode and why).",
+      "passed": true,
+      "evidence": "Headline: 'Mode: **quick**, as you asked. This diff touches payments and a migration. Without your choice, the skill would pick full mode.'"
+    },
+    {
+      "text": "The reviewed diff is the branch vs main (merge-base or 'against main' language; not just the last commit alone and not an unrelated baseline).",
+      "passed": true,
+      "evidence": "Table: 'Base | `main` at `5f1e0b7` (merge-base)', 'Head | `feature/discounts` at `520549a`', 'Files | 8 changed, 129 insertions, 14 deletions' -- matches `git diff --stat main...feature/discounts` (8 files, 129+/14-) and `git merge-base` = 5f1e0b7."
+    },
+    {
+      "text": "At least three of the planted correctness defects are caught: swallowed redemption error, dropped email normalization, uncalled percent validation, redemption race, unfixed support.lookup caller of the changed find_user_by_email.",
+      "passed": true,
+      "evidence": "4 of 5 caught. Swallowed error: H2 'returns `redeemed: True` for an unknown code ... the `except Exception: pass` hides the `KeyError`'. Email: H4 'replaces `normalize_email(email)` with `email.strip()`'. Percent validation: H1 '`validate_percent` exists, but no code calls it'. support.lookup: M1 '`support.lookup` still catches `NotFound` ... reads `u[\"id\"]` on `None`'. Race: not caught (grep for race/concurren/check-then/atomic: no relevant hit)."
+    },
+    {
+      "text": "No more than 8 issues are reported.",
+      "passed": true,
+      "evidence": "8 Issues: C1, H1, H2, H3, H4, M1, M2, M3 (no Low section). Questions Q1-Q3 and Suggestion S1 not counted."
+    },
+    {
+      "text": "Skipped review axes are listed under Not reviewed (quick mode skips e.g. privacy, dependencies, Occam).",
+      "passed": true,
+      "evidence": "Not reviewed: 'Axes skipped in quick mode: 5e architecture, 5h privacy, and 5m dependencies.' and 'Occam pass and host reviewers: skipped in quick mode.'"
+    },
+    {
+      "text": "Non-Low issues still carry a confidence verdict (CONFIRMED or PLAUSIBLE).",
+      "passed": true,
+      "evidence": "Every Critical/High/Medium carries a Verdict: C1, H1-H4, M1-M3 all 'CONFIRMED' (e.g. M2 'Verdict: CONFIRMED. `tests/` holds four tests in total'; M3 'Verdict: CONFIRMED. The message and the diff were compared hunk by hunk.')."
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  },
+  "notes": "Assertion 4 is lenient: 'at least three of five' let every run pass without catching S4 (the check-then-act redemption race in api_redeem); no run in this iteration mentions a race or concurrency. Assertion 5 does not discriminate here: all four runs report exactly 8 Issues, the cap itself. No assertion checks the S6 trap (FIN-88 cap 50->30) or verification independence; the expected_output's 'still runs verification' is only proxied by verdict labels. Run-specific: support.lookup crash rated Medium (other runs: High). Two meta-Issues (M2 test gap, M3 commit scope) consume issue slots. One general-purpose verifier checked all seven candidates; the report discloses this deviation from one-verifier-per-candidate. Uniquely kept the Occam registry finding as Suggestion S1 despite quick mode. Did not work around the harness write block."
+}
