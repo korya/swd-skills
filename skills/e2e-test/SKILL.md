@@ -50,8 +50,9 @@ you create. They reproduce findings, and the report lists them.
    to a lesser surface and call it the same test.
 4. **Execute.** Run every case from scratch, through the surface only. A verdict comes
    from what the user would see. Logs and code may explain a failure, but never turn it
-   into a PASS. Record evidence as you go, and record UX friction and visual defects too.
-   A failure does not stop the run. Mark what it cascades onto as BLOCKED and keep going.
+   into a PASS. Keep an evidence log as you go: every command or action, tagged by case,
+   with what the surface showed. Record UX friction and visual defects too. A failure does
+   not stop the run. Mark what it cascades onto as BLOCKED and keep going.
 5. **Report.** Read `../../assets/writing.md` now. Write the report per `report.md` at the
    depth you set. Run `<plugin root>/scripts/prose-lint.py` on it and fix every finding.
    Deliver the report and stop.
@@ -63,7 +64,8 @@ you create. They reproduce findings, and the report lists them.
 - [ ] Case list written before execution. Specs cited where they exist.
 - [ ] Every case carries exactly PASS, FAILURE, or BLOCKED. None silently dropped.
 - [ ] Every verdict earned at the user-visible surface. No case passed by reading code.
-- [ ] Every non-PASS has evidence, repro steps, and a most likely cause.
+- [ ] Every non-PASS has evidence, repro steps, and a most likely cause. Every quoted
+  output is in the evidence log, produced by exactly the steps shown.
 - [ ] UX and visual observations recorded, not discarded as out of scope.
 - [ ] Zero product files modified. Artifacts created through the surface are listed.
 - [ ] Report delivered at the depth the invocation asked for, headline verdict first, and

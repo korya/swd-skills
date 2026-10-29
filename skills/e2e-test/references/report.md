@@ -1,6 +1,6 @@
 # The report: statuses, evidence, formats
 
-Loaded from `SKILL.md` step 2, so you capture evidence while testing, and again at step 5.
+Loaded from `SKILL.md` step 2, so you log evidence while testing, and again at step 5.
 The report must let someone who was not there reproduce every failure and fix it without
 re-testing first.
 
@@ -19,9 +19,14 @@ Every case ends in exactly one. There is no SKIPPED, no PARTIAL, no "mostly work
 ## Per-case details, for every non-PASS
 
 - **What was done.** Steps a stranger can replay, from scratch.
-- **Expected against observed.** Evidence verbatim. The exact error text. A screenshot for
-  anything visual. The command and its output for a CLI. The request and response for an
-  API.
+- **Expected against observed.** Evidence pasted from the evidence log. The exact error
+  text. A screenshot for anything visual. The command and its output for a CLI. The
+  request and response for an API.
+
+The output you quote must come from exactly the steps you show. When you trim the steps
+for the reader, run the trimmed steps on fresh state and quote that run. Output you
+expected but did not see goes under Expected, never in an evidence block. Give the path
+of the evidence log in the report, so a reader can check any quote.
 - **Most likely cause.** Logs, stack traces, and code may be read and cited here. Label it
   as likelihood, not certainty. Diagnosis explains a verdict. It never changes one.
 
