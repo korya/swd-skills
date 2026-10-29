@@ -6,14 +6,12 @@ description: Validate a product end-to-end the way its real user uses it — a w
 # E2e-test: the product through the front door
 
 The point is not to run the test suite. The point is to sit where the user sits and find
-out whether the product works. Every verdict is earned at the user-visible surface. Every
-finding is reported instead of fixed. The deliverable is a report someone else can fix
-from.
+out whether the product works. `/examine` reviews the code. `/e2e-test` ignores the code
+and tests the product. The deliverable is a report someone else can fix from.
 
-`/examine` reviews the code. `/e2e-test` ignores the code and tests the product.
-
-Invoke it after a feature or fix is built, before a release, or whenever "does it actually
-work?" needs an answer backed by evidence rather than by the diff looking right.
+Never edit product code, config, or tests, not even a one-liner. A fix made mid-run lacks
+the design context, and the run then tests your patch instead of the product. Report the
+defect. Fixing is a separate task.
 
 ## Required references
 
@@ -22,70 +20,41 @@ file at the step named.
 
 | File | Read at | Holds |
 |---|---|---|
-| `references/surfaces.md` | step 1 | per-surface personas and mechanics, readiness checks, fail-fast rules |
-| `references/cases.md` | step 2 | deriving the case list from changes, specs, and blast radius, and the report depth |
-| `references/report.md` | step 5, skimmed at step 2 | the three statuses, lean and comprehensive formats, evidence rules |
+| `references/surfaces.md` | step 1 | the surface and persona per product type, the fail-fast rule |
+| `references/cases.md` | step 2 | the scope, and deriving cases from changes, specs, and blast radius |
+| `references/report.md` | step 2, again at step 5 | the three statuses, the evidence to capture, the report depth and formats |
 | `../../assets/writing.md` | step 5, before writing the report | the writing rules for every text a person reads |
 | `references/rationalizations.md` | when tempted to fix, skip, or downgrade | why each shortcut fails |
-
-## Principles
-
-- **Test it the way its user uses it.** A web app is tested by clicking through a real
-  browser. A CLI is tested by invoking the binary in a shell. A library is tested by
-  writing small programs as an integrating developer. A service is tested through its
-  public API. Testing a different surface tests a different product.
-- **Test, do not fix.** Hard rule: never edit product code, config, or tests, not even a
-  one-liner. A mid-testing fix is suboptimal at best and wrong at worst. Every minute
-  spent fixing is a minute not testing. Report. Fixing is a separate task with the report
-  in hand.
-- **The case list is a contract.** It is written before testing starts. Every case ends in
-  exactly PASS, FAILURE, or BLOCKED. No other status exists, and no case is skipped
-  without that skip appearing in the report.
-- **Fail loudly, not sideways.** If the intended surface will not run, because the browser
-  will not start or the app will not boot, stop and report BLOCKED at once. Never silently
-  downgrade to a lesser surface and call it the same test.
-- **First-time eyes.** Test from scratch, as if seeing the product for the first time. Do
-  not lean on state or knowledge from earlier runs. UX friction, visual defects, and gaps
-  nobody thought of are findings, not noise.
 
 ## Side effects
 
 Driving the product's own surface is testing, not fixing. Creating, updating, and
-deleting users, teams, or records is fine in a dev or local environment. Anything that is
-not clearly dev, such as a shared staging or anything prod-like, needs the environment
-named and the user's explicit confirmation before mutating. Artifacts created while
-testing are kept, not cleaned up. They help reproduce findings and are listed in the
-report.
+deleting records through it is fine in a dev or local environment. Any other environment,
+such as a shared staging or anything prod-like, needs the user's explicit confirmation
+before the first mutation. Without it, the mutation cases are BLOCKED. Keep the artifacts
+you create. They reproduce findings, and the report lists them.
 
 ## Workflow
 
-1. **Scope and surface.** Read `references/surfaces.md` now. Scope defaults to the
-   change: everything on the branch or PR, the product specs it affects, and the adjacent
-   logic that could regress. A full-product sweep happens only when asked. Identify the
-   product's real user and surface, and the target environment. State all three. When
-   "the change" is ambiguous, ask. Do not guess.
-2. **Build the case list.** Read `references/cases.md` now. Derive cases from three
-   sources. The spec acceptance criteria, cited by ID when the repo has them. The change's
-   user-visible behaviors, with a happy path, an edge, and an error path each. And the
-   blast radius. Set the
-   report depth from the invocation's wording. The finished list is the contract for
-   everything after.
-3. **Readiness.** Start the product the documented way and smoke-check the surface: the
-   page renders, the binary answers `--help`, the package installs. If it is broken, all
-   dependent cases are BLOCKED. Report now. Do not push through or work around.
-4. **Execute.** Run every case, with first-time eyes, through the surface only. Verdicts
-   come from what the user would see. Logs and code may inform a failure's most likely
-   cause, but a log line never turns FAILURE into PASS. Record evidence as you go:
-   verbatim errors, screenshots, commands with output. Record UX inconveniences and visual
-   defects too: buttons, colors, borders, spacing, states. A failure does not stop the
-   run. Mark it, mark what it cascades onto as BLOCKED, and keep testing everything
-   testable.
-5. **Report.** Read `references/report.md` and `../../assets/writing.md` now. Write an
-   inverted pyramid: the verdict headline with counts first, then the case table, then
-   details and the most likely cause for every non-PASS. At comprehensive depth, add the
-   missing cases, issues by severity, UX gaps, improvements worth doing, and leftover
-   artifacts. Run `<plugin root>/scripts/prose-lint.py` on the report and fix every
-   finding in the text. Deliver the report and stop. No fixes, no follow-up commits.
+1. **Scope and surface.** Read `references/surfaces.md` now. Scope defaults to the change,
+   its affected specs, and its blast radius. Identify the product's real user, their
+   surface, and the target environment, and state all three. When "the change" is
+   ambiguous, ask.
+2. **Build the case list.** Read `references/cases.md` and `references/report.md` now.
+   Write the case list before you run anything. It is the contract for the rest of the
+   run. Derive cases from three sources: every acceptance criterion of the affected specs,
+   cited by ID. Each changed behavior, with a happy path, an edge, and an error path. And
+   the blast radius. Set the report depth from the invocation's wording.
+3. **Readiness.** Start the product the documented way and smoke-check the surface. If it
+   will not come up, stop. Mark every dependent case BLOCKED and report now. Never slide
+   to a lesser surface and call it the same test.
+4. **Execute.** Run every case from scratch, through the surface only. A verdict comes
+   from what the user would see. Logs and code may explain a failure, but never turn it
+   into a PASS. Record evidence as you go, and record UX friction and visual defects too.
+   A failure does not stop the run. Mark what it cascades onto as BLOCKED and keep going.
+5. **Report.** Read `../../assets/writing.md` now. Write the report per `report.md` at the
+   depth you set. Run `<plugin root>/scripts/prose-lint.py` on it and fix every finding.
+   Deliver the report and stop.
 
 ## Definition of done
 
@@ -99,9 +68,3 @@ report.
 - [ ] Zero product files modified. Artifacts created through the surface are listed.
 - [ ] Report delivered at the depth the invocation asked for, headline verdict first, and
   it passes `prose-lint.py` with no findings.
-
-## Related skills
-
-`/spec` writes the acceptance criteria this skill tests against. `/examine` reviews the
-code. `/rca` digs into a failure this skill found. Fixing the findings is its own task,
-done from the report.

@@ -1,0 +1,83 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**Verdict: 35/44 PASS, 9 FAILURE, 0 BLOCKED. Not ready to merge.**\" Table counts match (35 PASS + 9 FAILURE = 44 rows incl. R1)."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript step 8 writes the 44-case list to outputs/artifacts/case-list.md; first CLI run is step 9. Table cites 32 distinct spec IDs (e.g. CLI-001, TKT-010, LOG-007)."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "Parsed all 44 case-table rows: 35 PASS, 9 FAILURE, 0 other. Two rows read \"FAILURE (on main too)\", a single status with an annotation."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 24 block: `close 3 \"duplicate\"          -> #3 closed     (exit 0)`, with the expected `error: resolution note must be at least 10 characters`, exit 2."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Cases 17-19 block: `assign 1 sam -> #1 assigned -> sam (exit 0)`, with the expected `error: ticket 1 is closed` on stderr, exit 2, and the main baseline."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 31: `list -> #1 open     First`, expected `#1 [P3] open     First`; main shows `#1 [P3] open     Baseline`. Status FAILURE citing CLI-006."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 1 FAILURE: shows `--help` output \"Manage support tikets from the shell.\" Also issue 5 (Low)."
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "Transcript steps 9-18 run python3 -m ticketdesk.cli for every case (23 invocations counted), plus a main-worktree baseline. Code is cited only in the most-likely-cause lines."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "\"The PR says 'support asked for' this behavior. TKT-008 and the forward-only rule in tickets.md still forbid it. The branch changed no spec, and AGENTS.md requires user confirmation for a spec conflict.\" For notes: \"It did not change the message or TKT-010.\" Issue list: \"The branch changes behavior that three specs define and updates none of them.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": false,
+      "evidence": "Leftover artifacts lists tickets (\"artifacts/main.jsonl: tickets #1 to #8 ...\"), but the FAILURE section for case 1 (the --help typo) has no most-likely cause. It says only \"Expected: tickets. Observed: tikets. This line is new on this branch.\" Every other FAILURE section has \"Most likely cause:\"."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = []; untracked only tests/__pycache__/ and ticketdesk/__pycache__/."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0; transcript steps 21, 25, 26 also report 0 findings."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline gives counts and 'Not ready to merge', then the four regressions as bullets. Section openers lead with the gist (\"Assign on a closed ticket succeeds and moves the ticket back to assigned\"). One exception: 'Failure details' opens with a notation line about `$L`."
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 1,
+    "total": 13,
+    "pass_rate": 0.9231
+  },
+  "notes": [
+    "44 cases, 2463 words. The only run that also tested an unwritable --log path (case 43). It did not exercise a broken pipe on a large log: case 42 'list output works in a pipe' PASS on a small log, with no caveat.",
+    "It read the diff and cli.py (steps 6-7) before writing the case list. That is white-box knowledge feeding case design, but every verdict came from a CLI run.",
+    "Ran make test and found that the PR's 'All tests pass locally' is false (test_assign_requires_open_ticket fails).",
+    "Its repro blocks keep the real ticket IDs and sequence from the transcript (e.g. #3 for 'duplicate', #6 for the padded note). The most faithful evidence of the six runs.",
+    "Used `git worktree add` under outputs/artifacts/main-wt, which registers a worktree in outputs/repo/.git. That is inside the run dir but alters repo git metadata.",
+    "No write outside the run dir is recorded. Step 14 made one stray attempt with a literal `$L` path, which failed read-only and created no file. The Write tool refused report.md, so the run wrote it via a shell heredoc."
+  ]
+}

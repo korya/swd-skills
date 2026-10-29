@@ -1,0 +1,83 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**28/36 PASS, 7 FAILURE, 1 BLOCKED. No-go for merge.**\" Table counts match."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript step 8 writes outputs/case-list.md (36 cases) 'before execution'; first CLI run is step 9. Table cites 36 distinct spec IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "Parsed 36 rows: 28 PASS, 7 FAILURE, 1 BLOCKED, none other."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 18: \"`close 4 \"duplicate\"` succeeds with `#4 closed` and exit 0\". It also notes that `\"  123456789  \"` closes ticket 5 and that main rejects the note with exit 2. The output is inline prose, not a block."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 14 block: `$ python3 -m ticketdesk.cli --log /tmp/t.jsonl assign 1 sam` -> `#1 assigned -> sam (exit 0, expected \"error: ticket 1 is closed\", exit 2)`."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 21 table: main `#1 [P1] closed   Printer on fire` vs branch `#1 closed   Printer on fire`."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 2 FAILURE: \"`--help` now prints `Manage support tikets from the shell.`\""
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "Transcript steps 9-19 run the CLI for every case on the branch and on a main clone. The 4 counted transcript invocations understate this, because the runs went through an `r` helper. Code appears only in most-likely-cause lines."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "Case 14: \"That request conflicts with TKT-008 and the forward-only rule, and the PR does not update either one.\" Case 18: \"The PR intends this change, but it ships without a spec update or a matching message.\" Issues: \"the specs and the code now disagree on TKT-008, TKT-010, and CLI-006.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "Every FAILURE subsection (cases 14, 18, 21, 2, 33, 34, 35) has \"Most likely cause:\". The leftover-artifacts section lists the logs and the tickets in them (\"life.jsonl ... Ticket 1 shows the reopen and the second close. Ticket 4 shows the duplicate close.\")."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = []; untracked only ticketdesk/__pycache__/."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline paragraph gives counts, 'No-go for merge', and the worst risk. The second paragraph splits branch from main failures. The case subsections open with the gist (\"The product accepts an assignment on a closed ticket and moves it back to assigned\")."
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0,
+    "total": 13,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "36 cases, 2402 words. Found two extra pre-existing defects: a newline in a title splits the list line, and BrokenPipe on `list | head` with 20,000 tickets.",
+    "Evidence fidelity: the case 14 block shows `--log /tmp/t.jsonl`, but the transcript ran against outputs/work/life.jsonl. The report does not disclose the substitution and says all logs were under outputs/work/.",
+    "Rated case 8 (P9 traceback, exit 1) and case 29 (corrupt-line traceback) as PASS on spec content, then listed the tracebacks under UX gaps. Other runs marked the same behaviour FAILURE against CLI-007. It is defensible given the CLI-007 TODO, but inconsistent.",
+    "Did not run make test, so it missed that the PR's 'All tests pass locally' is false. It says so honestly under Missing cases.",
+    "It read the diff and cli.py before the case list; verdicts are from CLI runs.",
+    "No write outside the run dir is recorded. It made a `git clone` of main into outputs/work/main-copy. The Write tool refused report.md, so the run wrote it via a heredoc."
+  ]
+}

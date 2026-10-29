@@ -1,9 +1,8 @@
-# The case list: scope, derivation, depth
+# The case list: scope and derivation
 
-Loaded from `SKILL.md` step 2. The case list is written before any testing and is the
-contract for the rest of the run. What appears here gets a verdict. What was deliberately
-left out appears in the report as untested. A case list improvised during testing bends
-toward whatever was easy to test.
+Loaded from `SKILL.md` step 2. Every case on the list gets a verdict. A case left out on
+purpose appears in the report as untested. A list improvised during testing bends toward
+whatever was easy to test.
 
 ## Scope
 
@@ -12,13 +11,11 @@ The default is the change and its blast radius:
 - **The change itself.** Every user-visible behavior added or altered on the branch or PR.
   Inventory it from the diff against the merge base and from the PR or issue description.
   Test the promised behavior, not just the implemented one.
-- **Affected specs.** Product specs whose requirements the change touches. When the repo
-  keeps acceptance criteria with IDs, cite the ID per case. Cover every criterion of the
-  affected specs, not only the ones the diff obviously maps to.
-- **Blast radius.** Adjacent logic that could regress. That means features sharing the
-  changed code paths, data models, or entry points. It also means screens surrounding a
-  changed screen, and each permission tier that reaches the changed behavior. The regression nobody looked for is
-  the one that ships.
+- **Affected specs.** Cover every criterion of the specs the change touches, not only the
+  ones the diff obviously maps to.
+- **Blast radius.** Features that share the changed code paths, data models, or entry
+  points. Screens around a changed screen. Each permission tier that reaches the changed
+  behavior.
 
 A full-product sweep happens only when the user asks for one. Then the spec set, or the
 product's navigable surface, is the inventory, and the change still gets the deepest
@@ -35,17 +32,5 @@ running it. For every behavior in scope:
   unavailable dependencies. "Fails gracefully with a useful message" is an expected outcome
   too.
 
-The from-scratch rule: cases assume a first-time user. When a scenario needs pre-existing
-state, creating that state through the surface is part of the case, not a given.
-
-## Report depth
-
-Set it now, from the invocation's wording, and say which you chose:
-
-- **Lean.** A quick or narrowly scoped ask, such as "re-test the login flow". The headline
-  verdict, the case table, and details per non-PASS.
-- **Comprehensive.** The words "comprehensive", "thorough", "from scratch", "next stop is
-  prod", or a release gate. The lean report plus missing cases, issues by severity, UX
-  gaps, improvements worth doing, and leftover artifacts.
-
-When it is ambiguous, choose comprehensive. Nobody was ever hurt by the fuller report.
+Cases assume a first-time user. When a scenario needs existing state, creating that state
+through the surface is part of the case.
