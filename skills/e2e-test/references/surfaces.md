@@ -1,8 +1,7 @@
 # Surfaces: test as the real user
 
-Loaded from `SKILL.md` step 1. This is the single most important decision of the run. Who
-is the product's user, and through what do they use it? Everything else follows from
-answering that honestly. Identify the surface from what the product is, state it, and stay
+Loaded from `SKILL.md` step 1. Decide who the product's user is and through what they use
+it. Testing a different surface tests a different product, so state the surface and stay
 on it.
 
 | Product | User | Surface, and nothing less |
@@ -18,16 +17,16 @@ Test each surface the change touches, as its own persona.
 ## Web app: the browser persona
 
 - Interact as a person does. Click the actual button, type into the actual field, read
-  what renders. Injected scripts and direct fetches bypass exactly the layer being tested.
-  Use them only to diagnose a failure already observed, never to produce a verdict.
+  what renders. Injected scripts and direct fetches bypass the layer under test. Use them
+  only to diagnose a failure already observed, never to produce a verdict.
 - **Visual validation is part of the job.** Check buttons, colors, borders, spacing,
   alignment, truncation, and the states users hit: hover, disabled, loading, empty, error.
-  A wrong border is a finding with a screenshot, not a footnote.
+  A wrong border is a finding with a screenshot.
 - **UX inconveniences count.** Dead ends, unclear labels, missing feedback after an action,
-  steps that feel needless. Report them as gaps even when the function passes.
-- Manage the system through the product's own UI where a user or admin would. Create,
-  update, and delete the entities the scenarios need there. Reach for a seed script or API
-  only for state the UI cannot produce, and say so in the report.
+  needless steps. Report them as gaps even when the function passes.
+- Create, update, and delete the entities the scenarios need through the product's own UI.
+  Reach for a seed script or API only for state the UI cannot produce, and say so in the
+  report.
 
 ## CLI: the shell persona
 
@@ -39,9 +38,8 @@ Test each surface the change touches, as its own persona.
 
 ## Library or SDK: the developer persona
 
-- **Write programs.** Small, out-of-tree consumer programs in a scratch directory. Install
-  the package the way the README says and use only the public, documented API. That is the
-  experience of a developer integrating it for the first time.
+- Write small, out-of-tree consumer programs in a scratch directory. Install the package
+  the way the README says and use only the public, documented API.
 - Follow the docs literally. Every place they lied, omitted a step, or assumed unstated
   context is a finding, even when the code itself works.
 - Exercise the advertised entry points, a realistic composition of them, and the error
@@ -49,26 +47,18 @@ Test each surface the change touches, as its own persona.
 
 ## Service or API: the client persona
 
-- Build requests from the public API documentation alone, as an external client author
-  would. Undocumented behavior needed to succeed is a finding.
+- Build requests from the public API documentation alone. Undocumented behavior needed to
+  succeed is a finding.
 - Check contracts, not just 200s: response shapes, error bodies, status codes, auth
   failures.
-- [`http-assert`](https://github.com/korya/http-assert) automates this persona well. It
-  makes curl-style requests with built-in assertions, is scriptable per case, and can wait
-  for the service to come up ready, without a hand-rolled client.
+- [`http-assert`](https://github.com/korya/http-assert) automates this persona. It makes
+  curl-style requests with built-in assertions, is scriptable per case, and can wait for
+  the service to come up.
 
-## Readiness and fail-fast
+## Fail fast
 
-Before executing cases, start the product the documented way and smoke-check the surface.
-The page renders, the binary answers `--help`, the package installs clean, the API answers
-a trivial request.
-
-- The surface will not come up: the browser will not start, the app will not boot, the
-  install fails. **Stop.** Everything that depends on it is BLOCKED. Report at once with
-  what you tried. Do not push through. Do not slide sideways to a lesser surface, such as
-  curl instead of a browser or importing internals instead of installing the package.
-  That tests a different product and its verdicts are worthless.
-- **Environment gate.** Name the environment you are pointed at. Clearly dev or local:
-  mutate freely through the surface. Anything else, such as a shared staging, a demo, or
-  anything prod-like: get the user's explicit confirmation before the first mutation.
-  Without it, mutation cases are BLOCKED, not quietly run.
+The step-3 smoke check fits the surface. The page renders, the binary answers `--help`,
+the package installs clean, or the API answers a trivial request. When it fails,
+report what you tried. Do not push through, and do not slide sideways, such as curl
+instead of a browser or importing internals instead of installing the package. A lesser
+surface tests a different product, and its verdicts are worthless.
