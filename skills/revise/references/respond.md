@@ -1,9 +1,6 @@
 # Responding: the table, the threads, the tickets
 
-Loaded from `SKILL.md` step 5. A verdict that never reaches the reviewer is half done. The
-response is where rejections earn their legitimacy and accepted fixes get traced. Every
-reply and the report follow `../../assets/writing.md` and pass `prose-lint.py` before they
-go out.
+Loaded from `SKILL.md` step 5. A verdict that never reaches the reviewer is half done.
 
 ## The decision table
 
