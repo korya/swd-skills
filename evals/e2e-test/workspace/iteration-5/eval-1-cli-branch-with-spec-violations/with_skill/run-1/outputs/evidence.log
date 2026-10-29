@@ -1,0 +1,898 @@
+### [R1] $ python3 -m ticketdesk.cli --help
+--- stdout
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+
+Manage support tikets from the shell.
+
+positional arguments:
+  {create,assign,close,list}
+
+options:
+  -h, --help            show this help message and exit
+  --log LOG             path of the event log
+--- stderr
+--- exit 0
+
+### [2] $ python3 -m ticketdesk.cli create --help
+--- stdout
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+
+positional arguments:
+  title
+
+options:
+  -h, --help           show this help message and exit
+  --priority PRIORITY
+--- stderr
+--- exit 0
+
+### [2] $ python3 -m ticketdesk.cli assign --help
+--- stdout
+usage: ticketdesk assign [-h] id assignee
+
+positional arguments:
+  id
+  assignee
+
+options:
+  -h, --help  show this help message and exit
+--- stderr
+--- exit 0
+
+### [2] $ python3 -m ticketdesk.cli close --help
+--- stdout
+usage: ticketdesk close [-h] id resolution
+
+positional arguments:
+  id
+  resolution
+
+options:
+  -h, --help  show this help message and exit
+--- stderr
+--- exit 0
+
+### [2] $ python3 -m ticketdesk.cli list --help
+--- stdout
+usage: ticketdesk list [-h]
+
+options:
+  -h, --help  show this help message and exit
+--- stderr
+--- exit 0
+
+### [3] $ python3 -m ticketdesk.cli
+--- stdout
+--- stderr
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+ticketdesk: error: the following arguments are required: cmd
+--- exit 2
+
+### [4] $ python3 -m ticketdesk.cli frobnicate
+--- stdout
+--- stderr
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+ticketdesk: error: argument cmd: invalid choice: 'frobnicate' (choose from 'create', 'assign', 'close', 'list')
+--- exit 2
+
+### [5] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c05.jsonl create; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c05.jsonl assign 1; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c05.jsonl close 1; ls /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c05.jsonl
+--- stdout
+--- stderr
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+ticketdesk create: error: the following arguments are required: title
+usage: ticketdesk assign [-h] id assignee
+ticketdesk assign: error: the following arguments are required: assignee
+usage: ticketdesk close [-h] id resolution
+ticketdesk close: error: the following arguments are required: resolution
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c05.jsonl': No such file or directory
+--- exit 2
+
+### [6] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c06.jsonl create 'Via flag' && wc -l < /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c06.jsonl
+--- stdout
+#1 open Via flag
+1
+--- stderr
+--- exit 0
+
+### [7] $ TICKETDESK_LOG=/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c07-env.jsonl python3 -m ticketdesk.cli create 'Via env' && wc -l < /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c07-env.jsonl && TICKETDESK_LOG=/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c07-env.jsonl python3 -m ticketdesk.cli list
+--- stdout
+#1 open Via env
+1
+#1 open     Via env
+--- stderr
+--- exit 0
+
+### [8] $ TICKETDESK_LOG=/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c08-env.jsonl python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c08-flag.jsonl create 'Flag wins'; ls /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c08-env.jsonl /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c08-flag.jsonl
+--- stdout
+#1 open Flag wins
+/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c08-flag.jsonl
+--- stderr
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c08-env.jsonl': No such file or directory
+--- exit 2
+
+### [9] $ ls tickets.jsonl; python3 -m ticketdesk.cli create 'Default path' && cat tickets.jsonl
+--- stdout
+#1 open Default path
+{"at": 1793304648.0355442, "id": 1, "kind": "created", "priority": "P3", "title": "Default path"}
+--- stderr
+ls: cannot access 'tickets.jsonl': No such file or directory
+--- exit 0
+
+# NOTE: from here on, commands reference $A = /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts and $C = "python3 -m ticketdesk.cli"
+
+### [10] $ $C --log $A/c10.jsonl list; echo "[exit $?]"; ls $A/c10.jsonl; $C --log $A/c10.jsonl create "First ever"; ls $A/c10.jsonl
+--- stdout
+[exit 0]
+#1 open First ever
+/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c10.jsonl
+--- stderr
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c10.jsonl': No such file or directory
+--- exit 0
+
+### [11] $ $C --log $A/c11.jsonl create "No priority given"; cat $A/c11.jsonl
+--- stdout
+#1 open No priority given
+{"at": 1793304659.939896, "id": 1, "kind": "created", "priority": "P3", "title": "No priority given"}
+--- stderr
+--- exit 0
+
+### [12] $ $C --log $A/c12.jsonl create "Urgent" --priority P1; $C --log $A/c12.jsonl create "Normal" --priority P2; cat $A/c12.jsonl
+--- stdout
+#1 open Urgent
+#2 open Normal
+{"at": 1793304659.9927208, "id": 1, "kind": "created", "priority": "P1", "title": "Urgent"}
+{"at": 1793304660.02338, "id": 2, "kind": "created", "priority": "P2", "title": "Normal"}
+--- stderr
+--- exit 0
+
+### [13] $ $C --log $A/c13.jsonl create "Existing"; $C --log $A/c13.jsonl create ""; echo "[exit $?]"; $C --log $A/c13.jsonl list
+--- stdout
+#1 open Existing
+[exit 2]
+#1 open     Existing
+--- stderr
+error: title is required
+--- exit 0
+
+### [14] $ $C --log $A/c14.jsonl create "Existing"; $C --log $A/c14.jsonl create "   "; echo "[exit $?]"; $C --log $A/c14.jsonl list
+--- stdout
+#1 open Existing
+[exit 2]
+#1 open     Existing
+--- stderr
+error: title is required
+--- exit 0
+
+### [15] $ $C --log $A/c15.jsonl create "Existing"; $C --log $A/c15.jsonl create "Bad prio" --priority P9; echo "[exit $?]"; $C --log $A/c15.jsonl list; wc -l < $A/c15.jsonl
+--- stdout
+#1 open Existing
+[exit 1]
+#1 open     Existing
+1
+--- stderr
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 23, in main
+    t = svc.create(args.title, args.priority); print(f"#{t.id} {t.state} {t.title}")
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 58, in create
+    due_at(0, priority)  # validates the priority
+    ~~~~~~^^^^^^^^^^^^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/sla.py", line 8, in due_at
+    raise ValueError(f"unknown priority {priority!r}; expected one of {sorted(SLA_HOURS)}")
+ValueError: unknown priority 'P9'; expected one of ['P1', 'P2', 'P3']
+--- exit 0
+
+### [16] $ $C --log $A/c16.jsonl create "Café Wi‑Fi down — ünïcødé ✓"; $C --log $A/c16.jsonl create "He said \"it broke\" & left"; $C --log $A/c16.jsonl create -- "-starts with dash"; $C --log $A/c16.jsonl list; cat $A/c16.jsonl
+--- stdout
+#1 open Café Wi‑Fi down — ünïcødé ✓
+#2 open He said "it broke" & left
+#3 open -starts with dash
+#1 open     Café Wi‑Fi down — ünïcødé ✓
+#2 open     He said "it broke" & left
+#3 open     -starts with dash
+{"at": 1793304667.717854, "id": 1, "kind": "created", "priority": "P3", "title": "Caf\u00e9 Wi\u2011Fi down \u2014 \u00fcn\u00efc\u00f8d\u00e9 \u2713"}
+{"at": 1793304667.7468338, "id": 2, "kind": "created", "priority": "P3", "title": "He said \"it broke\" & left"}
+{"at": 1793304667.776201, "id": 3, "kind": "created", "priority": "P3", "title": "-starts with dash"}
+--- stderr
+--- exit 0
+
+### [17] $ $C --log $A/c17.jsonl create "One"; $C --log $A/c17.jsonl create "Two"; $C --log $A/c17.jsonl close 2 "Fixed it properly"; $C --log $A/c17.jsonl create "Three"; $C --log $A/c17.jsonl list
+--- stdout
+#1 open One
+#2 open Two
+#2 closed
+#3 open Three
+#1 open     One
+#2 closed   Two
+#3 open     Three
+--- stderr
+--- exit 0
+
+### [18] $ $C --log $A/c18.jsonl create "Due check" --priority P1; $C --log $A/c18.jsonl list; $C --help | grep -i due; cat $A/c18.jsonl
+--- stdout
+#1 open Due check
+#1 open     Due check
+{"at": 1793304668.027818, "id": 1, "kind": "created", "priority": "P1", "title": "Due check"}
+--- stderr
+--- exit 0
+
+### [19] $ $C --log $A/c19.jsonl create "Printer on fire" --priority P1; $C --log $A/c19.jsonl assign 1 dana; $C --log $A/c19.jsonl list; tail -1 $A/c19.jsonl
+--- stdout
+#1 open Printer on fire
+#1 assigned -> dana
+#1 assigned Printer on fire
+{"assignee": "dana", "at": 1793304675.559691, "id": 1, "kind": "assigned"}
+--- stderr
+--- exit 0
+
+### [20] $ $C --log $A/c20.jsonl create "Printer on fire"; $C --log $A/c20.jsonl assign 1 dana; $C --log $A/c20.jsonl assign 1 lee; $C --log $A/c20.jsonl list; cat $A/c20.jsonl
+--- stdout
+#1 open Printer on fire
+#1 assigned -> dana
+#1 assigned -> lee
+#1 assigned Printer on fire
+{"at": 1793304675.649302, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"assignee": "dana", "at": 1793304675.679904, "id": 1, "kind": "assigned"}
+{"assignee": "lee", "at": 1793304675.710187, "id": 1, "kind": "assigned"}
+--- stderr
+--- exit 0
+
+### [21] $ $C --log $A/c21.jsonl create "Printer on fire"; $C --log $A/c21.jsonl close 1 "Replaced the toner cartridge"; cp $A/c21.jsonl $A/c21.before; $C --log $A/c21.jsonl assign 1 dana; echo "[exit $?]"; $C --log $A/c21.jsonl list; diff $A/c21.before $A/c21.jsonl
+--- stdout
+#1 open Printer on fire
+#1 closed
+#1 assigned -> dana
+[exit 0]
+#1 assigned Printer on fire
+2a3
+> {"assignee": "dana", "at": 1793304675.858618, "id": 1, "kind": "assigned"}
+--- stderr
+--- exit 1
+
+### [22] $ $C --log $A/c22.jsonl create "Printer on fire"; $C --log $A/c22.jsonl assign 1 dana; $C --log $A/c22.jsonl close 1 "Replaced the toner cartridge"; $C --log $A/c22.jsonl list; $C --log $A/c22.jsonl assign 1 lee; $C --log $A/c22.jsonl list
+--- stdout
+#1 open Printer on fire
+#1 assigned -> dana
+#1 closed
+#1 closed   Printer on fire
+#1 assigned -> lee
+#1 assigned Printer on fire
+--- stderr
+--- exit 0
+
+### [23] $ $C --log $A/c23.jsonl create "Printer on fire"; $C --log $A/c23.jsonl close 1 "Replaced the toner cartridge"; $C --log $A/c23.jsonl assign 1 lee; $C --log $A/c23.jsonl close 1 "Actually it was the fuser unit"; echo "[exit $?]"; $C --log $A/c23.jsonl list; cat $A/c23.jsonl
+--- stdout
+#1 open Printer on fire
+#1 closed
+#1 assigned -> lee
+#1 closed
+[exit 0]
+#1 closed   Printer on fire
+{"at": 1793304687.0289652, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"at": 1793304687.0623732, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+{"assignee": "lee", "at": 1793304687.093704, "id": 1, "kind": "assigned"}
+{"at": 1793304687.12523, "id": 1, "kind": "closed", "resolution": "Actually it was the fuser unit"}
+--- stderr
+--- exit 0
+
+### [24] $ $C --log $A/c24.jsonl create "Printer on fire"; $C --log $A/c24.jsonl assign 1 "   "; echo "[exit $?]"; $C --log $A/c24.jsonl assign 1 ""; echo "[exit $?]"; $C --log $A/c24.jsonl list; wc -l < $A/c24.jsonl
+--- stdout
+#1 open Printer on fire
+[exit 2]
+[exit 2]
+#1 open     Printer on fire
+1
+--- stderr
+error: assignee is required
+error: assignee is required
+--- exit 0
+
+### [25] $ $C --log $A/c25.jsonl create "Printer on fire"; $C --log $A/c25.jsonl assign 99 dana; echo "[exit $?]"; wc -l < $A/c25.jsonl
+--- stdout
+#1 open Printer on fire
+[exit 2]
+1
+--- stderr
+error: no ticket 99
+--- exit 0
+
+### [26] $ $C --log $A/c26.jsonl create "Printer on fire"; $C --log $A/c26.jsonl assign one dana; echo "[exit $?]"; $C --log $A/c26.jsonl assign 1.0 dana; echo "[exit $?]"; wc -l < $A/c26.jsonl
+--- stdout
+#1 open Printer on fire
+[exit 2]
+[exit 2]
+1
+--- stderr
+usage: ticketdesk assign [-h] id assignee
+ticketdesk assign: error: argument id: invalid int value: 'one'
+usage: ticketdesk assign [-h] id assignee
+ticketdesk assign: error: argument id: invalid int value: '1.0'
+--- exit 0
+
+### [27] $ $C --log $A/c27.jsonl create "Printer on fire"; $C --log $A/c27.jsonl close 1 "1234567890"; echo "[exit $?]"; $C --log $A/c27.jsonl list
+--- stdout
+#1 open Printer on fire
+#1 closed
+[exit 0]
+#1 closed   Printer on fire
+--- stderr
+--- exit 0
+
+### [28] $ $C --log $A/c28.jsonl create "Printer on fire"; $C --log $A/c28.jsonl close 1 "duplicate"; echo "[exit $?]"; $C --log $A/c28.jsonl list; tail -1 $A/c28.jsonl
+--- stdout
+#1 open Printer on fire
+#1 closed
+[exit 0]
+#1 closed   Printer on fire
+{"at": 1793304703.7008178, "id": 1, "kind": "closed", "resolution": "duplicate"}
+--- stderr
+--- exit 0
+
+### [29] $ $C --log $A/c29.jsonl create "Printer on fire"; $C --log $A/c29.jsonl close 1 "12345678"; echo "[exit $?]"; $C --log $A/c29.jsonl close 1 "wontfix"; echo "[exit $?]"; $C --log $A/c29.jsonl list
+--- stdout
+#1 open Printer on fire
+[exit 2]
+[exit 2]
+#1 open     Printer on fire
+--- stderr
+error: resolution note must be at least 10 characters
+error: resolution note must be at least 10 characters
+--- exit 0
+
+### [30] $ $C --log $A/c30.jsonl create "Printer on fire"; $C --log $A/c30.jsonl close 1 "   duplicate   "; echo "[exit $?]"; $C --log $A/c30.jsonl list
+--- stdout
+#1 open Printer on fire
+#1 closed
+[exit 0]
+#1 closed   Printer on fire
+--- stderr
+--- exit 0
+
+### [31] $ $C --log $A/c31.jsonl create "Printer on fire"; $C --log $A/c31.jsonl close 1 ""; echo "[exit $?]"; $C --log $A/c31.jsonl close 1 "     "; echo "[exit $?]"; $C --log $A/c31.jsonl list
+--- stdout
+#1 open Printer on fire
+[exit 2]
+[exit 2]
+#1 open     Printer on fire
+--- stderr
+error: resolution note must be at least 10 characters
+error: resolution note must be at least 10 characters
+--- exit 0
+
+### [32] $ $C --log $A/c32.jsonl create "Printer on fire"; $C --log $A/c32.jsonl assign 1 dana; $C --log $A/c32.jsonl close 1 "Replaced the toner cartridge"; $C --log $A/c32.jsonl list; cat $A/c32.jsonl
+--- stdout
+#1 open Printer on fire
+#1 assigned -> dana
+#1 closed
+#1 closed   Printer on fire
+{"at": 1793304714.7921789, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"assignee": "dana", "at": 1793304714.824252, "id": 1, "kind": "assigned"}
+{"at": 1793304714.856553, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+--- stderr
+--- exit 0
+
+### [33] $ $C --log $A/c33.jsonl create "Printer on fire"; $C --log $A/c33.jsonl close 1 "Replaced the toner cartridge"; $C --log $A/c33.jsonl close 1 "Second note, should be refused"; echo "[exit $?]"; $C --log $A/c33.jsonl list; cat $A/c33.jsonl
+--- stdout
+#1 open Printer on fire
+#1 closed
+[exit 2]
+#1 closed   Printer on fire
+{"at": 1793304714.9467971, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"at": 1793304714.978574, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+--- stderr
+error: ticket 1 is already closed
+--- exit 0
+
+### [34] $ $C --log $A/c34.jsonl create "Printer on fire"; $C --log $A/c34.jsonl close 42 "Replaced the toner cartridge"; echo "[exit $?]"; $C --log $A/c34.jsonl close -1 "Replaced the toner cartridge"; echo "[exit $?]"; wc -l < $A/c34.jsonl
+--- stdout
+#1 open Printer on fire
+[exit 2]
+[exit 2]
+1
+--- stderr
+error: no ticket 42
+error: no ticket -1
+--- exit 0
+
+### [35] $ $C --log $A/c35.jsonl create "Printer on fire"; $C --log $A/c35.jsonl close "#1" "Replaced the toner cartridge"; echo "[exit $?]"; wc -l < $A/c35.jsonl
+--- stdout
+#1 open Printer on fire
+[exit 2]
+1
+--- stderr
+usage: ticketdesk close [-h] id resolution
+ticketdesk close: error: argument id: invalid int value: '#1'
+--- exit 0
+
+### [36] $ $C --log $A/c36.jsonl create "Server down" --priority P1; $C --log $A/c36.jsonl create "Slow laptop" --priority P2; $C --log $A/c36.jsonl create "New mouse"; $C --log $A/c36.jsonl list | cat -A 2>/dev/null || $C --log $A/c36.jsonl list | sed -n l
+--- stdout
+#1 open Server down
+#2 open Slow laptop
+#3 open New mouse
+#1 open     Server down$
+#2 open     Slow laptop$
+#3 open     New mouse$
+--- stderr
+--- exit 0
+
+### [37] $ for t in A B C D; do $C --log $A/c37.jsonl create "Ticket $t" >/dev/null; done; $C --log $A/c37.jsonl assign 3 dana; $C --log $A/c37.jsonl close 1 "Resolved by reboot"; $C --log $A/c37.jsonl close 4 "Resolved by reboot"; $C --log $A/c37.jsonl list
+--- stdout
+#3 assigned -> dana
+#1 closed
+#4 closed
+#1 closed   Ticket A
+#2 open     Ticket B
+#3 assigned Ticket C
+#4 closed   Ticket D
+--- stderr
+--- exit 0
+
+### [38] $ for i in $(seq 1 300); do echo "{\"at\": 1, \"id\": $i, \"kind\": \"created\", \"priority\": \"P3\", \"title\": \"Bulk $i\"}"; done > $A/c38.jsonl; $C --log $A/c38.jsonl list | head -1; echo "[pipestatus ${PIPESTATUS[*]}]"; $C --log $A/c38.jsonl list | wc -l; $C --log $A/c38.jsonl list | grep -c "open"
+--- stdout
+#1 open     Bulk 1
+[pipestatus 0 0]
+300
+300
+--- stderr
+--- exit 0
+
+# NOTE: the first [38] block above seeded the log by hand; it is superseded by the [38] block below, seeded through the CLI.
+
+### [38] $ rm -f $A/c38.jsonl; for i in $(seq 1 4000); do $C --log $A/c38.jsonl create "Bulk ticket number $i with a longer title" >/dev/null || echo "create $i failed"; done; $C --log $A/c38.jsonl list | head -1; echo "[pipestatus ${PIPESTATUS[*]}]"; $C --log $A/c38.jsonl list | wc -l; $C --log $A/c38.jsonl list | grep -c "^#[0-9]* open "; $C --log $A/c38.jsonl list | wc -c
+--- stdout
+#1 open     Bulk ticket number 1 with a longer title
+[pipestatus 120 0]
+4000
+4000
+233786
+--- stderr
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 30, in main
+    print(f"#{t.id} {t.state:<8} {t.title}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe
+--- exit 0
+
+### [39] $ L=$A/c39.jsonl; for cmd in "create Printer" "assign 1 dana" "close 1 Replaced_the_toner" "list"; do $C --log $L $cmd 2>$A/c39.err >/dev/null; echo "$cmd -> exit $? stderr_bytes=$(wc -c < $A/c39.err | tr -d " ")"; done
+--- stdout
+create Printer -> exit 0 stderr_bytes=0
+assign 1 dana -> exit 0 stderr_bytes=0
+close 1 Replaced_the_toner -> exit 0 stderr_bytes=0
+list -> exit 0 stderr_bytes=0
+--- stderr
+--- exit 0
+
+### [40] $ L=$A/c40.jsonl; $C --log $L create Printer >/dev/null; $C --log $L close 1 Replaced_the_toner >/dev/null; for cmd in "create  " "assign 1  " "assign 9 x" "close 9 Replaced_the_toner" "close 1 Replaced_again_now" "close 1 short"; do set -- $cmd; out=$($C --log $L "$1" ${2:+"$2"} "${3:-}" 2>/dev/null); echo "[$cmd] exit $? stdout_bytes=${#out}"; done
+--- stdout
+[create  ] exit 2 stdout_bytes=0
+[assign 1  ] exit 2 stdout_bytes=0
+[assign 9 x] exit 2 stdout_bytes=0
+[close 9 Replaced_the_toner] exit 2 stdout_bytes=0
+[close 1 Replaced_again_now] exit 2 stdout_bytes=0
+[close 1 short] exit 2 stdout_bytes=0
+--- stderr
+--- exit 0
+
+### [41] $ L=$A/c41.jsonl; n(){ if [ -f $L ]; then wc -l < $L | tr -d " "; else echo 0; fi; }; echo "start $(n)"; $C --log $L create "Printer" >/dev/null; echo "after create $(n)"; $C --log $L list >/dev/null; echo "after list $(n)"; $C --log $L assign 1 dana >/dev/null; echo "after assign $(n)"; $C --log $L list >/dev/null; echo "after list $(n)"; $C --log $L close 1 "Replaced the toner" >/dev/null; echo "after close $(n)"; $C --log $L assign 1 "  " 2>/dev/null; echo "after rejected assign $(n)"; cut -d, -f3- $L
+--- stdout
+start 0
+after create 1
+after list 1
+after assign 2
+after list 2
+after close 3
+after rejected assign 3
+ "kind": "created", "priority": "P3", "title": "Printer"}
+ "id": 1, "kind": "assigned"}
+ "kind": "closed", "resolution": "Replaced the toner"}
+--- stderr
+--- exit 0
+
+### [42] $ L=$A/c42.jsonl; $C --log $L create "Printer" --priority P2 >/dev/null; $C --log $L assign 1 dana >/dev/null; $C --log $L close 1 "Replaced the toner" >/dev/null; python3 -I -c "import json,sys
+for i,line in enumerate(open(sys.argv[1],newline=\"\"),1):
+    d=json.loads(line); print(i, d[\"kind\"], sorted(d)==list(d), list(d), repr(line[-1]))" $L
+--- stdout
+1 created True ['at', 'id', 'kind', 'priority', 'title'] '\n'
+2 assigned True ['assignee', 'at', 'id', 'kind'] '\n'
+3 closed True ['at', 'id', 'kind', 'resolution'] '\n'
+--- stderr
+--- exit 0
+
+### [43] $ L=$A/c43.jsonl; before=$(python3 -I -c "import time;print(time.time())"); $C --log $L create "Clock" >/dev/null; after=$(python3 -I -c "import time;print(time.time())"); echo "before=$before after=$after"; cat $L
+--- stdout
+before=1793304913.6751108 after=1793304913.725965
+{"at": 1793304913.707492, "id": 1, "kind": "created", "priority": "P3", "title": "Clock"}
+--- stderr
+--- exit 0
+
+### [44] $ L=$A/c44.jsonl; $C --log $L create "One" >/dev/null; printf "\n\n" >> $L; $C --log $L create "Two"; printf "   \n" >> $L; $C --log $L list; echo "[exit $?]"
+--- stdout
+#2 open Two
+#1 open     One
+#2 open     Two
+[exit 0]
+--- stderr
+--- exit 0
+
+### [45] $ L=$A/c45.jsonl; $C --log $L create "One" >/dev/null; echo "{not json" >> $L; $C --log $L create "Three" >/dev/null 2>&1; echo "--- list:"; $C --log $L list; echo "[list exit $?]"; $C --log $L create "After corrupt"; echo "[create exit $?]"; wc -l < $L
+--- stdout
+--- list:
+[list exit 1]
+[create exit 1]
+2
+--- stderr
+Traceback (most recent call last):
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 33, in replay
+    events.append(json.loads(line))
+                  ~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/__init__.py", line 371, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/decoder.py", line 358, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/decoder.py", line 374, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 29, in main
+    for t in svc.list():
+             ~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 47, in list
+    return sorted(self._tickets().values(), key=lambda t: t.id)
+                  ~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 32, in _tickets
+    for ev in self.store.replay():
+              ~~~~~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 35, in replay
+    raise ValueError(f"{self.path}:{lineno}: corrupt event: {exc}") from exc
+ValueError: /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c45.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+Traceback (most recent call last):
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 33, in replay
+    events.append(json.loads(line))
+                  ~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/__init__.py", line 371, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/decoder.py", line 358, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/decoder.py", line 374, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 23, in main
+    t = svc.create(args.title, args.priority); print(f"#{t.id} {t.state} {t.title}")
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 59, in create
+    next_id = max(self._tickets(), default=0) + 1
+                  ~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 32, in _tickets
+    for ev in self.store.replay():
+              ~~~~~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 35, in replay
+    raise ValueError(f"{self.path}:{lineno}: corrupt event: {exc}") from exc
+ValueError: /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/c45.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+--- exit 0
+
+### [46] $ L=$A/c46.jsonl; $C --log $L create "One" >/dev/null; for step in "create Two" "assign 1 dana" "close 1 Replaced_the_toner" "assign 1 lee" "list"; do cp $L $A/c46.prev; $C --log $L $step >/dev/null; sz=$(wc -c < $A/c46.prev); if cmp -s -n $sz $A/c46.prev $L; then echo "$step: prefix unchanged"; else echo "$step: PREFIX CHANGED"; fi; done
+--- stdout
+create Two: prefix unchanged
+assign 1 dana: prefix unchanged
+close 1 Replaced_the_toner: prefix unchanged
+assign 1 lee: prefix unchanged
+list: prefix unchanged
+--- stderr
+--- exit 0
+
+### [47] $ L=$A/c47.jsonl; $C --log $L create "One" --priority P1 >/dev/null; $C --log $L create "Two" >/dev/null; $C --log $L assign 2 dana >/dev/null; $C --log $L close 1 "Replaced the toner" >/dev/null; a=$($C --log $L list); b=$($C --log $L list); c=$($C --log $L list); [ "$a" = "$b" ] && [ "$b" = "$c" ] && echo identical; echo "$a"
+--- stdout
+identical
+#1 closed   One
+#2 assigned Two
+--- stderr
+--- exit 0
+
+### [48] $ L=$A/c48.jsonl; cp $A/c38.jsonl $L; for d in 0.02 0.04 0.06 0.08 0.10 0.12 0.15 0.2; do $C --log $L create "Interrupted $d" >/dev/null 2>$A/c48.err & p=$!; sleep $d; kill -INT $p 2>/dev/null; wait $p; rc=$?; echo "delay $d: exit $rc, stderr last line: $(tail -1 $A/c48.err)"; done; echo "--- lines: $(wc -l < $L)"; tail -c 1 $L | od -c | head -1; $C --log $L list > /dev/null; echo "[list after interrupts exit $?]"; $C --log $L list | tail -3
+--- stdout
+delay 0.02: exit 0, stderr last line: 
+delay 0.04: exit 0, stderr last line: 
+delay 0.06: exit 0, stderr last line: 
+delay 0.08: exit 0, stderr last line: 
+delay 0.10: exit 0, stderr last line: 
+delay 0.12: exit 0, stderr last line: 
+delay 0.15: exit 0, stderr last line: 
+delay 0.2: exit 0, stderr last line: 
+--- lines: 4008
+0000000  \n
+[list after interrupts exit 0]
+#4006 open     Interrupted 0.12
+#4007 open     Interrupted 0.15
+#4008 open     Interrupted 0.2
+--- stderr
+--- exit 0
+
+# NOTE: the first [48] block above is invalid: a non-interactive bash starts background jobs with SIGINT ignored, so no interrupt landed. The [48] block below enables job control (set -m) so SIGINT reaches the process.
+
+### [48] $ set -m; L=$A/c48b.jsonl; cp $A/c38.jsonl $L; for d in 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.12 0.15; do $C --log $L create "Interrupted $d" >/dev/null 2>$A/c48.err & p=$!; sleep $d; kill -INT $p 2>/dev/null; wait $p; rc=$?; echo "delay $d: exit $rc, stderr last line: $(tail -1 $A/c48.err)"; done; echo "--- lines: $(wc -l < $L)"; tail -c 1 $L | od -c | head -1; $C --log $L list > /dev/null; echo "[list after interrupts exit $?]"; $C --log $L list | tail -3
+--- stdout
+delay 0.01: exit 1, stderr last line: KeyboardInterrupt
+delay 0.02: exit 130, stderr last line: KeyboardInterrupt
+delay 0.03: exit 130, stderr last line: KeyboardInterrupt
+delay 0.04: exit 0, stderr last line: 
+delay 0.05: exit 0, stderr last line: 
+delay 0.06: exit 0, stderr last line: 
+delay 0.07: exit 0, stderr last line: 
+delay 0.08: exit 0, stderr last line: 
+delay 0.09: exit 0, stderr last line: 
+delay 0.10: exit 0, stderr last line: 
+delay 0.12: exit 0, stderr last line: 
+delay 0.15: exit 0, stderr last line: 
+--- lines: 4010
+0000000  \n
+[list after interrupts exit 0]
+#4008 open     Interrupted 0.10
+#4009 open     Interrupted 0.12
+#4010 open     Interrupted 0.15
+--- stderr
+--- exit 0
+
+### [48] $ grep -n "Interrupted" $A/c48b.jsonl | cut -c1-140
+--- stdout
+4001:{"at": 1793304953.1835341, "id": 4001, "kind": "created", "priority": "P3", "title": "Interrupted 0.03"}
+4002:{"at": 1793304953.2382479, "id": 4002, "kind": "created", "priority": "P3", "title": "Interrupted 0.04"}
+4003:{"at": 1793304953.287235, "id": 4003, "kind": "created", "priority": "P3", "title": "Interrupted 0.05"}
+4004:{"at": 1793304953.346821, "id": 4004, "kind": "created", "priority": "P3", "title": "Interrupted 0.06"}
+4005:{"at": 1793304953.413188, "id": 4005, "kind": "created", "priority": "P3", "title": "Interrupted 0.07"}
+4006:{"at": 1793304953.4953868, "id": 4006, "kind": "created", "priority": "P3", "title": "Interrupted 0.08"}
+4007:{"at": 1793304953.5846322, "id": 4007, "kind": "created", "priority": "P3", "title": "Interrupted 0.09"}
+4008:{"at": 1793304953.68431, "id": 4008, "kind": "created", "priority": "P3", "title": "Interrupted 0.10"}
+4009:{"at": 1793304953.7930272, "id": 4009, "kind": "created", "priority": "P3", "title": "Interrupted 0.12"}
+4010:{"at": 1793304953.924638, "id": 4010, "kind": "created", "priority": "P3", "title": "Interrupted 0.15"}
+--- stderr
+--- exit 0
+
+# NOTE: BASE-* blocks run the main branch (git archive main -> $B = /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/main-baseline) the same way, to tell regressions from pre-existing defects.
+
+### [BASE-1] $ cd $B && $C --help | sed -n 3p
+--- stdout
+positional arguments:
+--- stderr
+--- exit 0
+
+### [BASE-36] $ cd $B && L=$A/base36.jsonl; $C --log $L create "Server down" --priority P1 >/dev/null; $C --log $L create "Slow laptop" --priority P2 >/dev/null; $C --log $L create "New mouse" >/dev/null; $C --log $L list
+--- stdout
+#1 [P1] open     Server down
+#2 [P2] open     Slow laptop
+#3 [P3] open     New mouse
+--- stderr
+--- exit 0
+
+### [BASE-21] $ cd $B && L=$A/base21.jsonl; $C --log $L create "Printer on fire" >/dev/null; $C --log $L close 1 "Replaced the toner cartridge"; $C --log $L assign 1 dana; echo "[exit $?]"; $C --log $L list
+--- stdout
+#1 closed
+[exit 2]
+#1 [P3] closed   Printer on fire
+--- stderr
+error: ticket 1 is closed
+--- exit 0
+
+### [BASE-28] $ cd $B && L=$A/base28.jsonl; $C --log $L create "Printer on fire" >/dev/null; $C --log $L close 1 "duplicate"; echo "[exit $?]"; $C --log $L list
+--- stdout
+[exit 2]
+#1 [P3] open     Printer on fire
+--- stderr
+error: resolution note must be at least 10 characters
+--- exit 0
+
+### [BASE-15] $ cd $B && L=$A/base15.jsonl; $C --log $L create "Bad prio" --priority P9 2>&1 | tail -1; echo "[exit ${PIPESTATUS[0]}]"
+--- stdout
+ValueError: unknown priority 'P9'; expected one of ['P1', 'P2', 'P3']
+[exit 1]
+--- stderr
+--- exit 0
+
+### [BASE-45] $ cd $B && L=$A/base45.jsonl; $C --log $L create "One" >/dev/null; echo "{not json" >> $L; $C --log $L list 2>&1 | tail -1; echo "[exit ${PIPESTATUS[0]}]"
+--- stdout
+ValueError: /Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/artifacts/base45.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+[exit 1]
+--- stderr
+--- exit 0
+
+### [BASE-38] $ cd $B && $C --log $A/c38.jsonl list | head -1; echo "[pipestatus ${PIPESTATUS[*]}]"
+--- stdout
+#1 [P3] open     Bulk ticket number 1 with a longer title
+[pipestatus 120 0]
+--- stderr
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/main-baseline/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/main-baseline/ticketdesk/cli.py", line 30, in main
+    print(f"#{t.id} [{t.priority}] {t.state:<8} {t.title}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe
+--- exit 0
+
+### [DIAG-tests] $ make test 2>&1 | tail -5; grep -n "def test\|TKT\|closed\|resolution" tests/test_tickets.py
+--- stdout
+----------------------------------------------------------------------
+Ran 7 tests in 0.004s
+
+FAILED (failures=1)
+make: *** [Makefile:3: test] Error 1
+26:    def test_create_sets_due_by_priority(self):
+31:    def test_ids_increase_and_never_reuse(self):
+36:    def test_assign_requires_open_ticket(self):
+43:    def test_close_needs_resolution_note(self):
+48:    def test_unknown_priority_rejected(self):
+52:    def test_log_is_append_only(self):
+--- stderr
+--- exit 0
+
+### [DIAG-tests] $ python3 -m unittest discover -s tests 2>&1 | grep -A12 "^FAIL"; sed -n 36,50p tests/test_tickets.py
+--- stdout
+FAIL: test_assign_requires_open_ticket (test_tickets.TicketTests.test_assign_requires_open_ticket)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/tests/test_tickets.py", line 40, in test_assign_requires_open_ticket
+    with self.assertRaises(TicketError):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: TicketError not raised
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.008s
+
+FAILED (failures=1)
+    def test_assign_requires_open_ticket(self):
+        t = self.svc.create("a", "P2")
+        self.svc.assign(t.id, "dana")
+        self.svc.close(t.id, "Replaced the toner cartridge")
+        with self.assertRaises(TicketError):
+            self.svc.assign(t.id, "lee")
+
+    def test_close_needs_resolution_note(self):
+        t = self.svc.create("a", "P2")
+        with self.assertRaises(TicketError):
+            self.svc.close(t.id, "done")
+
+    def test_unknown_priority_rejected(self):
+        with self.assertRaises(ValueError):
+            self.svc.create("a", "P9")
+--- stderr
+--- exit 0
+
+### [DIAG-tests-main] $ cd $B && make test 2>&1 | tail -3
+--- stdout
+Ran 7 tests in 0.003s
+
+OK
+--- stderr
+--- exit 0
+
+### [REPRO-1] session, cwd = repo root, stderr merged into the stream
+$ python3 -m ticketdesk.cli --log ../artifacts/repro1.jsonl create "Printer on fire"
+#1 open Printer on fire
+[exit 0]
+$ python3 -m ticketdesk.cli --log ../artifacts/repro1.jsonl close 1 "Replaced the toner cartridge"
+#1 closed
+[exit 0]
+$ python3 -m ticketdesk.cli --log ../artifacts/repro1.jsonl assign 1 dana
+#1 assigned -> dana
+[exit 0]
+$ python3 -m ticketdesk.cli --log ../artifacts/repro1.jsonl list
+#1 assigned Printer on fire
+[exit 0]
+$ python3 -m ticketdesk.cli --log ../artifacts/repro1.jsonl close 1 "Actually it was the fuser"
+#1 closed
+[exit 0]
+$ grep closed ../artifacts/repro1.jsonl
+{"at": 1793305041.0238998, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+{"at": 1793305041.128354, "id": 1, "kind": "closed", "resolution": "Actually it was the fuser"}
+[exit 0]
+
+### [REPRO-2] session, cwd = repo root, stderr merged into the stream
+$ python3 -m ticketdesk.cli --log ../artifacts/repro2.jsonl create "Printer on fire"
+#1 open Printer on fire
+[exit 0]
+$ python3 -m ticketdesk.cli --log ../artifacts/repro2.jsonl close 1 "wontfix"
+error: resolution note must be at least 10 characters
+[exit 2]
+$ python3 -m ticketdesk.cli --log ../artifacts/repro2.jsonl close 1 "duplicate"
+#1 closed
+[exit 0]
+
+### [REPRO-3] session, cwd = repo root, stderr merged into the stream
+$ python3 -m ticketdesk.cli --log ../artifacts/repro3.jsonl create "Server down" --priority P1
+#1 open Server down
+[exit 0]
+$ python3 -m ticketdesk.cli --log ../artifacts/repro3.jsonl create "New mouse"
+#2 open New mouse
+[exit 0]
+$ python3 -m ticketdesk.cli --log ../artifacts/repro3.jsonl list
+#1 open     Server down
+#2 open     New mouse
+[exit 0]
+
+### [REPRO-4] session, cwd = repo root, stderr merged into the stream
+$ python3 -m ticketdesk.cli --help | grep tikets
+Manage support tikets from the shell.
+[exit 0]
+
+### [REPRO-5] session, cwd = repo root, stderr merged into the stream
+$ python3 -m ticketdesk.cli --log ../artifacts/repro5.jsonl create "Bad prio" --priority P9 2>&1 | tail -2; echo "[python exit ${PIPESTATUS[0]}]"
+    raise ValueError(f"unknown priority {priority!r}; expected one of {sorted(SLA_HOURS)}")
+ValueError: unknown priority 'P9'; expected one of ['P1', 'P2', 'P3']
+[python exit 1]
+[exit 0]
+$ echo "{not json" > ../artifacts/repro5b.jsonl; python3 -m ticketdesk.cli --log ../artifacts/repro5b.jsonl list 2>&1 | grep -c "^Traceback"; python3 -m ticketdesk.cli --log ../artifacts/repro5b.jsonl list 2>&1 | tail -1; echo "[python exit ${PIPESTATUS[0]}]"
+2
+ValueError: ../artifacts/repro5b.jsonl:1: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+[python exit 1]
+[exit 0]
+
+### [REPRO-6] session, cwd = repo root, stderr merged into the stream
+$ python3 -m ticketdesk.cli --log ../artifacts/c38.jsonl list | head -1; echo "[python exit ${PIPESTATUS[0]}]"
+#1 open     Bulk ticket number 1 with a longer title
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2claims/evals/e2e-test/workspace/iteration-5/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 30, in main
+    print(f"#{t.id} {t.state:<8} {t.title}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe
+[python exit 120]
+[exit 0]
+
+### [FINAL-tree] $ git status --short --ignored; git diff --stat; git rev-parse --abbrev-ref HEAD
+--- stdout
+?? tests/__pycache__/
+?? ticketdesk/__pycache__/
+?? tickets.jsonl
+feature/cli-tidy
+--- stderr
+--- exit 0
+
+### [45] $ python3 -m ticketdesk.cli --log ../artifacts/repro5b.jsonl list 2>&1 | wc -l
+--- stdout
+35
+--- stderr
+--- exit 0
+
