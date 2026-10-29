@@ -22,8 +22,9 @@ Every case ends in exactly one. There is no SKIPPED, no PARTIAL, no "mostly work
 - **Expected against observed.** Evidence pasted from the evidence log. The exact error
   text. A screenshot for anything visual. The command and its output for a CLI. The
   request and response for an API.
-- **Most likely cause.** Logs, stack traces, and code may be read and cited here. Label it
-  as likelihood, not certainty. Diagnosis explains a verdict. It never changes one.
+- **Most likely cause.** Logs, stack traces, code, and the repo's own tests may be read,
+  run, and cited here. Label it as likelihood, not certainty. Diagnosis explains a
+  verdict. It never changes one.
 
 The output you quote must come from exactly the steps you show. When you trim the steps
 for the reader, run the trimmed steps on fresh state and quote that run. Output you
