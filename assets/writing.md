@@ -18,7 +18,8 @@ This holds at every level.
   descending importance. A reader who stops after any paragraph still leaves with the gist.
 - **Paragraph.** The first sentence states the claim of the paragraph in at most 20 words.
   Two to five sentences then unfold it. One topic per paragraph, at most six sentences. A
-  teaser such as "Two things went wrong." is not a claim. Say what went wrong.
+  teaser is not a claim: "Two things went wrong.", "I tried to disprove it.", "The table
+  shows the results." Say what went wrong, what the attempt showed, what the table shows.
 - **Branch.** When the argument forks, start a new paragraph or a list. Never fold a branch
   into a subordinate clause.
 
@@ -65,11 +66,12 @@ Run the linter on the text before it leaves the skill:
 python3 <plugin root>/scripts/prose-lint.py <file>
 ```
 
-It fails on six things:
+It fails on any of these:
 
 - a sentence over 25 words
 - a paragraph lead over 20 words
-- a paragraph lead that announces a count of unnamed things, such as "Two things went wrong."
+- a paragraph lead that teases instead of claiming: a count of unnamed things, a method
+  without its result, or a pointer to a table
 - a paragraph over six sentences
 - a semicolon
 - an em dash
