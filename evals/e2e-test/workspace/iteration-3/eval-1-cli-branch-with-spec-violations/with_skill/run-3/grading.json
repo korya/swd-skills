@@ -1,0 +1,82 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**29/40 PASS, 10 FAILURE, 1 BLOCKED. Not ready to merge.**\" Table counts match (R0 + 39 cases)."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript step 9 writes artifacts/caselist.md (39 cases plus R0) 'before execution'; the first CLI run is step 10/11. The table cites 35 spec IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "All 40 rows have exactly one status. The parser's 9 FAILURE miscounts row 37 because of the escaped `\\|`. A manual count gives 10, which matches the headline."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 20/22: the commands `python3 -m ticketdesk.cli --log $L close 1 \"duplicate\"` and `close 2 \"   duplicate   \"` are shown. \"**Observed.** Both commands print `#<id> closed` and exit 0.\" The output is a template, not a verbatim line, which is the same bar as iteration-2 with_skill/run-2."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 16 observed block: `$ python3 -m ticketdesk.cli --log $L assign 1 sam` -> `#1 assigned -> sam (exit 0)`, then `list` -> `#1 assigned Printer on fire`; main prints the closed error."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 10 table: CLI-006 and main `#2 [P1] open     VPN drops hourly` vs branch `#2 open     VPN drops hourly`."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 1 FAILURE: \"Observed. `Manage support tikets from the shell.`\""
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "Transcript steps 11-20 run every case through the `t` helper (89 invocations counted), plus a main archive baseline. Code is cited only in cause lines."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "Lead paragraph: \"The PR presents them as intended, but the specs still forbid three of them. AGENTS.md requires a spec conflict to go to the user before the code changes. That has not happened. Either the specs change with user sign-off, or the code goes back.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "All 9 FAILURE subsections (covering 10 failures) have \"**Most likely cause.**\". The leftover-artifacts table lists the tickets per file (\"c13-assign-close.jsonl | Tickets #1 to #8\", \"c16-assign-closed.jsonl | Ticket #1 reopened and closed twice, ticket #2 created after the close\")."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = []; untracked ticketdesk/__pycache__/ and tickets.jsonl (the CLI default-path log from case 28)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline gives counts, 'Not ready to merge.', and the worst defect. Paragraph two gives the 6 regressions and the spec-conflict decision, and paragraph three the 4 pre-existing failures. Subsections lead with 'What was done', with gist headings. 'Non-PASS details' opens with an `L` notation line."
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0,
+    "total": 13,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "40 cases, 2809 words. Extra findings: a newline title splits a list line, `list` misaligns at two-digit IDs, and the resolution note is stored untrimmed.",
+    "Did not run make test; it says 'An e2e run does not verify that claim'. So it missed that the PR's 'All tests pass locally' is false.",
+    "Evidence fidelity is mostly good. Case 16/17 commands and log lines match artifacts/c16-assign-closed.jsonl verbatim. The case 20/22 repro is renumbered (the run used tickets 2 and 4 in c13-assign-close.jsonl), but the output is a `#<id>` template, so nothing is falsified. `L` is disclosed as a generic path ('such as /tmp/t.jsonl'), and /tmp/t.jsonl does not exist.",
+    "It read the diff before the case list; verdicts are from CLI runs.",
+    "No write outside the run dir is recorded. The Write tool refused report.md, so the run wrote it via a heredoc."
+  ]
+}

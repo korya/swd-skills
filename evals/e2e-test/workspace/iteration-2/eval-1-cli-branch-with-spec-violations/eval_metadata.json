@@ -1,0 +1,20 @@
+{
+  "eval_id": 1,
+  "eval_name": "cli-branch-with-spec-violations",
+  "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/e2e-test/make_fixture.sh OUTPUT_DIR/repo`, then work inside OUTPUT_DIR/repo (checked out on branch feature/cli-tidy; main is the base; the PR description is OUTPUT_DIR/repo/PR.md). Test this branch end to end as the end user, comprehensively, before it merges. The product is a CLI: run it as `python3 -m ticketdesk.cli` from the repo root, as the README says. Write the report to OUTPUT_DIR/report.md. Do not fix anything.",
+  "assertions": [
+    "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+    "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+    "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+    "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+    "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+    "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+    "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+    "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+    "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+    "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+    "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+    "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+    "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship."
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**40/51 PASS, 9 FAILURE, 2 BLOCKED. Do not merge.**\" Table counts match (R0 + C01-C48 + C34b + C44b = 51)."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript command 9 writes outputs/case-list.md before the readiness batch (command 10). The report says C34 and C44 were split during execution. The table cites 32 spec IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "Parsed 51 rows: 40 PASS, 9 FAILURE, 2 BLOCKED. Annotations such as \"FAILURE (new)\" and \"FAILURE (pre-existing)\" carry a single status."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "C08: \"Run `$TD close 1 duplicate`. ... **Observed.** `#1 closed`, exit 0. `main` rejects the same command with exit 2.\" Matches runner command 21 exactly."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "C20-C22: \"Step 3 prints `#2 assigned -> dana`, exits 0, and appends one line. Step 4 shows `#2 assigned Mail bounce`.\" It also includes the two-closed-events log excerpt, which matches runner commands 39-41."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "C01 observed block: `#1 open     Printer on fire` / `#2 assigned VPN drops hourly` / `#3 closed   Reset password`; main shows `#1 [P1] open     Printer on fire`."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "C26 FAILURE: \"Observed. `Manage support tikets from the shell.`\""
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "The transcript lists all 91 runner commands verbatim, with cwd and exit codes; full output is in outputs/harness/evidence.log. Every verdict maps to a tagged command. Code appears only in cause lines."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "C08: \"The PR intends this change, but nobody updated TKT-010. The owner must choose one outcome.\" Issue 1: \"Support asked for the behavior, but the specs forbid it. The owner must decide before merge.\" C20: \"conflicts with TKT-008 and with the forward-only rule ... Neither was updated.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "All 6 FAILURE subsections (covering 9 failures) have \"**Most likely cause.**\". Leftover artifacts lists logs/*.jsonl, with assign.jsonl reproducing Issue 1, corrupt.jsonl, big.jsonl (1007 tickets), and repo/tickets.jsonl (one ticket from C38). Per-ticket detail is thin but present."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = []; untracked ticketdesk/__pycache__/ and tickets.jsonl (the CLI default-path log from C38)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline gives counts, 'Do not merge.', and the worst defect. The next paragraph gives the 6 new / 3 pre-existing split. Subsections are Steps/Expected/Observed/Cause bullets with gist headings. 'Non-PASS details' opens with the `$TD` notation."
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0,
+    "total": 13,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "51 cases, 2377 words: the most cases and the shortest report of the iteration-3 runs. It is the only run whose harness kept a full verbatim evidence log (outputs/harness/evidence.log) tagged by case ID.",
+    "Evidence fidelity is the best of all nine graded runs. The quoted commands, ticket IDs, and outputs (C08 `close 1 duplicate`, C20 ticket 2 'Mail bounce') match the runner log. The C01 steps list only two creates, yet the output shows the third ticket 'Reset password' with its assign and close. That is an incomplete step list, but the output is real.",
+    "It found a new UX issue: an interrupted create (SIGINT at about 22 ms) can append the event while printing only a KeyboardInterrupt traceback, so a retry duplicates the ticket.",
+    "Did not run make test; it says 'The PR's claim \"all tests pass\" was not checked'. So it missed the false claim.",
+    "C06 (`list | grep`) PASS and C07 (large-log `| head`) FAILURE are split sensibly.",
+    "No write outside the run dir is recorded. The default-path case C38 wrote repo/tickets.jsonl, which is listed in artifacts. The Write tool refused report.md, so the run wrote it via a heredoc."
+  ]
+}
