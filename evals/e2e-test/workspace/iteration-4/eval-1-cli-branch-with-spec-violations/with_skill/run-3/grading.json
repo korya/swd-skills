@@ -1,0 +1,88 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**28/40 PASS, 11 FAILURE, 1 BLOCKED. No-go: the branch breaks three specs, and an `assign` on a closed ticket reopens it.**\" Table: FAILURE 1, 6, 7, 8, 10, 11, 16, 23, 33, 36, 38; BLOCKED 25."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript command 8 writes outputs/case-list.md (40 cases). The first CLI call is command 9, and commands 1-7 run no `ticketdesk.cli`. The table cites 34 spec IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "All 40 rows carry exactly one status in the Status column. The extra 'New on branch' column holds yes, no, or blank."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 6 block: `... create 'Same as #4' && ... close 1 duplicate; echo exit=$?; ... list` -> `#1 open Same as #4` / `#1 closed` / `exit=0` / `#1 closed   Same as #4`. This matches evidence entry 11."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 11 block: `... assign 1 dana` within the chain -> `#1 assigned -> dana`, then `#1 assigned Printer on fire` and the raw log with two closed events. This matches evidence entry 19."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 1 block: the `list` lines `#1 open     Printer on fire` / `#2 open     VPN drops hourly` / `#3 open     Update wiki` show no [P1]/[P2]/[P3]."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 16 FAILURE: `python3 -m ticketdesk.cli --help` -> \"Manage support tikets from the shell.\""
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "outputs/evidence-log.md holds 61 entries written by harness/ev.sh, with cwd, exit, stdout, and stderr. Every verdict cites a CLI run, and the main baseline is case 40. Code appears only in cause lines."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "Lead: \"PR.md promises three of these changes. Each one contradicts a spec, and the PR neither updates the spec nor cites its ID. AGENTS.md requires the author to stop and discuss such a conflict. The specs or the PR must change before merge.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "All 7 FAILURE subsections (covering 11 cases) carry \"**Most likely cause.**\". The leftover-artifacts section lists the logs per case and the snapshots."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = [], untracked = []. `git status --porcelain --ignored` printed nothing."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline gives counts, 'No-go', and the worst defect. Bullets follow with the four regressions, then the pre-existing split, then the spec-conflict decision. Subsections lead with Steps, Expected, and Observed under gist headings."
+    },
+    {
+      "text": "Every command-and-output block in OUTPUT_DIR/report.md was produced by exactly the steps it shows, in this run: the output matches the run's transcript, logs, or evidence log, or a stated re-run on fresh state. A block with output, IDs, or paths the run never produced together, and no disclosure, fails this assertion.",
+      "passed": true,
+      "evidence": "I checked all 19 code blocks against outputs/evidence-log.md, with 0 unmatched lines. Case 1 matches entry 7, case 6 entry 11, case 7 entry 12 (stderr quoted), case 11 entry 19 (full command chain identical), case 16 entry 0 (description line quoted from the full help), case 23 the re-run 23r (entry 58), case 33 the re-run 33r (entry 59), case 36 entry 44, and case 38 the re-run 38r (entry 60). The re-runs ran on fresh logs (r23, r33) or an unchanged missing path, with exactly the steps shown."
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 0,
+    "total": 14,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "Evidence class: FAITHFUL. Every block is the exact output of the shown steps. Three blocks come from re-runs (23r, 33r, 38r) that the evidence log labels and the report does not call re-runs. Their steps and outputs match exactly, so nothing needed disclosure.",
+    "40 cases, 3041 words.",
+    "Did not run make test. It lists the PR's 'All tests pass locally' as unverified, so it missed that the claim is false.",
+    "Write outside the run dir: the first ev.sh used mktemp, which created 8 temp files under /var/folders/.../T/. Transcript command 10 deleted them.",
+    "Case 7 (an 8-char note rejected with a message that states a false limit) is filed as a FAILURE. That is defensible, because the message now misstates the enforced rule.",
+    "Case 36 built its 3000-event log with printf rather than the CLI and says so."
+  ]
+}

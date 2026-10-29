@@ -1,0 +1,1023 @@
+# Evidence log: feature/cli-tidy. cwd = outputs/repo, PYTHONDONTWRITEBYTECODE=1. Each entry: case, command, stdout, stderr, exit.
+
+=== [case 1] $ python3 -m ticketdesk.cli --help
+--- stdout:
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+
+Manage support tikets from the shell.
+
+positional arguments:
+  {create,assign,close,list}
+
+options:
+  -h, --help            show this help message and exit
+  --log LOG             path of the event log
+--- stderr:
+--- exit: 0
+
+=== [case 2] $ python3 -m ticketdesk.cli create --help
+--- stdout:
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+
+positional arguments:
+  title
+
+options:
+  -h, --help           show this help message and exit
+  --priority PRIORITY
+--- stderr:
+--- exit: 0
+
+=== [case 2] $ python3 -m ticketdesk.cli assign --help
+--- stdout:
+usage: ticketdesk assign [-h] id assignee
+
+positional arguments:
+  id
+  assignee
+
+options:
+  -h, --help  show this help message and exit
+--- stderr:
+--- exit: 0
+
+=== [case 2] $ python3 -m ticketdesk.cli close --help
+--- stdout:
+usage: ticketdesk close [-h] id resolution
+
+positional arguments:
+  id
+  resolution
+
+options:
+  -h, --help  show this help message and exit
+--- stderr:
+--- exit: 0
+
+=== [case 2] $ python3 -m ticketdesk.cli list --help
+--- stdout:
+usage: ticketdesk list [-h]
+
+options:
+  -h, --help  show this help message and exit
+--- stderr:
+--- exit: 0
+
+=== [case 3] $ python3 -m ticketdesk.cli --log ../logs/c3.jsonl
+--- stdout:
+--- stderr:
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+ticketdesk: error: the following arguments are required: cmd
+--- exit: 2
+
+=== [case 4] $ python3 -m ticketdesk.cli --log ../logs/c4.jsonl frobnicate
+--- stdout:
+--- stderr:
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+ticketdesk: error: argument cmd: invalid choice: 'frobnicate' (choose from 'create', 'assign', 'close', 'list')
+--- exit: 2
+
+=== [case 5] $ python3 -m ticketdesk.cli --log ../logs/c5.jsonl create
+--- stdout:
+--- stderr:
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+ticketdesk create: error: the following arguments are required: title
+--- exit: 2
+
+=== [case 5] $ python3 -m ticketdesk.cli --log ../logs/c5.jsonl assign 1
+--- stdout:
+--- stderr:
+usage: ticketdesk assign [-h] id assignee
+ticketdesk assign: error: the following arguments are required: assignee
+--- exit: 2
+
+=== [case 5] $ python3 -m ticketdesk.cli --log ../logs/c5.jsonl close 1
+--- stdout:
+--- stderr:
+usage: ticketdesk close [-h] id resolution
+ticketdesk close: error: the following arguments are required: resolution
+--- exit: 2
+
+=== [case 5] $ ls ../logs/
+--- stdout:
+--- stderr:
+--- exit: 0
+
+=== [case 6] $ python3 -m ticketdesk.cli --log ../logs/c6.jsonl create "Printer on fire" --priority P1
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 7] $ python3 -m ticketdesk.cli --log ../logs/c7.jsonl create "Wifi slow"
+--- stdout:
+#1 open Wifi slow
+--- stderr:
+--- exit: 0
+
+=== [case 7] $ python3 -m ticketdesk.cli --log ../logs/c7.jsonl list
+--- stdout:
+#1 open     Wifi slow
+--- stderr:
+--- exit: 0
+
+=== [case 7] $ cat ../logs/c7.jsonl
+--- stdout:
+{"at": 1793302301.176568, "id": 1, "kind": "created", "priority": "P3", "title": "Wifi slow"}
+--- stderr:
+--- exit: 0
+
+=== [case 8] $ python3 -m ticketdesk.cli --log ../logs/c8.jsonl create ""
+--- stdout:
+--- stderr:
+error: title is required
+--- exit: 2
+
+=== [case 8] $ python3 -m ticketdesk.cli --log ../logs/c8.jsonl create "   "
+--- stdout:
+--- stderr:
+error: title is required
+--- exit: 2
+
+=== [case 8] $ python3 -m ticketdesk.cli --log ../logs/c8.jsonl list; ls ../logs/c8.jsonl
+--- stdout:
+--- stderr:
+ls: cannot access '../logs/c8.jsonl': No such file or directory
+--- exit: 2
+
+=== [case 9] $ python3 -m ticketdesk.cli --log ../logs/c9.jsonl create "Bad priority" --priority P9
+--- stdout:
+--- stderr:
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 23, in main
+    t = svc.create(args.title, args.priority); print(f"#{t.id} {t.state} {t.title}")
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 58, in create
+    due_at(0, priority)  # validates the priority
+    ~~~~~~^^^^^^^^^^^^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/sla.py", line 8, in due_at
+    raise ValueError(f"unknown priority {priority!r}; expected one of {sorted(SLA_HOURS)}")
+ValueError: unknown priority 'P9'; expected one of ['P1', 'P2', 'P3']
+--- exit: 1
+
+=== [case 9] $ python3 -m ticketdesk.cli --log ../logs/c9.jsonl list; ls ../logs/c9.jsonl
+--- stdout:
+--- stderr:
+ls: cannot access '../logs/c9.jsonl': No such file or directory
+--- exit: 2
+
+=== [case 10] $ python3 -m ticketdesk.cli --log ../logs/c10.jsonl create "First"
+--- stdout:
+#1 open First
+--- stderr:
+--- exit: 0
+
+=== [case 10] $ python3 -m ticketdesk.cli --log ../logs/c10.jsonl create "Second"
+--- stdout:
+#2 open Second
+--- stderr:
+--- exit: 0
+
+=== [case 10] $ python3 -m ticketdesk.cli --log ../logs/c10.jsonl close 2 "Fixed the second one"
+--- stdout:
+#2 closed
+--- stderr:
+--- exit: 0
+
+=== [case 10] $ python3 -m ticketdesk.cli --log ../logs/c10.jsonl create "Third"
+--- stdout:
+#3 open Third
+--- stderr:
+--- exit: 0
+
+=== [case 10] $ python3 -m ticketdesk.cli --log ../logs/c10.jsonl list
+--- stdout:
+#1 open     First
+#2 closed   Second
+#3 open     Third
+--- stderr:
+--- exit: 0
+
+=== [case 11] $ python3 -m ticketdesk.cli --log ../logs/c11.jsonl create 'Café “smart” "quotes" 🖨️ <b>&amp;'
+--- stdout:
+#1 open Café “smart” "quotes" 🖨️ <b>&amp;
+--- stderr:
+--- exit: 0
+
+=== [case 11] $ python3 -m ticketdesk.cli --log ../logs/c11.jsonl create 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+--- stdout:
+#2 open xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+--- stderr:
+--- exit: 0
+
+=== [case 11] $ python3 -m ticketdesk.cli --log ../logs/c11.jsonl create '--priority'
+--- stdout:
+--- stderr:
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+ticketdesk create: error: argument --priority: expected one argument
+--- exit: 2
+
+=== [case 11] $ python3 -m ticketdesk.cli --log ../logs/c11.jsonl list
+--- stdout:
+#1 open     Café “smart” "quotes" 🖨️ <b>&amp;
+#2 open     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+--- stderr:
+--- exit: 0
+
+=== [case 11] $ python3 -m ticketdesk.cli --log ../logs/c11.jsonl list | awk "{print length(\$0)}"
+--- stdout:
+45
+312
+--- stderr:
+--- exit: 0
+
+=== [case 12] $ python3 -m ticketdesk.cli --log ../logs/c12.jsonl create "Printer on fire" --priority P1
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 12] $ python3 -m ticketdesk.cli --log ../logs/c12.jsonl create "VPN drops hourly" --priority P2
+--- stdout:
+#2 open VPN drops hourly
+--- stderr:
+--- exit: 0
+
+=== [case 12] $ python3 -m ticketdesk.cli --log ../logs/c12.jsonl create "New monitor request"
+--- stdout:
+#3 open New monitor request
+--- stderr:
+--- exit: 0
+
+=== [case 12] $ python3 -m ticketdesk.cli --log ../logs/c12.jsonl assign 2 dana
+--- stdout:
+#2 assigned -> dana
+--- stderr:
+--- exit: 0
+
+=== [case 12] $ python3 -m ticketdesk.cli --log ../logs/c12.jsonl close 3 "Ordered a 27 inch monitor"
+--- stdout:
+#3 closed
+--- stderr:
+--- exit: 0
+
+=== [case 12] $ python3 -m ticketdesk.cli --log ../logs/c12.jsonl list
+--- stdout:
+#1 open     Printer on fire
+#2 assigned VPN drops hourly
+#3 closed   New monitor request
+--- stderr:
+--- exit: 0
+
+=== [case 12] $ python3 -m ticketdesk.cli --log ../logs/c12.jsonl list | cat -A
+--- stdout:
+#1 open     Printer on fire$
+#2 assigned VPN drops hourly$
+#3 closed   New monitor request$
+--- stderr:
+--- exit: 0
+
+=== [case 13] $ python3 -m ticketdesk.cli --log ../logs/c12.jsonl list | cut -d" " -f1
+--- stdout:
+#1
+#2
+#3
+--- stderr:
+--- exit: 0
+
+=== [case 14] $ python3 -m ticketdesk.cli --log ../logs/c14-missing.jsonl list; echo "file exists after list: $(test -e ../logs/c14-missing.jsonl && echo yes || echo no)"
+--- stdout:
+file exists after list: no
+--- stderr:
+--- exit: 0
+
+=== [case 15] setup: 300x 'python3 -m ticketdesk.cli --log ../logs/c15.jsonl create "Bulk $i <300 y>"' (stdout discarded, no FAIL lines printed)
+
+=== [case 15] $ python3 -m ticketdesk.cli --log ../logs/c15.jsonl list | wc -lc
+--- stdout:
+    300   96984
+--- stderr:
+--- exit: 0
+
+=== [case 15] $ python3 -m ticketdesk.cli --log ../logs/c15.jsonl list | head -1 | cut -c1-40; echo "pipestatus: ${PIPESTATUS[*]}"
+--- stdout:
+#1 open     Bulk 1 yyyyyyyyyyyyyyyyyyyyy
+pipestatus: 120 0 0
+--- stderr:
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe
+--- exit: 0
+
+=== [case 15] $ python3 -m ticketdesk.cli --log ../logs/c15.jsonl list | grep -c "^#.* open "
+--- stdout:
+300
+--- stderr:
+--- exit: 0
+
+=== [case 16] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl create "Printer on fire" --priority P1
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 16] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl assign 1 dana
+--- stdout:
+#1 assigned -> dana
+--- stderr:
+--- exit: 0
+
+=== [case 16] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl list
+--- stdout:
+#1 assigned Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 17] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl assign 1 lee
+--- stdout:
+#1 assigned -> lee
+--- stderr:
+--- exit: 0
+
+=== [case 17] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl list; cat ../logs/c16.jsonl
+--- stdout:
+#1 assigned Printer on fire
+{"at": 1793302358.812375, "id": 1, "kind": "created", "priority": "P1", "title": "Printer on fire"}
+{"assignee": "dana", "at": 1793302358.864008, "id": 1, "kind": "assigned"}
+{"assignee": "lee", "at": 1793302358.965389, "id": 1, "kind": "assigned"}
+--- stderr:
+--- exit: 0
+
+=== [case 18] $ wc -l < ../logs/c16.jsonl
+--- stdout:
+3
+--- stderr:
+--- exit: 0
+
+=== [case 18] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl assign 1 ""
+--- stdout:
+--- stderr:
+error: assignee is required
+--- exit: 2
+
+=== [case 18] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl assign 1 "   "
+--- stdout:
+--- stderr:
+error: assignee is required
+--- exit: 2
+
+=== [case 18] $ wc -l < ../logs/c16.jsonl
+--- stdout:
+3
+--- stderr:
+--- exit: 0
+
+=== [case 21] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl assign 99 dana
+--- stdout:
+--- stderr:
+error: no ticket 99
+--- exit: 2
+
+=== [case 21] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl assign 0 dana
+--- stdout:
+--- stderr:
+error: no ticket 0
+--- exit: 2
+
+=== [case 22] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl assign one dana
+--- stdout:
+--- stderr:
+usage: ticketdesk assign [-h] id assignee
+ticketdesk assign: error: argument id: invalid int value: 'one'
+--- exit: 2
+
+=== [case 22] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl close 1.5 "Replaced the toner cartridge"
+--- stdout:
+--- stderr:
+usage: ticketdesk close [-h] id resolution
+ticketdesk close: error: argument id: invalid int value: '1.5'
+--- exit: 2
+
+=== [case 22] $ python3 -m ticketdesk.cli --log ../logs/c16.jsonl assign -- -1 dana
+--- stdout:
+--- stderr:
+error: no ticket -1
+--- exit: 2
+
+=== [case 22] $ wc -l < ../logs/c16.jsonl
+--- stdout:
+3
+--- stderr:
+--- exit: 0
+
+=== [case 19] $ python3 -m ticketdesk.cli --log ../logs/c19.jsonl create "Printer on fire" --priority P1
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 19] $ python3 -m ticketdesk.cli --log ../logs/c19.jsonl assign 1 dana
+--- stdout:
+#1 assigned -> dana
+--- stderr:
+--- exit: 0
+
+=== [case 19] $ python3 -m ticketdesk.cli --log ../logs/c19.jsonl close 1 "Replaced the toner cartridge"
+--- stdout:
+#1 closed
+--- stderr:
+--- exit: 0
+
+=== [case 19] $ python3 -m ticketdesk.cli --log ../logs/c19.jsonl list; wc -l < ../logs/c19.jsonl
+--- stdout:
+#1 closed   Printer on fire
+3
+--- stderr:
+--- exit: 0
+
+=== [case 19] $ python3 -m ticketdesk.cli --log ../logs/c19.jsonl assign 1 lee
+--- stdout:
+#1 assigned -> lee
+--- stderr:
+--- exit: 0
+
+=== [case 19] $ wc -l < ../logs/c19.jsonl; tail -1 ../logs/c19.jsonl
+--- stdout:
+4
+{"assignee": "lee", "at": 1793302366.432658, "id": 1, "kind": "assigned"}
+--- stderr:
+--- exit: 0
+
+=== [case 20] $ python3 -m ticketdesk.cli --log ../logs/c19.jsonl list
+--- stdout:
+#1 assigned Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 20] $ python3 -m ticketdesk.cli --log ../logs/c19.jsonl close 1 "Closed it a second time"
+--- stdout:
+#1 closed
+--- stderr:
+--- exit: 0
+
+=== [case 20] $ python3 -m ticketdesk.cli --log ../logs/c19.jsonl list; cat ../logs/c19.jsonl
+--- stdout:
+#1 closed   Printer on fire
+{"at": 1793302366.228362, "id": 1, "kind": "created", "priority": "P1", "title": "Printer on fire"}
+{"assignee": "dana", "at": 1793302366.27575, "id": 1, "kind": "assigned"}
+{"at": 1793302366.3265102, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+{"assignee": "lee", "at": 1793302366.432658, "id": 1, "kind": "assigned"}
+{"at": 1793302366.556643, "id": 1, "kind": "closed", "resolution": "Closed it a second time"}
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl create "Ticket A"
+--- stdout:
+#1 open Ticket A
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl create "Ticket B"
+--- stdout:
+#2 open Ticket B
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl create "Ticket C"
+--- stdout:
+#3 open Ticket C
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl create "Ticket D"
+--- stdout:
+#4 open Ticket D
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl create "Ticket E"
+--- stdout:
+#5 open Ticket E
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl assign 1 dana
+--- stdout:
+#1 assigned -> dana
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl close 1 '0123456789'
+--- stdout:
+#1 closed
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl list; tail -1 ../logs/c23.jsonl
+--- stdout:
+#1 closed   Ticket A
+#2 open     Ticket B
+#3 open     Ticket C
+#4 open     Ticket D
+#5 open     Ticket E
+{"at": 1793302374.956021, "id": 1, "kind": "closed", "resolution": "0123456789"}
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl assign 1 lee 2>&1 >/dev/null; echo '(assignee after close is visible only by reading the log)'
+--- stdout:
+(assignee after close is visible only by reading the log)
+--- stderr:
+--- exit: 0
+
+=== [case 24] $ wc -l < ../logs/c23.jsonl
+--- stdout:
+8
+--- stderr:
+--- exit: 0
+
+=== [case 24] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl close 2 duplicate
+--- stdout:
+#2 closed
+--- stderr:
+--- exit: 0
+
+=== [case 24] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl list; wc -l < ../logs/c23.jsonl
+--- stdout:
+#1 assigned Ticket A
+#2 closed   Ticket B
+#3 open     Ticket C
+#4 open     Ticket D
+#5 open     Ticket E
+9
+--- stderr:
+--- exit: 0
+
+=== [case 25] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl close 3 '   wontfix!   '
+--- stdout:
+--- stderr:
+error: resolution note must be at least 10 characters
+--- exit: 2
+
+=== [case 25] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl list
+--- stdout:
+#1 assigned Ticket A
+#2 closed   Ticket B
+#3 open     Ticket C
+#4 open     Ticket D
+#5 open     Ticket E
+--- stderr:
+--- exit: 0
+
+=== [case 26] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl close 4 '12345678'
+--- stdout:
+--- stderr:
+error: resolution note must be at least 10 characters
+--- exit: 2
+
+=== [case 26] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl close 4 '123456789'
+--- stdout:
+#4 closed
+--- stderr:
+--- exit: 0
+
+=== [case 27] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl close 5 '          '
+--- stdout:
+--- stderr:
+error: resolution note must be at least 10 characters
+--- exit: 2
+
+=== [case 27] $ python3 -m ticketdesk.cli --log ../logs/c23.jsonl list; wc -l < ../logs/c23.jsonl
+--- stdout:
+#1 assigned Ticket A
+#2 closed   Ticket B
+#3 open     Ticket C
+#4 closed   Ticket D
+#5 open     Ticket E
+10
+--- stderr:
+--- exit: 0
+
+NOTE: the case-23 entry 'assign 1 lee 2>&1 >/dev/null' above was an operator error. It appended an assigned event to c23.jsonl and reopened ticket 1 there (same defect as case 19). Case 23 is rerun below on c23b.jsonl. The case-25 note above trims to 8 characters, not 9; case 25 is rerun below on c25.jsonl.
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23b.jsonl create 'Printer on fire' --priority P1
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23b.jsonl assign 1 dana
+--- stdout:
+#1 assigned -> dana
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23b.jsonl close 1 '0123456789'
+--- stdout:
+#1 closed
+--- stderr:
+--- exit: 0
+
+=== [case 23] $ python3 -m ticketdesk.cli --log ../logs/c23b.jsonl list; cat ../logs/c23b.jsonl
+--- stdout:
+#1 closed   Printer on fire
+{"at": 1793302390.261308, "id": 1, "kind": "created", "priority": "P1", "title": "Printer on fire"}
+{"assignee": "dana", "at": 1793302390.31341, "id": 1, "kind": "assigned"}
+{"at": 1793302390.362349, "id": 1, "kind": "closed", "resolution": "0123456789"}
+--- stderr:
+--- exit: 0
+
+=== [case 25] $ python3 -m ticketdesk.cli --log ../logs/c25.jsonl create 'Printer on fire'
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 25] $ python3 -m ticketdesk.cli --log ../logs/c25.jsonl close 1 '   duplicate   '
+--- stdout:
+#1 closed
+--- stderr:
+--- exit: 0
+
+=== [case 25] $ python3 -m ticketdesk.cli --log ../logs/c25.jsonl list; cat ../logs/c25.jsonl
+--- stdout:
+#1 closed   Printer on fire
+{"at": 1793302390.467201, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"at": 1793302390.5166001, "id": 1, "kind": "closed", "resolution": "   duplicate   "}
+--- stderr:
+--- exit: 0
+
+=== [case 28] $ python3 -m ticketdesk.cli --log ../logs/c28.jsonl create 'Printer on fire'
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 28] $ python3 -m ticketdesk.cli --log ../logs/c28.jsonl close 1 'Replaced the toner cartridge'
+--- stdout:
+#1 closed
+--- stderr:
+--- exit: 0
+
+=== [case 28] $ python3 -m ticketdesk.cli --log ../logs/c28.jsonl close 1 'Second resolution attempt'
+--- stdout:
+--- stderr:
+error: ticket 1 is already closed
+--- exit: 2
+
+=== [case 28] $ python3 -m ticketdesk.cli --log ../logs/c28.jsonl list; cat ../logs/c28.jsonl
+--- stdout:
+#1 closed   Printer on fire
+{"at": 1793302397.7780008, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"at": 1793302397.8290958, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+--- stderr:
+--- exit: 0
+
+=== [case 29] $ python3 -m ticketdesk.cli --log ../logs/c28.jsonl close 42 'Replaced the toner cartridge'
+--- stdout:
+--- stderr:
+error: no ticket 42
+--- exit: 2
+
+=== [case 29] $ wc -l < ../logs/c28.jsonl
+--- stdout:
+2
+--- stderr:
+--- exit: 0
+
+=== [case 31] $ TICKETDESK_LOG=../logs/c31-env.jsonl python3 -m ticketdesk.cli --log ../logs/c31-flag.jsonl create 'From flag'
+--- stdout:
+#1 open From flag
+--- stderr:
+--- exit: 0
+
+=== [case 31] $ TICKETDESK_LOG=../logs/c31-env.jsonl python3 -m ticketdesk.cli create 'From env'
+--- stdout:
+#1 open From env
+--- stderr:
+--- exit: 0
+
+=== [case 31] $ cd ../logs/c31cwd && PYTHONPATH=../../repo python3 -m ticketdesk.cli create 'From default'
+--- stdout:
+#1 open From default
+--- stderr:
+--- exit: 0
+
+=== [case 31] $ ls ../logs/c31-flag.jsonl ../logs/c31-env.jsonl ../logs/c31cwd/; ls tickets.jsonl; git status --short
+--- stdout:
+../logs/c31-env.jsonl
+../logs/c31-flag.jsonl
+
+../logs/c31cwd/:
+tickets.jsonl
+--- stderr:
+ls: cannot access 'tickets.jsonl': No such file or directory
+--- exit: 0
+
+=== [case 31] $ for f in ../logs/c31-flag.jsonl ../logs/c31-env.jsonl ../logs/c31cwd/tickets.jsonl; do echo $f; cut -c1-200 $f; done
+--- stdout:
+../logs/c31-flag.jsonl
+{"at": 1793302406.941351, "id": 1, "kind": "created", "priority": "P3", "title": "From flag"}
+../logs/c31-env.jsonl
+{"at": 1793302406.99054, "id": 1, "kind": "created", "priority": "P3", "title": "From env"}
+../logs/c31cwd/tickets.jsonl
+{"at": 1793302407.038823, "id": 1, "kind": "created", "priority": "P3", "title": "From default"}
+--- stderr:
+--- exit: 0
+
+=== [case 32] $ python3 -m ticketdesk.cli --log ../logs create 'Log is a dir'
+--- stdout:
+--- stderr:
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 23, in main
+    t = svc.create(args.title, args.priority); print(f"#{t.id} {t.state} {t.title}")
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 59, in create
+    next_id = max(self._tickets(), default=0) + 1
+                  ~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 32, in _tickets
+    for ev in self.store.replay():
+              ~~~~~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 29, in replay
+    for lineno, line in enumerate(self.path.read_text(encoding="utf-8").splitlines(), 1):
+                                  ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/pathlib/__init__.py", line 986, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/pathlib/__init__.py", line 970, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: '../logs'
+--- exit: 1
+
+=== [case 32] $ python3 -m ticketdesk.cli --log ../logs/no/such/dir/t.jsonl create 'Parent missing'
+--- stdout:
+--- stderr:
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 23, in main
+    t = svc.create(args.title, args.priority); print(f"#{t.id} {t.state} {t.title}")
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 60, in create
+    ev = self.store.append({"kind": "created", "id": next_id, "title": title, "priority": priority})
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 21, in append
+    with self.path.open("a", encoding="utf-8") as fh:
+         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/pathlib/__init__.py", line 970, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '../logs/no/such/dir/t.jsonl'
+--- exit: 1
+
+=== [case 32] $ python3 -m ticketdesk.cli --log ../logs/no/such/dir/t.jsonl list
+--- stdout:
+--- stderr:
+--- exit: 0
+
+=== [case 37] $ test -e ../logs/c33.jsonl && echo exists || echo absent
+--- stdout:
+absent
+--- stderr:
+--- exit: 0
+
+=== [case 37] $ python3 -m ticketdesk.cli --log ../logs/c33.jsonl create 'Printer on fire' --priority P1; wc -l < ../logs/c33.jsonl
+--- stdout:
+#1 open Printer on fire
+1
+--- stderr:
+--- exit: 0
+
+=== [case 35] $ date +%s
+--- stdout:
+1793302416
+--- stderr:
+--- exit: 0
+
+=== [case 33] $ python3 -m ticketdesk.cli --log ../logs/c33.jsonl assign 1 dana; wc -l < ../logs/c33.jsonl
+--- stdout:
+#1 assigned -> dana
+2
+--- stderr:
+--- exit: 0
+
+=== [case 33] $ python3 -m ticketdesk.cli --log ../logs/c33.jsonl close 1 'Replaced the toner cartridge'; wc -l < ../logs/c33.jsonl
+--- stdout:
+#1 closed
+3
+--- stderr:
+--- exit: 0
+
+=== [case 33] $ python3 -m ticketdesk.cli --log ../logs/c33.jsonl list; wc -l < ../logs/c33.jsonl
+--- stdout:
+#1 closed   Printer on fire
+3
+--- stderr:
+--- exit: 0
+
+=== [case 33] $ python3 -m ticketdesk.cli --log ../logs/c33.jsonl create ''; python3 -m ticketdesk.cli --log ../logs/c33.jsonl close 1 'again again again'; python3 -m ticketdesk.cli --log ../logs/c33.jsonl close 9 'no such ticket'; wc -l < ../logs/c33.jsonl
+--- stdout:
+3
+--- stderr:
+error: title is required
+error: ticket 1 is already closed
+error: no ticket 9
+--- exit: 0
+
+=== [case 35] $ date +%s
+--- stdout:
+1793302416
+--- stderr:
+--- exit: 0
+
+=== [case 34] $ cat ../logs/c33.jsonl
+--- stdout:
+{"at": 1793302416.443802, "id": 1, "kind": "created", "priority": "P1", "title": "Printer on fire"}
+{"assignee": "dana", "at": 1793302416.516267, "id": 1, "kind": "assigned"}
+{"at": 1793302416.567043, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+--- stderr:
+--- exit: 0
+
+=== [case 36] $ python3 -c 'import json,sys; [print(list(json.loads(l).keys()) == sorted(json.loads(l).keys()), repr(l[-1])) for l in open(sys.argv[1]) ]' ../logs/c33.jsonl; tail -c1 ../logs/c33.jsonl | od -c | head -1
+--- stdout:
+True '\n'
+True '\n'
+True '\n'
+0000000  \n
+--- stderr:
+--- exit: 0
+
+=== [case 39] $ cp ../logs/c33.jsonl ../logs/c39-before.jsonl; python3 -m ticketdesk.cli --log ../logs/c33.jsonl create 'Another one'; cmp -n $(wc -c < ../logs/c39-before.jsonl) ../logs/c39-before.jsonl ../logs/c33.jsonl && echo 'old file is a byte prefix of the new file'
+--- stdout:
+#2 open Another one
+old file is a byte prefix of the new file
+--- stderr:
+--- exit: 0
+
+=== [case 36] $ printf '\n\n' >> ../logs/c33.jsonl; python3 -m ticketdesk.cli --log ../logs/c33.jsonl list; python3 -m ticketdesk.cli --log ../logs/c33.jsonl create 'After blank lines'
+--- stdout:
+#1 closed   Printer on fire
+#2 open     Another one
+#3 open After blank lines
+--- stderr:
+--- exit: 0
+
+=== [case 40] $ python3 -m ticketdesk.cli --log ../logs/c33.jsonl list > ../logs/c40-a.txt; python3 -m ticketdesk.cli --log ../logs/c33.jsonl list > ../logs/c40-b.txt; diff ../logs/c40-a.txt ../logs/c40-b.txt && echo identical
+--- stdout:
+identical
+--- stderr:
+--- exit: 0
+
+=== [case 38] $ python3 -m ticketdesk.cli --log ../logs/c38.jsonl create 'Printer on fire'; echo '{not json' >> ../logs/c38.jsonl; python3 -m ticketdesk.cli --log ../logs/c38.jsonl create 'VPN drops' 2>/dev/null; echo '---file:'; cat ../logs/c38.jsonl
+--- stdout:
+#1 open Printer on fire
+---file:
+{"at": 1793302423.84397, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{not json
+--- stderr:
+--- exit: 0
+
+=== [case 38] $ python3 -m ticketdesk.cli --log ../logs/c38.jsonl list
+--- stdout:
+--- stderr:
+Traceback (most recent call last):
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 33, in replay
+    events.append(json.loads(line))
+                  ~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/__init__.py", line 371, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/decoder.py", line 358, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/decoder.py", line 374, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/cli.py", line 29, in main
+    for t in svc.list():
+             ~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 47, in list
+    return sorted(self._tickets().values(), key=lambda t: t.id)
+                  ~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/tickets.py", line 32, in _tickets
+    for ev in self.store.replay():
+              ~~~~~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-1/outputs/repo/ticketdesk/store.py", line 35, in replay
+    raise ValueError(f"{self.path}:{lineno}: corrupt event: {exc}") from exc
+ValueError: ../logs/c38.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+--- exit: 1
+
+=== [case 38] $ python3 -m ticketdesk.cli --log ../logs/c38.jsonl assign 1 dana 2>&1 | tail -1; wc -l < ../logs/c38.jsonl
+--- stdout:
+ValueError: ../logs/c38.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2
+--- stderr:
+--- exit: 0
+
+BASELINE: the entries tagged 'main' below run from outputs/main-baseline (git archive of main), to tell regressions from pre-existing defects. They explain causes and never set a verdict.
+
+=== [case main] $ python3 -m ticketdesk.cli --help | sed -n 3p
+--- stdout:
+positional arguments:
+--- stderr:
+--- exit: 0
+
+=== [case main] $ python3 -m ticketdesk.cli --log ../logs/main-base.jsonl create 'Printer on fire' --priority P1; python3 -m ticketdesk.cli --log ../logs/main-base.jsonl create 'VPN drops'; python3 -m ticketdesk.cli --log ../logs/main-base.jsonl list
+--- stdout:
+#1 open Printer on fire
+#2 open VPN drops
+#1 [P1] open     Printer on fire
+#2 [P3] open     VPN drops
+--- stderr:
+--- exit: 0
+
+=== [case main] $ python3 -m ticketdesk.cli --log ../logs/main-base.jsonl close 1 'Replaced the toner cartridge'; python3 -m ticketdesk.cli --log ../logs/main-base.jsonl assign 1 lee; python3 -m ticketdesk.cli --log ../logs/main-base.jsonl list
+--- stdout:
+#1 closed
+#1 [P1] closed   Printer on fire
+#2 [P3] open     VPN drops
+--- stderr:
+error: ticket 1 is closed
+--- exit: 0
+
+=== [case main] $ python3 -m ticketdesk.cli --log ../logs/main-base.jsonl close 2 duplicate; python3 -m ticketdesk.cli --log ../logs/main-base.jsonl list
+--- stdout:
+#1 [P1] closed   Printer on fire
+#2 [P3] open     VPN drops
+--- stderr:
+error: resolution note must be at least 10 characters
+--- exit: 0
+
+=== [case main] $ python3 -m ticketdesk.cli --log ../logs/c15.jsonl list | head -1 | cut -c1-20; echo "pipestatus: ${PIPESTATUS[*]}"
+--- stdout:
+#1 [P3] open     Bul
+pipestatus: 120 0 0
+--- stderr:
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe
+--- exit: 0
+
+=== [case main] $ python3 -m ticketdesk.cli --log ../logs create 'Log is a dir' 2>&1 | tail -1; echo "pipestatus: ${PIPESTATUS[*]}"
+--- stdout:
+IsADirectoryError: [Errno 21] Is a directory: '../logs'
+pipestatus: 1 0
+--- stderr:
+--- exit: 0
+
+TRIMMED REPROS for the report, fresh logs:
+
+=== [case 24] $ python3 -m ticketdesk.cli --log ../logs/r24.jsonl create 'Printer on fire'
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 24] $ python3 -m ticketdesk.cli --log ../logs/r24.jsonl close 1 duplicate
+--- stdout:
+#1 closed
+--- stderr:
+--- exit: 0
+
+=== [case 24] $ python3 -m ticketdesk.cli --log ../logs/r24.jsonl list
+--- stdout:
+#1 closed   Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 26] $ python3 -m ticketdesk.cli --log ../logs/r26.jsonl create 'Printer on fire'
+--- stdout:
+#1 open Printer on fire
+--- stderr:
+--- exit: 0
+
+=== [case 26] $ python3 -m ticketdesk.cli --log ../logs/r26.jsonl close 1 '12345678'
+--- stdout:
+--- stderr:
+error: resolution note must be at least 10 characters
+--- exit: 2
+
+=== [case 26] $ python3 -m ticketdesk.cli --log ../logs/r26.jsonl close 1 '123456789'
+--- stdout:
+#1 closed
+--- stderr:
+--- exit: 0
+

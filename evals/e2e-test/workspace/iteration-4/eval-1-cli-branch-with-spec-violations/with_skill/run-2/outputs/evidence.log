@@ -1,0 +1,1367 @@
+# Evidence log, feature/cli-tidy e2e run. Every command runs with cwd = repo root unless it cds. PYTHONDONTWRITEBYTECODE=1.
+### [case 1] $ python3 -m ticketdesk.cli --help
+--- stdout
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+
+Manage support tikets from the shell.
+
+positional arguments:
+  {create,assign,close,list}
+
+options:
+  -h, --help            show this help message and exit
+  --log LOG             path of the event log
+--- stderr
+
+--- exit 0
+
+### [case 3] $ python3 -m ticketdesk.cli
+--- stdout
+
+--- stderr
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+ticketdesk: error: the following arguments are required: cmd
+--- exit 2
+
+### [case 4] $ python3 -m ticketdesk.cli frobnicate
+--- stdout
+
+--- stderr
+usage: ticketdesk [-h] [--log LOG] {create,assign,close,list} ...
+ticketdesk: error: argument cmd: invalid choice: 'frobnicate' (choose from 'create', 'assign', 'close', 'list')
+--- exit 2
+
+### [case 41] $ python3 -m ticketdesk.cli create --help
+--- stdout
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+
+positional arguments:
+  title
+
+options:
+  -h, --help           show this help message and exit
+  --priority PRIORITY
+--- stderr
+
+--- exit 0
+
+### [case 41] $ python3 -m ticketdesk.cli assign --help
+--- stdout
+usage: ticketdesk assign [-h] id assignee
+
+positional arguments:
+  id
+  assignee
+
+options:
+  -h, --help  show this help message and exit
+--- stderr
+
+--- exit 0
+
+### [case 41] $ python3 -m ticketdesk.cli close --help
+--- stdout
+usage: ticketdesk close [-h] id resolution
+
+positional arguments:
+  id
+  resolution
+
+options:
+  -h, --help  show this help message and exit
+--- stderr
+
+--- exit 0
+
+### [case 41] $ python3 -m ticketdesk.cli list --help
+--- stdout
+usage: ticketdesk list [-h]
+
+options:
+  -h, --help  show this help message and exit
+--- stderr
+
+--- exit 0
+
+### [case 5] $ ls /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c05.jsonl
+--- stdout
+
+--- stderr
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c05.jsonl': No such file or directory
+--- exit 2
+
+### [case 5] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c05.jsonl create 'Printer on fire'
+--- stdout
+#1 open Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case 5] $ cat /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c05.jsonl
+--- stdout
+{"at": 1793302307.445418, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+--- stderr
+
+--- exit 0
+
+### [case 6] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c05.jsonl create 'VPN drops hourly' --priority P1
+--- stdout
+#2 open VPN drops hourly
+--- stderr
+
+--- exit 0
+
+### [case 6] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c05.jsonl create 'Badge reader slow' --priority P2
+--- stdout
+#3 open Badge reader slow
+--- stderr
+
+--- exit 0
+
+### [case 6] $ cat /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c05.jsonl
+--- stdout
+{"at": 1793302307.445418, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"at": 1793302307.523911, "id": 2, "kind": "created", "priority": "P1", "title": "VPN drops hourly"}
+{"at": 1793302307.579437, "id": 3, "kind": "created", "priority": "P2", "title": "Badge reader slow"}
+--- stderr
+
+--- exit 0
+
+### [case 7] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c07.jsonl create 'Seed ticket'
+--- stdout
+#1 open Seed ticket
+--- stderr
+
+--- exit 0
+
+### [case 7] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c07.jsonl create ''
+--- stdout
+
+--- stderr
+error: title is required
+--- exit 2
+
+### [case 7] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c07.jsonl create '   '
+--- stdout
+
+--- stderr
+error: title is required
+--- exit 2
+
+### [case 7] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c07.jsonl
+--- stdout
+1
+--- stderr
+
+--- exit 0
+
+### [case 8] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c08.jsonl create 'Seed ticket'
+--- stdout
+#1 open Seed ticket
+--- stderr
+
+--- exit 0
+
+### [case 8] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c08.jsonl create 'Bad priority' --priority P9
+--- stdout
+
+--- stderr
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/cli.py", line 23, in main
+    t = svc.create(args.title, args.priority); print(f"#{t.id} {t.state} {t.title}")
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/tickets.py", line 58, in create
+    due_at(0, priority)  # validates the priority
+    ~~~~~~^^^^^^^^^^^^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/sla.py", line 8, in due_at
+    raise ValueError(f"unknown priority {priority!r}; expected one of {sorted(SLA_HOURS)}")
+ValueError: unknown priority 'P9'; expected one of ['P1', 'P2', 'P3']
+--- exit 1
+
+### [case 8] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c08.jsonl list
+--- stdout
+#1 open     Seed ticket
+--- stderr
+
+--- exit 0
+
+### [case 8] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c08.jsonl
+--- stdout
+1
+--- stderr
+
+--- exit 0
+
+### [case 9] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c09.jsonl create 'Café ☕ machine broken'
+--- stdout
+#1 open Café ☕ machine broken
+--- stderr
+
+--- exit 0
+
+### [case 9] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c09.jsonl create '-x broken'
+--- stdout
+#2 open -x broken
+--- stderr
+
+--- exit 0
+
+### [case 9] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c09.jsonl create -- '-x broken'
+--- stdout
+#3 open -x broken
+--- stderr
+
+--- exit 0
+
+### [case 9] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c09.jsonl list
+--- stdout
+#1 open     Café ☕ machine broken
+#2 open     -x broken
+#3 open     -x broken
+--- stderr
+
+--- exit 0
+
+### [case 9] $ cat /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c09.jsonl
+--- stdout
+{"at": 1793302308.068952, "id": 1, "kind": "created", "priority": "P3", "title": "Caf\u00e9 \u2615 machine broken"}
+{"at": 1793302308.123714, "id": 2, "kind": "created", "priority": "P3", "title": "-x broken"}
+{"at": 1793302308.1791732, "id": 3, "kind": "created", "priority": "P3", "title": "-x broken"}
+--- stderr
+
+--- exit 0
+
+### [case 10] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c10-missing.jsonl list
+--- stdout
+
+--- stderr
+
+--- exit 0
+
+### [case 10] $ ls /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c10-missing.jsonl
+--- stdout
+
+--- stderr
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c10-missing.jsonl': No such file or directory
+--- exit 2
+
+### [case 10] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c10-empty.jsonl list
+--- stdout
+
+--- stderr
+
+--- exit 0
+
+### [case 11] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl create 'Printer on fire' --priority P1
+--- stdout
+#1 open Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case 11] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl create 'Password reset' --priority P2
+--- stdout
+#2 open Password reset
+--- stderr
+
+--- exit 0
+
+### [case 11] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl create 'New monitor'
+--- stdout
+#3 open New monitor
+--- stderr
+
+--- exit 0
+
+### [case 11] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl list
+--- stdout
+#1 open     Printer on fire
+#2 open     Password reset
+#3 open     New monitor
+--- stderr
+
+--- exit 0
+
+### [case 12] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl assign 2 dana
+--- stdout
+#2 assigned -> dana
+--- stderr
+
+--- exit 0
+
+### [case 12] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl close 1 'Replaced the toner cartridge'
+--- stdout
+#1 closed
+--- stderr
+
+--- exit 0
+
+### [case 12] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl list
+--- stdout
+#1 closed   Printer on fire
+#2 assigned Password reset
+#3 open     New monitor
+--- stderr
+
+--- exit 0
+
+### [case 13] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl list | grep closed
+--- stdout
+#1 closed   Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case 13] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl list | head -1
+--- stdout
+#1 closed   Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case 13] $ for i in $(seq 1 300); do echo "{\"at\": 1793300000.0, \"id\": $i, \"kind\": \"created\", \"priority\": \"P3\", \"title\": \"Bulk $i\"}"; done > /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c13-big.jsonl; wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c13-big.jsonl
+--- stdout
+300
+--- stderr
+
+--- exit 0
+
+### [case 13] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c13-big.jsonl list | head -1; echo pipestatus=${PIPESTATUS[0]}
+--- stdout
+#1 open     Bulk 1
+pipestatus=0
+--- stderr
+
+--- exit 0
+
+### [case 14] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl list > /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c14-a.txt; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl list > /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c14-b.txt; wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c11.jsonl; diff /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c14-a.txt /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c14-b.txt && echo identical
+--- stdout
+5
+5
+identical
+--- stderr
+
+--- exit 0
+
+### [case 15] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl create 'Printer on fire' --priority P1
+--- stdout
+#1 open Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case 15] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl assign 1 dana
+--- stdout
+#1 assigned -> dana
+--- stderr
+
+--- exit 0
+
+### [case 16] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl assign 1 lee
+--- stdout
+#1 assigned -> lee
+--- stderr
+
+--- exit 0
+
+### [case 16] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl list
+--- stdout
+#1 assigned Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case 16] $ tail -2 /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl
+--- stdout
+{"assignee": "dana", "at": 1793302331.078176, "id": 1, "kind": "assigned"}
+{"assignee": "lee", "at": 1793302331.1423821, "id": 1, "kind": "assigned"}
+--- stderr
+
+--- exit 0
+
+### [case 17] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl assign 1 ''
+--- stdout
+
+--- stderr
+error: assignee is required
+--- exit 2
+
+### [case 17] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl assign 1 '   '
+--- stdout
+
+--- stderr
+error: assignee is required
+--- exit 2
+
+### [case 17] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl
+--- stdout
+3
+--- stderr
+
+--- exit 0
+
+### [case 18] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl create 'Printer on fire' --priority P1
+--- stdout
+#1 open Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case 18] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl close 1 'Replaced the toner cartridge'
+--- stdout
+#1 closed
+--- stderr
+
+--- exit 0
+
+### [case 18] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl
+--- stdout
+2
+--- stderr
+
+--- exit 0
+
+### [case 18] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl assign 1 dana
+--- stdout
+#1 assigned -> dana
+--- stderr
+
+--- exit 0
+
+### [case 18] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl
+--- stdout
+3
+--- stderr
+
+--- exit 0
+
+### [case 18] $ tail -1 /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl
+--- stdout
+{"assignee": "dana", "at": 1793302331.5674071, "id": 1, "kind": "assigned"}
+--- stderr
+
+--- exit 0
+
+### [case 19] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl list
+--- stdout
+#1 assigned Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case 19] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl close 1 'Second resolution overwrites'
+--- stdout
+#1 closed
+--- stderr
+
+--- exit 0
+
+### [case 19] $ cat /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c18.jsonl
+--- stdout
+{"at": 1793302331.428938, "id": 1, "kind": "created", "priority": "P1", "title": "Printer on fire"}
+{"at": 1793302331.483367, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+{"assignee": "dana", "at": 1793302331.5674071, "id": 1, "kind": "assigned"}
+{"at": 1793302331.7350268, "id": 1, "kind": "closed", "resolution": "Second resolution overwrites"}
+--- stderr
+
+--- exit 0
+
+### [case 19] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c19-open-closed.jsonl create 'Disk full'
+--- stdout
+#1 open Disk full
+--- stderr
+
+--- exit 0
+
+### [case 19] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c19-open-closed.jsonl close 1 'Cleared tmp files'
+--- stdout
+#1 closed
+--- stderr
+
+--- exit 0
+
+### [case 19] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c19-open-closed.jsonl assign 1 lee
+--- stdout
+#1 assigned -> lee
+--- stderr
+
+--- exit 0
+
+### [case 19] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c19-open-closed.jsonl list
+--- stdout
+#1 assigned Disk full
+--- stderr
+
+--- exit 0
+
+### [case 20] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl assign 99 dana
+--- stdout
+
+--- stderr
+error: no ticket 99
+--- exit 2
+
+### [case 20] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl
+--- stdout
+3
+--- stderr
+
+--- exit 0
+
+### [case 21] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl assign one dana
+--- stdout
+
+--- stderr
+usage: ticketdesk assign [-h] id assignee
+ticketdesk assign: error: argument id: invalid int value: 'one'
+--- exit 2
+
+### [case 21] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl close 1.5 'Replaced the toner cartridge'
+--- stdout
+
+--- stderr
+usage: ticketdesk close [-h] id resolution
+ticketdesk close: error: argument id: invalid int value: '1.5'
+--- exit 2
+
+### [case 21] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl assign -- -1 dana
+--- stdout
+
+--- stderr
+error: no ticket -1
+--- exit 2
+
+### [case 21] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c15.jsonl
+--- stdout
+3
+--- stderr
+
+--- exit 0
+
+### [case 22] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl list
+--- stdout
+
+--- stderr
+
+--- exit 0
+
+### [case 22] $ printf %s 'Fixed cable' | wc -c
+--- stdout
+11
+--- stderr
+
+--- exit 0
+
+### [case 22] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl close 1 'Fixed cable'
+--- stdout
+
+--- stderr
+error: no ticket 1
+--- exit 2
+
+### [case 22] $ printf %s 'Rebooted 1' | wc -c
+--- stdout
+10
+--- stderr
+
+--- exit 0
+
+### [case 22] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl close 2 'Rebooted 1'
+--- stdout
+
+--- stderr
+error: no ticket 2
+--- exit 2
+
+### [case 23] $ printf %s 'duplicate' | wc -c
+--- stdout
+9
+--- stderr
+
+--- exit 0
+
+### [case 23] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl close 3 'duplicate'
+--- stdout
+
+--- stderr
+error: no ticket 3
+--- exit 2
+
+### [case 23] $ tail -1 /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl
+--- stdout
+
+--- stderr
+tail: cannot open '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl' for reading: No such file or directory
+--- exit 1
+
+### [case 24] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl
+--- stdout
+
+--- stderr
+bash: line 1: /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl: No such file or directory
+--- exit 1
+
+### [case 24] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl close 4 'dup of 3'
+--- stdout
+
+--- stderr
+error: no ticket 4
+--- exit 2
+
+### [case 24] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl close 4 'x'
+--- stdout
+
+--- stderr
+error: no ticket 4
+--- exit 2
+
+### [case 24] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl
+--- stdout
+
+--- stderr
+bash: line 1: /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl: No such file or directory
+--- exit 1
+
+### [case 24] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl list
+--- stdout
+
+--- stderr
+
+--- exit 0
+
+### [case 25] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl close 5 '     duplicate     '
+--- stdout
+
+--- stderr
+error: no ticket 5
+--- exit 2
+
+### [case 25] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl close 6 '   dup of 3   '
+--- stdout
+
+--- stderr
+error: no ticket 6
+--- exit 2
+
+### [case 25] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl close 7 '  Fixed it!  '
+--- stdout
+
+--- stderr
+error: no ticket 7
+--- exit 2
+
+### [case 25] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22.jsonl list
+--- stdout
+
+--- stderr
+
+--- exit 0
+
+### NOTE: the case 22-25 block above is VOID. Its seed loop ran outside the repo root, so no tickets existed. Rerun below on c22b.jsonl.
+
+### [case 22] $ for i in 1 2 3 4 5 6 7 8; do python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl create "Ticket $i"; done
+--- stdout
+#1 open Ticket 1
+#2 open Ticket 2
+#3 open Ticket 3
+#4 open Ticket 4
+#5 open Ticket 5
+#6 open Ticket 6
+#7 open Ticket 7
+#8 open Ticket 8
+--- stderr
+
+--- exit 0
+
+### [case 22] $ printf %s 'Fixed cable' | wc -c
+--- stdout
+11
+--- stderr
+
+--- exit 0
+
+### [case 22] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 1 'Fixed cable'
+--- stdout
+#1 closed
+--- stderr
+
+--- exit 0
+
+### [case 22] $ printf %s 'Rebooted 1' | wc -c
+--- stdout
+10
+--- stderr
+
+--- exit 0
+
+### [case 22] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 2 'Rebooted 1'
+--- stdout
+#2 closed
+--- stderr
+
+--- exit 0
+
+### [case 23] $ printf %s 'duplicate' | wc -c
+--- stdout
+9
+--- stderr
+
+--- exit 0
+
+### [case 23] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 3 'duplicate'
+--- stdout
+#3 closed
+--- stderr
+
+--- exit 0
+
+### [case 23] $ tail -1 /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl
+--- stdout
+{"at": 1793302351.297426, "id": 3, "kind": "closed", "resolution": "duplicate"}
+--- stderr
+
+--- exit 0
+
+### [case 24] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl
+--- stdout
+11
+--- stderr
+
+--- exit 0
+
+### [case 24] $ printf %s 'dup of 3' | wc -c
+--- stdout
+8
+--- stderr
+
+--- exit 0
+
+### [case 24] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 4 'dup of 3'
+--- stdout
+
+--- stderr
+error: resolution note must be at least 10 characters
+--- exit 2
+
+### [case 24] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 4 'x'
+--- stdout
+
+--- stderr
+error: resolution note must be at least 10 characters
+--- exit 2
+
+### [case 24] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl
+--- stdout
+11
+--- stderr
+
+--- exit 0
+
+### [case 25] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 5 '     duplicate     '
+--- stdout
+#5 closed
+--- stderr
+
+--- exit 0
+
+### [case 25] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 6 '   dup of 3   '
+--- stdout
+
+--- stderr
+error: resolution note must be at least 10 characters
+--- exit 2
+
+### [case 25] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 7 '  Fixed it!  '
+--- stdout
+#7 closed
+--- stderr
+
+--- exit 0
+
+### [case 25] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl close 8 '           '
+--- stdout
+
+--- stderr
+error: resolution note must be at least 10 characters
+--- exit 2
+
+### [case 24] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl list
+--- stdout
+#1 closed   Ticket 1
+#2 closed   Ticket 2
+#3 closed   Ticket 3
+#4 open     Ticket 4
+#5 closed   Ticket 5
+#6 open     Ticket 6
+#7 closed   Ticket 7
+#8 open     Ticket 8
+--- stderr
+
+--- exit 0
+
+### [case 26] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl create 'Laptop will not boot'
+--- stdout
+#1 open Laptop will not boot
+--- stderr
+
+--- exit 0
+
+### [case 26] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl assign 1 dana
+--- stdout
+#1 assigned -> dana
+--- stderr
+
+--- exit 0
+
+### [case 26] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl close 1 'Reseated the RAM module'
+--- stdout
+#1 closed
+--- stderr
+
+--- exit 0
+
+### [case 26] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl list
+--- stdout
+#1 closed   Laptop will not boot
+--- stderr
+
+--- exit 0
+
+### [case 27] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl close 1 'Trying to close it again'
+--- stdout
+
+--- stderr
+error: ticket 1 is already closed
+--- exit 2
+
+### [case 27] $ cat /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl
+--- stdout
+{"at": 1793302362.673368, "id": 1, "kind": "created", "priority": "P3", "title": "Laptop will not boot"}
+{"assignee": "dana", "at": 1793302362.724608, "id": 1, "kind": "assigned"}
+{"at": 1793302362.775789, "id": 1, "kind": "closed", "resolution": "Reseated the RAM module"}
+--- stderr
+
+--- exit 0
+
+### [case 28] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl close 99 'Replaced the toner cartridge'
+--- stdout
+
+--- stderr
+error: no ticket 99
+--- exit 2
+
+### [case 29] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl create
+--- stdout
+
+--- stderr
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+ticketdesk create: error: the following arguments are required: title
+--- exit 2
+
+### [case 29] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl assign 1
+--- stdout
+
+--- stderr
+usage: ticketdesk assign [-h] id assignee
+ticketdesk assign: error: the following arguments are required: assignee
+--- exit 2
+
+### [case 29] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl close 1
+--- stdout
+
+--- stderr
+usage: ticketdesk close [-h] id resolution
+ticketdesk close: error: the following arguments are required: resolution
+--- exit 2
+
+### [case 29] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl create 'x' --priority
+--- stdout
+
+--- stderr
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+ticketdesk create: error: argument --priority: expected one argument
+--- exit 2
+
+### [case 29] $ wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl
+--- stdout
+3
+--- stderr
+
+--- exit 0
+
+### [case 30] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl create 'Second ticket'
+--- stdout
+#2 open Second ticket
+--- stderr
+
+--- exit 0
+
+### [case 30] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl close 2 'Closed the highest ticket'
+--- stdout
+#2 closed
+--- stderr
+
+--- exit 0
+
+### [case 30] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl create 'Third ticket'
+--- stdout
+#3 open Third ticket
+--- stderr
+
+--- exit 0
+
+### [case 30] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl list
+--- stdout
+#1 closed   Laptop will not boot
+#2 closed   Second ticket
+#3 open     Third ticket
+--- stderr
+
+--- exit 0
+
+### [case 31] $ TICKETDESK_LOG=/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c31-env.jsonl python3 -m ticketdesk.cli create 'From env var'
+--- stdout
+#1 open From env var
+--- stderr
+
+--- exit 0
+
+### [case 31] $ cat /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c31-env.jsonl
+--- stdout
+{"at": 1793302363.4715571, "id": 1, "kind": "created", "priority": "P3", "title": "From env var"}
+--- stderr
+
+--- exit 0
+
+### [case 32] $ TICKETDESK_LOG=/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c31-env.jsonl python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c32-opt.jsonl create 'From option'
+--- stdout
+#1 open From option
+--- stderr
+
+--- exit 0
+
+### [case 32] $ cat /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c32-opt.jsonl; wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c31-env.jsonl
+--- stdout
+{"at": 1793302363.5479438, "id": 1, "kind": "created", "priority": "P3", "title": "From option"}
+1
+--- stderr
+
+--- exit 0
+
+### [case 33] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c33-cwd && env -u TICKETDESK_LOG PYTHONPATH=/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo python3 -m ticketdesk.cli create 'Default path'
+--- stdout
+#1 open Default path
+--- stderr
+
+--- exit 0
+
+### [case 33] $ ls /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c33-cwd; ls /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/tickets.jsonl
+--- stdout
+tickets.jsonl
+--- stderr
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/tickets.jsonl': No such file or directory
+--- exit 2
+
+### [case 33] $ env -u TICKETDESK_LOG python3 -m ticketdesk.cli list
+--- stdout
+
+--- stderr
+
+--- exit 0
+
+### [case 33] $ ls /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/tickets.jsonl
+--- stdout
+
+--- stderr
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/tickets.jsonl': No such file or directory
+--- exit 2
+
+### [case 34] $ date +%s; python3 -c 'import json,sys
+for n,l in enumerate(open(sys.argv[1]),1):
+    o=json.loads(l); print(n, o["kind"], sorted(o)==list(o), sorted(o), l.endswith("\n"))' /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c26.jsonl
+--- stdout
+1793302376
+1 created True ['at', 'id', 'kind', 'priority', 'title'] True
+2 assigned True ['assignee', 'at', 'id', 'kind'] True
+3 closed True ['at', 'id', 'kind', 'resolution'] True
+4 created True ['at', 'id', 'kind', 'priority', 'title'] True
+5 closed True ['at', 'id', 'kind', 'resolution'] True
+6 created True ['at', 'id', 'kind', 'priority', 'title'] True
+--- stderr
+
+--- exit 0
+
+### [case 35] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c35.jsonl create 'Before blank'
+--- stdout
+#1 open Before blank
+--- stderr
+
+--- exit 0
+
+### [case 35] $ printf '\n\n' >> /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c35.jsonl; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c35.jsonl create 'After blank'
+--- stdout
+#2 open After blank
+--- stderr
+
+--- exit 0
+
+### [case 35] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c35.jsonl list
+--- stdout
+#1 open     Before blank
+#2 open     After blank
+--- stderr
+
+--- exit 0
+
+### [case 35] $ cat -A /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c35.jsonl | cut -c1-60
+--- stdout
+{"at": 1793302377.030831, "id": 1, "kind": "created", "prior
+$
+$
+{"at": 1793302377.0874, "id": 2, "kind": "created", "priorit
+--- stderr
+
+--- exit 0
+
+### [case 36] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl create 'Ticket A' --priority P2; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl assign 1 dana
+--- stdout
+#1 open Ticket A
+#1 assigned -> dana
+--- stderr
+
+--- exit 0
+
+### [case 36] $ cp /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36-before.jsonl; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl create 'Ticket B'; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl close 1 'Swapped the power supply'; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl create '' ; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl list
+--- stdout
+#2 open Ticket B
+#1 closed
+#1 closed   Ticket A
+#2 open     Ticket B
+--- stderr
+error: title is required
+--- exit 0
+
+### [case 36] $ n=$(wc -c < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36-before.jsonl); head -c $n /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl | cmp - /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36-before.jsonl && echo prefix-identical; wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36-before.jsonl; wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c36.jsonl
+--- stdout
+prefix-identical
+2
+4
+--- stderr
+
+--- exit 0
+
+### [case 37] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl create 'Good ticket'; echo '{not json' >> /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl; python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl create 'After corrupt' 2>/dev/null; echo create-exit=$?; wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl
+--- stdout
+#1 open Good ticket
+create-exit=1
+2
+--- stderr
+
+--- exit 0
+
+### [case 37] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl list
+--- stdout
+
+--- stderr
+Traceback (most recent call last):
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/store.py", line 33, in replay
+    events.append(json.loads(line))
+                  ~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/__init__.py", line 371, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/decoder.py", line 358, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/json/decoder.py", line 374, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/cli.py", line 29, in main
+    for t in svc.list():
+             ~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/tickets.py", line 47, in list
+    return sorted(self._tickets().values(), key=lambda t: t.id)
+                  ~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/tickets.py", line 32, in _tickets
+    for ev in self.store.replay():
+              ~~~~~~~~~~~~~~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/store.py", line 35, in replay
+    raise ValueError(f"{self.path}:{lineno}: corrupt event: {exc}") from exc
+ValueError: /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+--- exit 1
+
+### [case 37] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl assign 1 dana 2>&1 | tail -1; wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl
+--- stdout
+ValueError: /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2
+--- stderr
+
+--- exit 0
+
+### [case 40] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/no-such-dir/t.jsonl create 'Nowhere to go'
+--- stdout
+
+--- stderr
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/cli.py", line 23, in main
+    t = svc.create(args.title, args.priority); print(f"#{t.id} {t.state} {t.title}")
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/tickets.py", line 60, in create
+    ev = self.store.append({"kind": "created", "id": next_id, "title": title, "priority": priority})
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/store.py", line 21, in append
+    with self.path.open("a", encoding="utf-8") as fh:
+         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/pathlib/__init__.py", line 970, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/no-such-dir/t.jsonl'
+--- exit 1
+
+### [case 40] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/no-such-dir/t.jsonl list
+--- stdout
+
+--- stderr
+
+--- exit 0
+
+### [case 13] $ python3 -c 'import json
+for i in range(1,40001): print(json.dumps({"at":1793300000.0,"id":i,"kind":"created","priority":"P3","title":"Bulk ticket number %d with a long title"%i},sort_keys=True))' > /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c13-huge.jsonl; wc -l < /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c13-huge.jsonl
+--- stdout
+40000
+--- stderr
+
+--- exit 0
+
+### [case 13] $ python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c13-huge.jsonl list | head -2; echo pipestatus=${PIPESTATUS[0]}
+--- stdout
+#1 open     Bulk ticket number 1 with a long title
+#2 open     Bulk ticket number 2 with a long title
+pipestatus=120
+--- stderr
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/outputs/repo/ticketdesk/cli.py", line 30, in main
+    print(f"#{t.id} {t.state:<8} {t.title}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe
+--- exit 0
+
+### [case baseline] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline && python3 -m ticketdesk.cli --help | sed -n 3p
+--- stdout
+positional arguments:
+--- stderr
+
+--- exit 0
+
+### [case baseline] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/base.jsonl create 'Printer on fire' --priority P1 && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/base.jsonl create 'Disk full' && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/base.jsonl list
+--- stdout
+#1 open Printer on fire
+#2 open Disk full
+#1 [P1] open     Printer on fire
+#2 [P3] open     Disk full
+--- stderr
+
+--- exit 0
+
+### [case baseline] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/base.jsonl close 2 'duplicate'
+--- stdout
+
+--- stderr
+error: resolution note must be at least 10 characters
+--- exit 2
+
+### [case baseline] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/base.jsonl close 1 'Replaced the toner cartridge' && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/base.jsonl assign 1 dana
+--- stdout
+#1 closed
+--- stderr
+error: ticket 1 is closed
+--- exit 2
+
+### [case baseline] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/base.jsonl create 'Bad' --priority P9 2>&1 | tail -1
+--- stdout
+ValueError: unknown priority 'P9'; expected one of ['P1', 'P2', 'P3']
+--- stderr
+
+--- exit 0
+
+### [case baseline] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c13-huge.jsonl list | head -1; echo pipestatus=${PIPESTATUS[0]}
+--- stdout
+#1 [P3] open     Bulk ticket number 1 with a long title
+pipestatus=120
+--- stderr
+Traceback (most recent call last):
+  File "<frozen runpy>", line 201, in _run_module_as_main
+  File "<frozen runpy>", line 87, in _run_code
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline/ticketdesk/cli.py", line 38, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline/ticketdesk/cli.py", line 30, in main
+    print(f"#{t.id} [{t.priority}] {t.state:<8} {t.title}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe
+--- exit 0
+
+### [case baseline] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/no-such-dir/t.jsonl create 'Nowhere' 2>&1 | tail -1
+--- stdout
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/no-such-dir/t.jsonl'
+--- stderr
+
+--- exit 0
+
+### [case baseline] $ cd /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/main-baseline && python3 -m ticketdesk.cli --log /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl list 2>&1 | tail -1
+--- stdout
+ValueError: /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c37.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+--- stderr
+
+--- exit 0
+
+### [case 25] $ grep '"id": 5, "kind": "closed"' /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/c22b.jsonl
+--- stdout
+{"at": 1793302351.563057, "id": 5, "kind": "closed", "resolution": "     duplicate     "}
+--- stderr
+
+--- exit 0
+
+### [case 40] $ ls /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/no-such-dir
+--- stdout
+
+--- stderr
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/no-such-dir': No such file or directory
+--- exit 2
+
+### [case final] $ git status --porcelain; git rev-parse --abbrev-ref HEAD; git log -1 --oneline
+--- stdout
+feature/cli-tidy
+4659f59 feat(cli): Tidy the list output and relax the resolution rule
+--- stderr
+
+--- exit 0
+
+### REPRO RUNS. W=/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work. Each repro uses a fresh log under $W/repro.
+
+### [case repro-2] $ python3 -m ticketdesk.cli --help | sed -n 3p
+--- stdout
+Manage support tikets from the shell.
+--- stderr
+
+--- exit 0
+
+### [case repro-11] $ python3 -m ticketdesk.cli --log $W/repro/r11.jsonl create 'Printer on fire' --priority P1 && python3 -m ticketdesk.cli --log $W/repro/r11.jsonl list
+--- stdout
+#1 open Printer on fire
+#1 open     Printer on fire
+--- stderr
+
+--- exit 0
+
+### [case repro-18-19] $ python3 -m ticketdesk.cli --log $W/repro/r18.jsonl create 'Printer on fire'; python3 -m ticketdesk.cli --log $W/repro/r18.jsonl close 1 'Replaced the toner cartridge'; python3 -m ticketdesk.cli --log $W/repro/r18.jsonl assign 1 dana; echo "exit=$?"; python3 -m ticketdesk.cli --log $W/repro/r18.jsonl list; python3 -m ticketdesk.cli --log $W/repro/r18.jsonl close 1 'A different resolution'; echo "exit=$?"; cut -c1-200 $W/repro/r18.jsonl
+--- stdout
+#1 open Printer on fire
+#1 closed
+#1 assigned -> dana
+exit=0
+#1 assigned Printer on fire
+#1 closed
+exit=0
+{"at": 1793302448.358848, "id": 1, "kind": "created", "priority": "P3", "title": "Printer on fire"}
+{"at": 1793302448.3867, "id": 1, "kind": "closed", "resolution": "Replaced the toner cartridge"}
+{"assignee": "dana", "at": 1793302448.41463, "id": 1, "kind": "assigned"}
+{"at": 1793302448.471276, "id": 1, "kind": "closed", "resolution": "A different resolution"}
+--- stderr
+
+--- exit 0
+
+### [case repro-23-25] $ python3 -m ticketdesk.cli --log $W/repro/r23.jsonl create 'Ticket A'; python3 -m ticketdesk.cli --log $W/repro/r23.jsonl create 'Ticket B'; python3 -m ticketdesk.cli --log $W/repro/r23.jsonl create 'Ticket C'; python3 -m ticketdesk.cli --log $W/repro/r23.jsonl close 1 'duplicate'; echo "exit=$?"; python3 -m ticketdesk.cli --log $W/repro/r23.jsonl close 2 '  Fixed it!  '; echo "exit=$?"; python3 -m ticketdesk.cli --log $W/repro/r23.jsonl close 3 'dup of 3'; echo "exit=$?"
+--- stdout
+#1 open Ticket A
+#2 open Ticket B
+#3 open Ticket C
+#1 closed
+exit=0
+#2 closed
+exit=0
+exit=2
+--- stderr
+error: resolution note must be at least 10 characters
+--- exit 0
+
+### [case repro-8] $ python3 -m ticketdesk.cli --log $W/repro/r08.jsonl create 'Bad priority' --priority P9 2>$W/repro/r08.err; echo "exit=$?"; head -1 $W/repro/r08.err; tail -1 $W/repro/r08.err; ls $W/repro/r08.jsonl
+--- stdout
+exit=1
+Traceback (most recent call last):
+ValueError: unknown priority 'P9'; expected one of ['P1', 'P2', 'P3']
+--- stderr
+ls: cannot access '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/repro/r08.jsonl': No such file or directory
+--- exit 2
+
+### [case repro-37] $ python3 -m ticketdesk.cli --log $W/repro/r37.jsonl create 'Good ticket'; echo '{not json' >> $W/repro/r37.jsonl; python3 -m ticketdesk.cli --log $W/repro/r37.jsonl list 2>$W/repro/r37.err; echo "exit=$?"; head -1 $W/repro/r37.err; tail -1 $W/repro/r37.err
+--- stdout
+#1 open Good ticket
+exit=1
+Traceback (most recent call last):
+ValueError: /Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/repro/r37.jsonl:2: corrupt event: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+--- stderr
+
+--- exit 0
+
+### [case repro-40] $ python3 -m ticketdesk.cli --log $W/repro/missing-dir/t.jsonl create 'Nowhere to go' 2>$W/repro/r40.err; echo "exit=$?"; head -1 $W/repro/r40.err; tail -1 $W/repro/r40.err; python3 -m ticketdesk.cli --log $W/repro/missing-dir/t.jsonl list; echo "list exit=$?"
+--- stdout
+exit=1
+Traceback (most recent call last):
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/dmitri/dev/swd-skills-e2evidence/evals/e2e-test/workspace/iteration-4/eval-1-cli-branch-with-spec-violations/with_skill/run-2/work/repro/missing-dir/t.jsonl'
+list exit=0
+--- stderr
+
+--- exit 0
+
+### [case repro-13] $ python3 -c 'import json
+for i in range(1, 40001): print(json.dumps({"at": 1793300000.0, "id": i, "kind": "created", "priority": "P3", "title": "Bulk ticket %d" % i}, sort_keys=True))' > $W/repro/r13.jsonl; python3 -m ticketdesk.cli --log $W/repro/r13.jsonl list 2>$W/repro/r13.err | head -1; echo "exit=${PIPESTATUS[0]}"; tail -2 $W/repro/r13.err
+--- stdout
+#1 open     Bulk ticket 1
+exit=120
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe
+--- stderr
+
+--- exit 0
+
+### [case repro-41] $ python3 -m ticketdesk.cli create --help
+--- stdout
+usage: ticketdesk create [-h] [--priority PRIORITY] title
+
+positional arguments:
+  title
+
+options:
+  -h, --help           show this help message and exit
+  --priority PRIORITY
+--- stderr
+
+--- exit 0
+

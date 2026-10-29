@@ -27,3 +27,9 @@ the specs as the contract and reports the conflict.
 ## Running
 
 Run with the skill-creator benchmark flow. Grade the prose with `scripts/prose-lint.py`.
+
+## The evidence check
+
+Assertion 14 checks that every quoted output came from the run. The grader compares each
+block with the run's logs and transcript, and replays a doubtful block on a fresh copy of
+the fixture. Earlier runs trimmed a repro and wrote the output they expected it to print.

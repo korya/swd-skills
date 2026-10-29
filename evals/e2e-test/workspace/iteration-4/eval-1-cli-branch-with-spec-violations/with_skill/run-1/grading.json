@@ -1,0 +1,88 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**29/40 PASS, 10 FAILURE, 1 BLOCKED. No-go: the branch breaks three ticket and CLI specs, and `assign` now reopens closed tickets.**\" Table: FAILURE rows 1, 7, 12, 15, 19, 20, 24, 25, 26, 32; BLOCKED 30."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript command 11 writes outputs/cases.md (40 cases) 'before any product run'. The first CLI call is command 14. The table cites 35 spec IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "All 40 rows carry exactly PASS, FAILURE, or BLOCKED."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 24 block: `$ python3 -m ticketdesk.cli --log ../logs/r24.jsonl close 1 duplicate` -> `#1 closed`, then `list` -> `#1 closed   Printer on fire`. This matches evidence entries 127-129 verbatim."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 19 block: `$ ... assign 1 lee` -> `#1 assigned -> lee` / `(stderr empty, exit 0)`, then `wc -l` -> `4` and the appended `assigned` event. This matches evidence entries 57-62."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 12 block: `list` -> `#1 open     Printer on fire` / `#2 assigned VPN drops hourly` / `#3 closed   New monitor request`, against the expected `[P1]`/`[P2]`/`[P3]` lines."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 1 FAILURE quotes the full --help output, including \"Manage support tikets from the shell.\""
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "The evidence log holds 133 entries, all written by tools/t.sh, and the transcript counts 112 CLI invocations. Every non-PASS verdict cites a CLI block. Code appears only in cause lines."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "Case 24: \"The PR intends this, but TKT-010 still says 10.\" Case 20: \"The PR says support asked for this, but tickets.md was not changed to allow it.\" Lead: \"AGENTS.md requires such a conflict to go to the user before it merges.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": false,
+      "evidence": "Two FAILURE sections carry no likelihood-labelled cause. Case 7 ends with \"This is the same defect as case 12.\" Case 25 ends with \"This is the same defect as case 24.\" Neither has a 'Most likely cause' line, while the other eight FAILURE sections do. This is the same bar that failed iteration-2 old_skill/run-1. The leftover-artifacts section exists, but it lists log files rather than tickets."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = [], untracked = []. The run used PYTHONDONTWRITEBYTECODE=1, so not even __pycache__ was left."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline gives the counts, 'No-go', and the worst defect. The second paragraph splits 8 branch failures from 2 old ones and names the AGENTS.md conflict. Subsections open with the gist (\"Case 20: the closed ticket reopens and takes a second resolution\"; \"The ticket stays `closed`\")."
+    },
+    {
+      "text": "Every command-and-output block in OUTPUT_DIR/report.md was produced by exactly the steps it shows, in this run: the output matches the run's transcript, logs, or evidence log, or a stated re-run on fresh state. A block with output, IDs, or paths the run never produced together, and no disclosure, fails this assertion.",
+      "passed": true,
+      "evidence": "I checked all 10 output blocks against outputs/evidence.log. Case 1 matches entry 0, case 7 entries 12-14, case 12 entries 30-35, case 19 entries 57-59, 61 and 62, case 20 entries 63-65, case 24 the fresh re-run r24 (127-129), case 25 entries 88-90, case 26 the fresh re-run r26 (130-132), case 15 entry 40, and case 32 entries 102 and 760-785, with frames elided and disclosed. Every quoted output line is in the evidence log. The one gap: case 19 omits evidence entry 60 (`list; wc -l`, read-only) between the close and `assign 1 lee`. I replayed the shown steps on a fresh fixture copy under scratchpad/grade4 and got the same outputs (`#1 assigned -> lee`, 4 lines, `#1 assigned Printer on fire`, second `#1 closed`)."
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 1,
+    "total": 14,
+    "pass_rate": 0.9286
+  },
+  "notes": [
+    "Evidence class: FAITHFUL. Every block is the exact output of the shown steps, from the main run or from fresh r24/r26 re-runs. The evidence log labels those re-runs, but the report presents them without saying they are re-runs, and none was needed for disclosure. Case 19 skips one read-only `list`, and my replay confirmed it changes nothing.",
+    "40 cases, 3064 words.",
+    "Did not run make test. It says so ('The test suite is not the user surface, so it was not run'), so it missed the PR's false 'All tests pass locally'.",
+    "Operator error disclosed: a stray `assign 1 lee` reopened ticket 1 in c23.jsonl, so case 23 was rerun on c23b.jsonl. The evidence log and the artifacts section both record this.",
+    "Extra findings: a bad --log path (directory or missing parent) gives a traceback while `list` on it exits 0 silently. Case 26 isolates the false error message as its own FAILURE.",
+    "No write outside the run dir is recorded. PYTHONDONTWRITEBYTECODE kept the repo fully clean. The report was written with a shell heredoc (`cat >|`), and the transcript with the Write tool."
+  ]
+}
