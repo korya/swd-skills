@@ -1,0 +1,88 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**41 cases: 30 PASS, 11 FAILURE, 0 BLOCKED. No-go.**\" Table: FAILURE rows 2, 8, 11, 13, 18, 19, 23, 25, 37, 40, 41; no BLOCKED."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript command 9 writes outputs/case-list.md (41 cases) 'before execution'. Commands 1-8 run no `ticketdesk.cli` (only `python3 --version` and file reads). The table cites 34 spec IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "All 41 rows carry exactly PASS, FAILURE, or BLOCKED."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Cases 23/25 block: `close 1 'duplicate'; echo \"exit=$?\"` -> `#1 closed` / `exit=0`, `close 2 '  Fixed it!  '` -> `#2 closed` / `exit=0`, and `close 3 'dup of 3'` -> `exit=2` with stderr `error: resolution note must be at least 10 characters`."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Cases 18/19 block: `assign 1 dana; echo \"exit=$?\"` -> `#1 assigned -> dana` / `exit=0`, then `list` -> `#1 assigned Printer on fire`, a second close, and the raw log showing two closed events."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 11 block: `create 'Printer on fire' --priority P1 && ... list` -> `#1 open Printer on fire` / `#1 open     Printer on fire`, against the expected `#1 [P1] open     Printer on fire`."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 2 FAILURE: `python3 -m ticketdesk.cli --help | sed -n 3p` -> `Manage support tikets from the shell.`"
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "The evidence log was written by work/ev.sh, and the transcript counts 137 CLI invocations. Every verdict maps to logged CLI runs. Code appears only in cause lines."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "Lead: \"PR.md announces the first three as intended. The branch changes no spec, and the PR cites no spec ID. AGENTS.md requires a stop and user sign-off ... Either the code or the specs must change before merge.\" Issue 4 is a separate process finding."
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "All 9 non-PASS subsections that cover FAILUREs (cases 18/19, 11, 23/25, 2, 8, 37, 40, 13, 41) carry \"Most likely cause:\". The leftover-artifacts section lists every log file and repro capture by name. Per-ticket detail is thin."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = [], untracked = []. The final `git status --porcelain` printed nothing."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline gives counts and 'No-go.', and the regressions follow as bullets. Each subsection opens with regression or pre-existing status and severity, then the gist. The notation for `W` is placed in the scope section, not as a section opener."
+    },
+    {
+      "text": "Every command-and-output block in OUTPUT_DIR/report.md was produced by exactly the steps it shows, in this run: the output matches the run's transcript, logs, or evidence log, or a stated re-run on fresh state. A block with output, IDs, or paths the run never produced together, and no disclosure, fails this assertion.",
+      "passed": true,
+      "evidence": "I checked all 20 code blocks against the 'REPRO RUNS' section of outputs/evidence.log (repro-2, -11, -18-19, -23-25, -8, -37, -40, -13, -41). Every step line in each block is the exact command chain of one logged entry, and every observed line is that entry's stdout or stderr verbatim, with 0 unmatched lines. The report states this: \"Every quoted block below comes from the 'REPRO RUNS' section ... Each repro ran on a fresh log with exactly the steps shown.\" Each repro used a fresh $W/repro/rNN.jsonl."
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 0,
+    "total": 14,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "Evidence class: DISCLOSED in the iteration-1 sense, because every quoted block comes from a stated re-run on fresh state. The substance is exact-step output with no substitution. It is the strongest form, not a weaker one.",
+    "41 cases, 2938 words.",
+    "Did not run make test, so it missed the PR's false 'All tests pass locally'. It does note that the suite cannot see these regressions.",
+    "Disclosed a void block: the case 22-25 seed loop ran outside the repo root (ModuleNotFoundError). It was marked VOID in the evidence log and rerun on c22b.jsonl.",
+    "Case 33 (default path) ran from a scratch dir and says so. Subcommand help with no argument descriptions is filed as a FAILURE (case 41) rather than a UX gap.",
+    "Scratch files live in run-2/work/ (inside the run dir, outside outputs/). No write outside the run dir is recorded. timing.json is missing from this run dir."
+  ]
+}
