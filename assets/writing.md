@@ -49,6 +49,8 @@ The skim test: read only the first sentence of each paragraph. The argument must
   never add a cause, a frequency, or a mechanism the evidence did not give you.
 - Quoted evidence is copied, never written. A command, its output, a log line, or an error
   message comes from a run you made, exactly as it printed.
+- A claim you did not check is never a premise. Report it as its source's claim. "The PR
+  says the tests pass" cannot support "so the tests miss this bug".
 - Write in the stakeholder's words. An end user's bug is described in what they saw, not in
   the endpoint that returned 403.
 - No adjectives that claim quality. Give the measurement that earns the claim, or drop it.

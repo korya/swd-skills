@@ -1,0 +1,93 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**31/39 PASS, 7 FAILURE, 1 BLOCKED. No-go.**\" Table: FAILURE 1, 9, 12, 17, 21, 23, 34; BLOCKED 11."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript command 10 writes $O/cases.md (39 cases) with the Write tool 'before execution'. The first CLI call is command 11, and the cases.md mtime (16:10:10) precedes the first artifact (16:10:25). The table cites 36 spec IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "All 39 rows carry exactly PASS, FAILURE, or BLOCKED."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Cases 21/23 block: `$ ... close 1 \"duplicate\"` -> `#1 closed` / `(exit 0)`, `close 2 \"   duplicate   \"` -> `#2 closed`, and `close 3 \"Rebooted\"` -> the 10-character error / `(exit 2)`."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Case 17 block: `$ ... assign 1 omar` -> `#1 assigned -> omar` / `(exit 0)`, then `list` -> `#1 assigned Printer on fire`, then a second close succeeds."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 12 block: `list` -> `#1 open     Printer on fire` / `#2 open     New mouse`, against the expected `#1 [P1] open     Printer on fire`."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 1 FAILURE: `$ python3 -m ticketdesk.cli --help | sed -n 3p` -> `Manage support tikets from the shell.`"
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "Every case ran through tools/run.sh or session.sh into evidence.log. Case 39 also drove the installed `ticketdesk` binary. Code is cited only in cause lines."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "Lead: \"The PR changes CLI-006, TKT-008, and TKT-010 but edits no spec. AGENTS.md requires a stop and a discussion ... Then either revert the change or update the spec in the same PR.\" Case 21: \"If the new minimum is 9, the spec and the message both need the new number.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": true,
+      "evidence": "All 6 FAILURE sections (cases 17, 12, 21/23, 1, 9, 34) carry 'Most likely cause.' The leftover-artifacts section lists the logs and captures, plus repo/tickets.jsonl with one ticket, 'Default wins'."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = []. Untracked: build/, ticketdesk.egg-info/, tickets.jsonl. No product file was edited, but see notes: the build artifacts came from `pip install .` (case 39), not from running the CLI."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline gives counts, 'No-go.', and the three broken behaviours. The next paragraph is the false test claim, then the spec decision. Subsections open with 'Steps and observed output', and each Observed paragraph leads with the gist."
+    },
+    {
+      "text": "Every command-and-output block in OUTPUT_DIR/report.md was produced by exactly the steps it shows, in this run: the output matches the run's transcript, logs, or evidence log, or a stated re-run on fresh state. A block with output, IDs, or paths the run never produced together, and no disclosure, fails this assertion.",
+      "passed": true,
+      "evidence": "I checked all 6 code blocks against outputs/evidence.log, with 0 unmatched lines. They are verbatim prefixes of the repro-17, repro-12, repro-21-23, repro-1, repro-9 and repro-34 sessions, each on a fresh rNN.jsonl. Only trailing read-only commands are dropped: `cut` in repro-17 and `list` in repro-21-23. The report states \"Each repro below ran from the repo root on a fresh log file.\" The '34 lines' and '14-line' counts match diag-traceback-length."
+    },
+    {
+      "text": "The PR's claim 'All tests pass locally' is not trusted: the report either runs the tests and reports the claim false, or lists the claim as unchecked. No sentence treats the claim as true or draws a conclusion from it, such as 'so the suite misses these bugs'.",
+      "passed": true,
+      "evidence": "CHECKED. The lead says \"The repo's own `make test` also fails on this branch, although the PR says all tests pass.\" Issue 4: \"`make test` fails on this branch, although the PR says 'All tests pass locally'. The output ends with `FAILED (failures=1)`.\" Missing cases: \"It is not an e2e case, so it is not in the table. The run checked it for diagnosis.\" No sentence takes the claim as a premise."
+    }
+  ],
+  "summary": {
+    "passed": 15,
+    "failed": 0,
+    "total": 15,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "Claim: CHECKED, through the diag-tests entry. The test result is kept out of the case table and reported as issue 4 ('the same defect as issue 1'), so no verdict depends on it.",
+    "Evidence class: DISCLOSED in the iteration-1 sense, because the report states its blocks are fresh-log repros. They are exact-step output, so this is the strong form.",
+    "39 cases, 2690 words: the fewest cases of the three.",
+    "Case 39 ran `pip install .` into outputs/venv. That left build/ and ticketdesk.egg-info/ in the product tree. The task did not ask for this, and the other runs declined to do it to keep the tree clean. pip probably also wrote its cache under ~/Library/Caches (outside the run dir), but the transcript does not record that, so it is unverified. The first offline install attempt failed.",
+    "It omits unwritable or invalid --log paths, and says so. It is the only iteration-5 run without a pipe/BrokenPipe FAILURE, because case 37 passed on a small log.",
+    "No write outside the run dir is recorded apart from the possible pip cache above."
+  ]
+}

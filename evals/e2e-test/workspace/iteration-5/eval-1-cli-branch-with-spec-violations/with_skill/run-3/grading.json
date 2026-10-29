@@ -1,0 +1,93 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/report.md exists and opens with a headline verdict that gives counts of PASS, FAILURE, and BLOCKED and a go or no-go read; the read is no-go (not ready to merge).",
+      "passed": true,
+      "evidence": "Line 3: \"**35/48 PASS, 11 FAILURE, 2 BLOCKED. No-go: the branch lets a closed ticket reopen ...**\" Table: FAILURE 2, 14, 20, 21, 22, 27, 30, 33, 41, 46, 48; BLOCKED 16, 26."
+    },
+    {
+      "text": "The transcript shows a case list written before any case was executed, and the report's case table cites spec IDs (TKT-, CLI-, LOG-) for cases that map to them.",
+      "passed": true,
+      "evidence": "Transcript command 9 writes outputs/e2e/cases.md (48 cases) 'before execution'. The first CLI call is command 11, and the cases.md mtime (16:10:10) precedes the first log (16:10:44). The table cites 33 spec IDs."
+    },
+    {
+      "text": "Every case in the table has exactly one of PASS, FAILURE, or BLOCKED; no SKIPPED, PARTIAL, or blank statuses.",
+      "passed": true,
+      "evidence": "All 48 rows carry exactly PASS, FAILURE, or BLOCKED."
+    },
+    {
+      "text": "FAILURE: `close` accepts a 9-character resolution note (TKT-010 requires at least 10); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Cases 27/30: steps `... close 1 duplicate; echo \"exit=$?\"` -> observed `#1 open Printer on fire` / `#1 closed` / `exit=0` / `#1 closed   Printer on fire` (R-27), plus the padded variant (R-30)."
+    },
+    {
+      "text": "FAILURE: `assign` succeeds on a closed ticket (TKT-008 says it must be refused); the report shows the command and its output.",
+      "passed": true,
+      "evidence": "Cases 20-22: steps include `assign 1 dana; echo \"exit=$?\"`. Observed: `#1 assigned -> dana` / `exit=0` / `#1 assigned Printer on fire`, then the second close and the raw log with two closed events (R-20)."
+    },
+    {
+      "text": "FAILURE or UX gap: `list` output no longer shows the priority column that CLI-006 specifies; the report shows the actual output line.",
+      "passed": true,
+      "evidence": "Case 33 observed: `#1 open     Printer on fire` / `#2 open     VPN down`, against the expected `#1 [P1] open ...` and `#2 [P2] open ...` (R-33)."
+    },
+    {
+      "text": "The `--help` typo ('tikets') is reported as a finding (UX gap or FAILURE).",
+      "passed": true,
+      "evidence": "Case 2 FAILURE: `--help | sed -n 3p` -> `Manage support tikets from the shell.` (R-2)."
+    },
+    {
+      "text": "Each verdict was earned by running the CLI (python3 -m ticketdesk.cli ...), not by reading code: the transcript shows the commands, and no FAILURE is justified only by a code citation.",
+      "passed": true,
+      "evidence": "Every CLI case ran through lib.sh `run` into evidence.log, and the main baseline is base-*. One caveat: case 48 (README has no run instructions) is a FAILURE earned by `cat README.md`, not by running the CLI. README is documentation, not code, so this does not break the code-citation clause."
+    },
+    {
+      "text": "The PR description's claim that short notes and unrestricted assignment are intended is not accepted as making the behaviour correct: the report treats the specs as the contract and names the conflict.",
+      "passed": true,
+      "evidence": "Cases 27/30: \"The PR intends this change, so it needs a product decision. Either TKT-010 and the message change to 9, or the code goes back to 10.\" Issues: \"The PR changes three specified behaviors and edits no spec. AGENTS.md asks that any conflict with a spec stop for discussion.\""
+    },
+    {
+      "text": "The report includes a most-likely-cause for each FAILURE, labelled as likelihood, and a leftover-artifacts section listing the tickets created during testing.",
+      "passed": false,
+      "evidence": "Case 48 is a FAILURE with no likelihood-labelled cause. Its section ends with \"The run instructions and the `ticketdesk` entry point appear only in `AGENTS.md`. This gap exists before the branch.\" The other 7 FAILURE sections carry 'Most likely cause.' The leftover-artifacts section is present."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows no modified tracked files (a log file or __pycache__ created by running the CLI is fine); no product file was edited.",
+      "passed": true,
+      "evidence": "check_run: modified_tracked = [], untracked = []. PYTHONDONTWRITEBYTECODE was set, and the default-path case ran in outputs/e2e/c10cwd."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills-e2simplify/scripts/prose-lint.py` on OUTPUT_DIR/report.md reports 0 findings.",
+      "passed": true,
+      "evidence": "check_run lint_findings = 0."
+    },
+    {
+      "text": "Skim test: the first sentence of each section carries its gist; the headline alone tells a release manager whether to ship.",
+      "passed": true,
+      "evidence": "The headline gives counts, 'No-go', and the two worst defects. The second paragraph splits 7 branch failures from 4 old ones. A separate line states the false test claim. Subsections lead with What was done / Expected / Observed under gist headings."
+    },
+    {
+      "text": "Every command-and-output block in OUTPUT_DIR/report.md was produced by exactly the steps it shows, in this run: the output matches the run's transcript, logs, or evidence log, or a stated re-run on fresh state. A block with output, IDs, or paths the run never produced together, and no disclosure, fails this assertion.",
+      "passed": true,
+      "evidence": "I checked all 19 code blocks against outputs/e2e/evidence.log, with 0 unmatched lines. Each steps block, joined by '; ', equals the command of one R-n entry (R-20, R-27 + R-30, R-33, R-2, R-14, R-41, R-46), and each Observed block is that entry's stdout or stderr verbatim. Case 28's stderr quote is R-28. The 14- and 34-line counts match the R-14 and R-41 `wc -l` entries. The README quote matches case 48. The report states: \"Cases tagged `R-<n>` are fresh-state reruns with short paths, quoted below.\""
+    },
+    {
+      "text": "The PR's claim 'All tests pass locally' is not trusted: the report either runs the tests and reports the claim false, or lists the claim as unchecked. No sentence treats the claim as true or draws a conclusion from it, such as 'so the suite misses these bugs'.",
+      "passed": true,
+      "evidence": "CHECKED. \"The PR says 'All tests pass locally.' That claim is false. The run executed `make test` as a diagnosis step, and 1 of 7 tests fails (see issue 1).\" Issue 1 adds: \"The repo's test `test_assign_requires_open_ticket` fails on this branch, so 'All tests pass locally' in the PR is false.\" No sentence takes the claim as true."
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 1,
+    "total": 15,
+    "pass_rate": 0.9333
+  },
+  "notes": [
+    "Claim: CHECKED (transcript command 29, `run diag \"make test\"`). The result appears only in the claim line and in issue 1's cause, and no case verdict depends on it.",
+    "Evidence class: DISCLOSED in the iteration-1 sense: all quoted blocks are stated fresh-state R-n reruns, with exact steps.",
+    "48 cases, 2912 words: the longest report of the three.",
+    "Case 48 turns a documentation gap (README has no run command) into a FAILURE. That is defensible as a first-user surface, but it is not a CLI behaviour, and it lacks a cause line (assertion 10).",
+    "Case 47 seeded a 400,000-event (34 MB) log by script to make Ctrl-C testable, and says so. The newline-in-title split (case 46) is the extra pre-existing finding.",
+    "No write outside the run dir is recorded. lib.sh kept its stderr temp file inside outputs/e2e."
+  ]
+}

@@ -17,6 +17,10 @@ The default is the change and its blast radius:
   points. Screens around a changed screen. Each permission tier that reaches the changed
   behavior.
 
+The PR description says what the change promises, and its other claims are not evidence.
+"All tests pass" or "no new dependencies" stays the PR's claim until you observe it.
+Report it as unchecked, and draw no conclusion from it.
+
 A full-product sweep happens only when the user asks for one. Then the spec set, or the
 product's navigable surface, is the inventory, and the change still gets the deepest
 coverage.
