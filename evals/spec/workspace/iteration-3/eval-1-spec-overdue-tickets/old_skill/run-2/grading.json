@@ -1,0 +1,71 @@
+{
+  "expectations": [
+    {
+      "text": "A spec for the overdue feature exists under OUTPUT_DIR/repo/docs/product-specs/, either as a new file with a new prefix or as new criteria appended to tickets.md or cli.md with fresh IDs; the transcript or spec says which was chosen and why.",
+      "passed": true,
+      "evidence": "Amended tickets.md (TKT-014..TKT-016, two header paragraphs) and cli.md (new CLI-010; CLI-001 and CLI-006 amended; the marker lives in the amended CLI-006). Final message: 'an amendment to the two existing spec files, since the repo already owns due times in tickets.md and the command surface in cli.md.'"
+    },
+    {
+      "text": "The spec has a one-paragraph intro, a `Prefix:` line, and a Non-goals section with at least two non-goals that are real boundaries (for example no notifications, no SLA pause on weekends, no change to the event log format).",
+      "passed": true,
+      "evidence": "Intro paragraph in the tickets.md header: 'Overdue is a condition, not a state...'. 'Prefix: `TKT`.' follows. Non-goals as an unlabelled prose paragraph: 'Overdue tickets trigger nothing else. The help desk sends no notification and escalates nothing. It changes no priority, state, assignee, or due time. Due times keep counting every hour of the day, with no business hours.' At least 3 real boundaries. Weakest form of a non-goals section in either iteration (no heading, no list); passed as a distinct non-goals paragraph."
+    },
+    {
+      "text": "At least five criteria headed `### PREFIX-NNN: Title` with zero-padded three-digit numbers (a letter suffix such as TKT-014A is allowed), unique within the file; no `**Testable:**` lines. Body length is judged separately: most bodies are one to three sentences, and a longer body is noted, not a failure.",
+      "passed": false,
+      "evidence": "Only 4 new criteria in the diff: TKT-014, TKT-015, TKT-016, CLI-010. The OVERDUE marker was added as a paragraph inside the existing CLI-006, and CLI-001 was amended; neither is a new criterion. check_run's 10/16 count existing headings. Below the minimum of five."
+    },
+    {
+      "text": "Criteria cover: the OVERDUE marker in `list` output; the `overdue` command's filter; the oldest-due-first order; a ticket exactly at its due time; closed tickets (either excluded, or an open question); and what the user sees when nothing is overdue (output and exit code).",
+      "passed": true,
+      "evidence": "Marker: amended CLI-006 'has the word `OVERDUE` between the padded state and the title' + example. Filter: TKT-016 'only the tickets that are overdue'. Order: TKT-016 'due time ascending... ID ascending'. Exact due: TKT-014 'At exactly its due time, a ticket is not yet overdue.' Closed: TKT-014 'never overdue' + TODO. Empty: CLI-010 'With no overdue tickets, or no log file, it prints nothing and exits with code 0.' Stated as a criterion; exit code 0 also listed as an assumption in questions.md Q7."
+    },
+    {
+      "text": "Every criterion body is behavioral: no function, class, module, or file names (such as TicketService, due_at, cli.py); outcomes are described as what the user sees in the CLI output or exit code.",
+      "passed": true,
+      "evidence": "No implementation names in new bodies (impl_words=0). TKT-014 'the clock of the machine when the command runs' is observable behavior, not an implementation name."
+    },
+    {
+      "text": "The spec respects INV-001 and INV-002: overdue is a derived state computed from the ticket's due time and is not written to the event log; if the spec proposes a new event kind, it flags that as a change to LOG-002 and the invariants needing sign-off.",
+      "passed": true,
+      "evidence": "Header: 'The help desk works it out each time a command runs and never records it in the log, see INV-001. Replay still yields the same due times, see LOG-009.' TKT-015: 'No event is appended when a ticket becomes overdue.' CLI-010: 'It appends no event to the log.' INV-002 not cited by ID."
+    },
+    {
+      "text": "The spec does not contradict TKT-005 (due time by priority) or TKT-013 (listing order of `list`): it reuses the existing due time and states how OVERDUE interacts with the existing list order rather than redefining it.",
+      "passed": true,
+      "evidence": "TKT-014 'its due time, see TKT-005'. The marker is in CLI-006 itself, which keeps 'one line per ticket in ID order, see TKT-013'; 'The line of any other ticket is unchanged.' Order not redefined; no explicit 'order stays' sentence."
+    },
+    {
+      "text": "docs/product-specs/README.md is updated: the new file appears in the prefix table and the index with a one-line summary (or, if criteria were appended to an existing file, the README needed no change and the spec says so).",
+      "passed": true,
+      "evidence": "No new file; prefix table unchanged. README index rows for tickets.md ('overdue tickets') and cli.md ('subcommands including `overdue`') updated; AGENTS.md likewise."
+    },
+    {
+      "text": "Open questions are listed at the end of the spec (or in OUTPUT_DIR/questions.md) and assumptions are marked inline; none of them is silently resolved in a criterion.",
+      "passed": true,
+      "evidence": "questions.md: 3 blocking + 6 non-blocking + 1 surfaced conflict, each with an assumption. Inline 'TODO:' under the CLI-006 marker paragraph and TKT-014 (closed). Boundary, tie order and exit code are flagged only in questions.md. No open-questions list in the spec files (check_run open_questions=false)."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on the new or changed spec file(s) reports 0 findings.",
+      "passed": true,
+      "evidence": "prose-lint on cli.md, tickets.md, README.md: '0 findings in 3 files'."
+    },
+    {
+      "text": "Skim test: the intro paragraph's first sentence says what the feature is for a support agent; each criterion title names the behavior; no lead is a teaser or a qualifier chain.",
+      "passed": false,
+      "evidence": "First sentence of the feature intro: 'Overdue is a condition, not a state.' A definition; support agents are never named in the intro. 'CLI-010: overdue' and 'TKT-016: Overdue listing' are terse labels."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo shows changes only under docs/ and to AGENTS.md (the repo's own docs/README.md asks for its index to be updated); nothing committed; ticketdesk/ and tests/ are untouched.",
+      "passed": true,
+      "evidence": "git status --porcelain: M AGENTS.md, M README.md, M cli.md, M tickets.md; no untracked; 1 commit. Only AGENTS.md outside docs/."
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 2,
+    "total": 12,
+    "pass_rate": 0.8333
+  },
+  "notes": "Amend, not create, but only 4 new criteria (TKT-014..016, CLI-010): the OVERDUE marker was folded into existing CLI-006 instead of becoming its own ID, which leaves the marker with no citable criterion ID of its own. CLI-010 also carries the arguments and corrupt-log rules in one body. Non-goals are a bare prose paragraph. No in-spec open questions; inline TODOs on the two key assumptions. Prose-lint clean."
+}

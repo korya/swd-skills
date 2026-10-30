@@ -5,12 +5,13 @@ description: Turn a fuzzy feature request into a reviewable product spec — goa
 
 # Spec: the contract everything else cites
 
-The point is a document that later work can be checked against. `/blueprint`
-cross-validates its plan with it. `/e2e-test` derives cases from its criteria. `/revise`
-uses it as the scope fence. That only works if the spec is product-level, testable, and
-stably addressable, which is what this skill enforces.
+A spec is the document later work is checked against. `/blueprint` plans against it,
+`/e2e-test` derives cases from its criteria, and `/revise` uses it as the scope fence. So it
+must be product-level, testable, and stably addressable.
 
-`/spec` says what and why. How belongs to `/blueprint`.
+The spec says what and why, in user-observable terms. How belongs to `/blueprint`. The
+litmus test: two different implementations can both satisfy it. A technical constraint
+appears only when it is a genuine product constraint, such as compliance or platform.
 
 ## Required references
 
@@ -20,22 +21,6 @@ Paths are relative to this file. `<plugin root>` is two directories above it.
 |---|---|---|
 | `references/format.md` | step 1, when the repo has no spec convention | the default location, file shape, ID rules, invariant tiers |
 | `../../assets/writing.md` | step 4, before drafting | the writing rules for every text a person reads |
-
-## Principles
-
-- **What and why, never how.** State everything in user-observable terms. The litmus test:
-  two different implementations should both be able to satisfy the spec. Technical
-  constraints appear only when they are genuine product constraints, such as compliance or
-  platform, not design preferences.
-- **Testable or it is not a criterion.** Each acceptance criterion is a concrete scenario
-  with an observable outcome, something an end-to-end test could execute black-box. "The
-  feature should be fast, intuitive, or robust" is a goal at best, never a criterion.
-- **Stable IDs, append-only.** Criteria carry IDs that later skills cite. IDs are never
-  renumbered or reused, and deletions leave holes. See `references/format.md`.
-- **Never invent answers.** Unknowns become marked assumptions or open questions. Blocking
-  questions go to the user, batched, once.
-- **Non-goals are load-bearing.** What the feature deliberately does not do is the fence
-  against scope creep in every later skill. Write them as deliberately as the goals.
 
 ## Workflow
 
@@ -52,12 +37,15 @@ Paths are relative to this file. `<plugin root>` is two directories above it.
    batched round of questions. Then wait. Everything else proceeds as a marked assumption
    or an open question in the draft. Zero silent inventions.
 4. **Draft** per the format. Read `../../assets/writing.md` first. Write the overview and
-   goals, the non-goals, and the user-observable behavior. Then write the acceptance
-   criteria as ordered testable steps with IDs. Happy path, edges, and error behavior are all criteria.
-   Feature-local invariants live in the file. A cross-cutting one is proposed for the
-   global invariants doc and flagged. Open questions come last. When amending, new
-   criteria take fresh IDs, removed ones leave holes, and the diff reads as "what changed
-   about the product's contract".
+   goals, the non-goals, and the user-observable behavior. Non-goals fence every later
+   skill against scope creep, so write them as deliberately as the goals. Then write the
+   acceptance criteria with IDs. Each is a scenario with an observable outcome that a
+   black-box test could execute. "Fast" or "intuitive" is a goal at best, never a
+   criterion. Happy path, edges, and error behavior are all criteria. Feature-local
+   invariants live in the file. A cross-cutting one is proposed for the global invariants
+   doc and flagged. Open questions come last. When amending, new criteria take fresh IDs,
+   removed ones leave holes, and the diff reads as "what changed about the product's
+   contract".
 5. **Cross-check.** Every goal is covered by at least one criterion. Every criterion is
    black-box testable. Nothing contradicts an existing spec or invariant. A conflict is
    surfaced to the user, never silently overridden in either direction. Non-goals do not
@@ -80,8 +68,3 @@ Paths are relative to this file. `<plugin root>` is two directories above it.
 - [ ] No contradiction with existing specs or invariants, or the conflict is surfaced.
 - [ ] The spec file passes `prose-lint.py` with no findings.
 - [ ] User sign-off requested before downstream work cites the spec.
-
-## Related skills
-
-`/blueprint` plans against the spec. `/e2e-test` tests from its criteria. `/revise` uses
-it as the scope fence. `/repo-docs` sets up the docs layout specs live in.
