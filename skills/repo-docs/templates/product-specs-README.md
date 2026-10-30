@@ -14,7 +14,7 @@ Every feature spec is:
   body.
 - **Identified.** The heading is `### PREFIX-NNN: Short title`. All specs in one file share
   the prefix. `NNN` is a zero-padded three-digit number, unique within the file. Two cases
-  that differ on one variable may take a letter suffix, such as `<XXX>-012A`.
+  that differ on one variable may take a letter suffix, such as `<XXX>-001A`.
 
 IDs are stable. Never renumber. A deleted spec leaves a hole, and a new spec gets the next
 free number. Code comments, tests, and PRs cite the IDs.
