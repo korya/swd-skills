@@ -55,7 +55,13 @@ The Codex command refreshes the Git snapshot and the installed copy under `~/.co
 
 ## Other hosts
 
-The skills are portable, and the packaging is not. OpenCode, pi, Grok Build, and Muse Code read a `SKILL.md` with YAML frontmatter, but none of them installs this plugin. Clone the repo and point the agent at `skills/`.
+The skills are portable, and the packaging is not. OpenCode, pi, Grok Build, and Muse Code read a `SKILL.md` with YAML frontmatter, but none of them installs this plugin. The `skills` CLI from [skills.sh](https://www.skills.sh/korya/swd-skills) copies the nine skills into the agent's skills directory:
+
+```sh
+npx skills add korya/swd-skills
+```
+
+Add `-a <agent>` to choose the agent and `-g` to install for every project. Without the CLI, clone the repo and point the agent at `skills/`.
 
 | Host | Reads |
 | --- | --- |
