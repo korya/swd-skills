@@ -23,6 +23,11 @@ A spec is one tight assertion. Rationale goes in [`../architecture.md`](../archi
 or in the PR. A thing with no observable behavior, such as the build system, gets no spec
 file.
 
+Each spec file opens with one paragraph whose first sentence says what the feature does for
+its user. A definition or a status line comes after it. Then come why the feature exists and
+its key terms. An optional **Non-goals** line fences off what the feature does not do. The
+boundary is part of the contract.
+
 Example:
 
 ```
