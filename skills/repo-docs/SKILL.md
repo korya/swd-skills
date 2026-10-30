@@ -59,6 +59,9 @@ Each fact has one home. The other files link to it instead of restating it.
      reason.
    - Derive specs from what a user sees in the output, not from the code that produces
      it. An internal name in a spec, such as a field or a function, is a defect.
+   - The first sentence of a spec's intro starts with the user and what they do or get.
+     A definition that starts with the term, such as "A ticket is" or "The command is
+     how", comes second.
    - When extending a repo with specs, specs lead. If the code disagrees with a spec,
      surface the conflict. Never edit the spec to match.
 4. **Cross-link.** Every ID cited as "see XXX-NNN" exists. `AGENTS.md` indexes every file

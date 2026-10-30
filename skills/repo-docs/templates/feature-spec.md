@@ -1,8 +1,12 @@
 # <Feature Name>
 
-<One paragraph: what this feature is, why it exists, and the key terms.>
+<One paragraph. Its first sentence says what the feature does for its user. A definition
+or a status line comes after it. Then why it exists and the key terms.>
 
 Prefix: `<XXX>`.
+
+**Non-goals:** <Optional. A short list of what this feature does not do. Delete the line
+when there is nothing to fence off.>
 
 ---
 
@@ -19,4 +23,6 @@ Prefix: `<XXX>`.
   - Give exact value lists for enums ("one of: A, B, C") and exact numbers for limits.
   - Cite other specs and invariants by ID ("see INV-002").
   - Describe current behavior, not the roadmap.
+  - Write the intro for a reader who skims. The first sentence names what the user gets,
+    not what the term means.
 -->

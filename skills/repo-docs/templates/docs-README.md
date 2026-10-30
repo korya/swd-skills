@@ -19,7 +19,7 @@ every file here. The spec format lives in
 
 | Trigger | Update |
 |---------|--------|
-| Product behavior change | The relevant `product-specs/<feature>.md` |
+| Product behavior change | That feature's file under `product-specs/` |
 | New cross-cutting rule | `product-specs/invariants.md` |
 | Architectural change | `architecture.md` |
 | New workflow rule | `guidelines.md` |
