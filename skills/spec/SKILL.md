@@ -28,7 +28,7 @@ Paths are relative to this file. `<plugin root>` is two directories above it.
    ID scheme. Read the specs adjacent to this feature. The repo's convention wins. Only
    where there is none, use the default in `references/format.md`, and read it now. Decide
    create against amend. A feature that already has a spec gets an amendment, not a rival
-   document.
+   document. Say which you chose, and why.
 2. **Extract.** From the request and the repo, collect the users involved and the pain
    being solved. Collect the current behavior being changed, and the adjacent specs and
    invariants touched. Distill candidate goals and constraints. Inventory the unknowns.
@@ -37,8 +37,10 @@ Paths are relative to this file. `<plugin root>` is two directories above it.
    batched round of questions. Then wait. Everything else proceeds as a marked assumption
    or an open question in the draft. Zero silent inventions.
 4. **Draft** per the format. Read `../../assets/writing.md` first. Write the overview and
-   goals, the non-goals, and the user-observable behavior. Non-goals fence every later
-   skill against scope creep, so write them as deliberately as the goals. Then write the
+   goals, the non-goals, and the user-observable behavior. The overview's first sentence
+   says what the feature does for its user. A definition or a status line comes after it,
+   even where the repo's other specs open with one. Non-goals fence every later skill
+   against scope creep, so write them as deliberately as the goals. Then write the
    acceptance criteria with IDs. Each is a scenario with an observable outcome that a
    black-box test could execute. "Fast" or "intuitive" is a goal at best, never a
    criterion. Happy path, edges, and error behavior are all criteria. Feature-local

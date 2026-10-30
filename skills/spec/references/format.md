@@ -14,9 +14,10 @@ noun.
 
 ## The feature file
 
-Start with a one-paragraph intro: what the feature is, why it exists, the key terms. The
-goals live here, compressed. Then `Prefix: XXX`, an optional short **Non-goals** list
-(the boundary is part of the contract), then the criteria:
+Start with a one-paragraph intro. Its first sentence says what the feature does for its
+user. Then come why it exists and the key terms. The goals live here, compressed. Then
+`Prefix: XXX`, an optional short **Non-goals** list (the boundary is part of the contract),
+then the criteria:
 
 ```markdown
 ### XXX-NNN: Short title
