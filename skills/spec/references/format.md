@@ -1,8 +1,8 @@
 # The default spec format
 
-Loaded from `SKILL.md` step 1 when the repo has no spec convention of its own. This is the
-same convention `/repo-docs` bootstraps. A repo set up with it needs nothing here beyond the
-reminder that the repo's own `docs/product-specs/README.md` is the authority.
+Loaded from `SKILL.md` step 1 when the repo has no spec convention of its own. `/repo-docs`
+bootstraps the same convention, and in a repo it set up, `docs/product-specs/README.md` is
+the authority.
 
 ## Location
 
