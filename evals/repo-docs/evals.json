@@ -19,7 +19,8 @@
         "docs/architecture.md states only facts true of the repo: a CLI over a JSON-lines event log on disk, no database, no web layer, no network service. It does not invent components.",
         "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on AGENTS.md and on every file under docs/ reports 0 findings in total.",
         "Skim test: reading only the first sentence of each paragraph of AGENTS.md and docs/architecture.md tells a newcomer what the project is, how it is built, and where to look; no first sentence is a teaser or a qualifier chain.",
-        "`git status` in OUTPUT_DIR/repo shows only new files under docs/ and AGENTS.md: no code or test file was modified and nothing was committed."
+        "`git status` in OUTPUT_DIR/repo shows only new files under docs/ and AGENTS.md: no code or test file was modified and nothing was committed.",
+        "Spec skim test: the first sentence of every feature spec file's intro says what the feature does for its user (\"Tickets let a support agent track a request from creation to closure.\"). A first sentence that defines the term (\"A ticket is one support request …\", \"The event log is the file that …\") or states a status fails, even when the rest of the paragraph is good."
       ],
       "files": []
     }

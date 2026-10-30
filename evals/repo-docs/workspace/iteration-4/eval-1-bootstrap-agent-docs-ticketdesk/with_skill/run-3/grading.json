@@ -1,0 +1,86 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/proposal.md exists, lists the feature spec files and their prefixes, and the transcript shows it was written before any docs/ file.",
+      "passed": true,
+      "evidence": "proposal.md:8-13 table lists invariants.md/INV, tickets.md/TKT, cli.md/CLI, event-log.md/LOG; transcript.md:36 step 8 writes proposal.md, step 10 (line 41) writes the docs/ files afterwards."
+    },
+    {
+      "text": "AGENTS.md, docs/README.md, docs/architecture.md, docs/guidelines.md, docs/product-specs/README.md, docs/product-specs/invariants.md exist in OUTPUT_DIR/repo, plus at least two feature spec files under docs/product-specs/.",
+      "passed": true,
+      "evidence": "check_run required_files_present=true; feature_spec_files=[cli.md, event-log.md, tickets.md]."
+    },
+    {
+      "text": "AGENTS.md is at most 170 lines and contains a documentation index that links every file under docs/.",
+      "passed": true,
+      "evidence": "check_run agents_lines=96, agents_links_all_docs=true; AGENTS.md:60-69 index table links all 8 docs/ files."
+    },
+    {
+      "text": "No generated file still contains template residue: no angle-bracket placeholders such as <PROJECT NAME> or <XXX>, no literal '...' table cells, and none of the templates' tip comments. A dated TODO comment about a real conflict is not residue.",
+      "passed": true,
+      "evidence": "check_run placeholders_left={}, html_comments_left=[]; no '| ... |' cells; <id>/<path>/<reason> tokens are output syntax; TODOs at tickets.md:47 and cli.md:95 describe real code gaps."
+    },
+    {
+      "text": "Every feature spec file has a `Prefix:` line and at least five items headed `### PREFIX-NNN: Title` with zero-padded three-digit numbers, unique within the file, and no `**Testable:**` lines anywhere.",
+      "passed": true,
+      "evidence": "check_run: cli.md 9, event-log.md 7, tickets.md 14 items, has_prefix_line=true, duplicates=0, testable_lines=0; Prefix lines at cli.md:9, event-log.md:9, tickets.md:9."
+    },
+    {
+      "text": "Spec bodies are behavioral: no spec names a function, class, method, module, file, or internal field (such as TicketService, due_at, created_at, store.py); it describes behavior visible in the CLI output or the log file.",
+      "passed": true,
+      "evidence": "check_run impl_words=0; event-log.md:22-34 names at/kind/id/title fields, which are the log file's own visible keys; cli.md:92-93 quotes ValueError lines as literal stderr; no module, class, or function is named in any spec body."
+    },
+    {
+      "text": "The specs match the code: SLA hours P1 4, P2 24, P3 72; ticket states open, assigned, closed; a closed ticket cannot be assigned; a resolution note needs at least 10 characters; an unknown priority is rejected.",
+      "passed": true,
+      "evidence": "tickets.md:40-44 P1 4h/P2 24h/P3 72h matches sla.py:3; :19 states open/assigned/closed; :67 TKT-009 assign on closed rejected 'ticket <id> is closed' (tickets.py:66); :76-77 10 chars net of whitespace (tickets.py:76); :28-29 unknown priority rejected (sla.py:8)."
+    },
+    {
+      "text": "invariants.md has at least two `### INV-NNN:` items, and together they capture the append-only event log as the single source of truth (events never edited or deleted, state rebuilt by replay); the idea may be split across two items.",
+      "passed": true,
+      "evidence": "invariants.md:11-14 INV-001 'single source of truth, rebuilt by replaying the log from its first line' and :16-19 INV-002 'append-only, never edited or deleted'; 6 INV items."
+    },
+    {
+      "text": "Cross-links resolve: every `INV-NNN` or `PREFIX-NNN` reference in the docs points to an existing ID, and docs/product-specs/README.md indexes every spec file with its prefix.",
+      "passed": true,
+      "evidence": "check_run dangling_refs=[], ps_readme_indexes_all_specs=true; README.md:49-52 indexes all four spec files with prefixes; transcript.md:47 shows the TKT-012A example was replaced before finishing."
+    },
+    {
+      "text": "docs/architecture.md states only facts true of the repo: a CLI over a JSON-lines event log on disk, no database, no web layer, no network service. It does not invent components.",
+      "passed": true,
+      "evidence": "architecture.md:5-25 diagram shell -> command line -> ticket service -> event store -> tickets.jsonl plus SLA table; :87 'No database'; :69 'Local file system... no remote storage'; :99-100 lists no migration path the code does not prepare."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on AGENTS.md and on every file under docs/ reports 0 findings in total.",
+      "passed": true,
+      "evidence": "check_run lint_total=0 across AGENTS.md and all 8 docs/ files."
+    },
+    {
+      "text": "Skim test: reading only the first sentence of each paragraph of AGENTS.md and docs/architecture.md tells a newcomer what the project is, how it is built, and where to look; no first sentence is a teaser or a qualifier chain.",
+      "passed": true,
+      "evidence": "AGENTS.md:7 'ticketdesk is a command-line help desk for a small support team', :34 'The command line prints and maps errors to exit codes.'; architecture.md:27, :38, :45, :52, :58, :99 each open with the layer's role; no teaser or qualifier chain."
+    },
+    {
+      "text": "`git status` in OUTPUT_DIR/repo shows only new files under docs/ and AGENTS.md: no code or test file was modified and nothing was committed.",
+      "passed": true,
+      "evidence": "check_run only_docs_changed=true, changed_paths=[AGENTS.md, docs/], commits_made=false."
+    },
+    {
+      "text": "Spec skim test: the first sentence of every feature spec file's intro says what the feature does for its user (\"Tickets let a support agent track a request from creation to closure.\"). A first sentence that defines the term (\"A ticket is one support request \u2026\", \"The event log is the file that \u2026\") or states a status fails, even when the rest of the paragraph is good.",
+      "passed": true,
+      "evidence": "cli.md:3 'A support agent runs ticketdesk from a shell to create, assign, close, and list tickets.'; event-log.md:3 'A support team keeps the full history of every ticket in one plain-text file that any tool can read.'; tickets.md:3 'A support agent creates a ticket, assigns it to a person, and closes it with a resolution note.'"
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 0,
+    "total": 14,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "guidelines.md:9-11 claims every ticket rule and invariant has a test; TKT-002, TKT-007, TKT-013 and INV-006 have none in tests/.",
+    "guidelines.md:12-13 adds an undated TODO about adopting a typechecker, which is a wish, not a documented conflict.",
+    "architecture.md:77 puts 'str | None' inside a table cell; the unescaped pipe splits the row in GFM.",
+    "cli.md:92-93 table rows run to 146 characters, hard to read in a diff or terminal."
+  ]
+}
