@@ -21,6 +21,7 @@ Paths are relative to this file. `<plugin root>` is two directories above it.
 |---|---|---|
 | `references/format.md` | step 1, when the repo has no spec convention | the default location, file shape, ID rules, invariant tiers |
 | `../../assets/writing.md` | step 4, before drafting | the writing rules for every text a person reads |
+| `../../assets/cold-read.md` | step 6 | the cold read: one fresh reader, the brief, the verdicts |
 
 ## Workflow
 
@@ -53,9 +54,12 @@ Paths are relative to this file. `<plugin root>` is two directories above it.
    surfaced to the user, never silently overridden in either direction. Non-goals do not
    contradict the goals. Run `<plugin root>/scripts/prose-lint.py` on the spec file and fix
    every finding in the text.
-6. **Present and gate.** Deliver the spec with its open questions surfaced. A spec is a
-   contract, so the user signs off before anything downstream builds on it. Committing and
-   PR-ing it is `/submit`'s job, on request.
+6. **Cold read.** Read `../../assets/cold-read.md` now. One fresh subagent reads the spec
+   and the repo with none of your context. Give each finding a verdict, fix the spec, and
+   lint it again.
+7. **Present and gate.** Deliver the spec with the cold-read note and its open questions
+   surfaced. A spec is a contract, so the user signs off before anything downstream builds
+   on it. Committing and PR-ing it is `/submit`'s job, on request.
 
 ## Definition of done
 
@@ -69,4 +73,6 @@ Paths are relative to this file. `<plugin root>` is two directories above it.
 - [ ] No implementation content. Non-goals present and real.
 - [ ] No contradiction with existing specs or invariants, or the conflict is surfaced.
 - [ ] The spec file passes `prose-lint.py` with no findings.
+- [ ] The cold read ran and every finding has a verdict, or the note says why it did not
+  run.
 - [ ] User sign-off requested before downstream work cites the spec.

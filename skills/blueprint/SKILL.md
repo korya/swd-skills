@@ -24,6 +24,7 @@ file at the step named.
 | `references/cross-validation.md` | step 5 | spec, architecture, and convention checks, the codebase sweep |
 | `references/plan.md` | step 8 | the counterfactual, the plan structure, the definition of done |
 | `../../assets/writing.md` | step 9, before writing the plan | the writing rules for every text a person reads |
+| `../../assets/cold-read.md` | step 10 | the cold read: one fresh reader, the brief, the verdicts |
 | `references/rationalizations.md` | when tempted to skip a step | why each shortcut fails |
 
 ## Workflow
@@ -50,9 +51,12 @@ file at the step named.
 9. **Write the plan.** Read `../../assets/writing.md` now, then write the plan in the order
    `plan.md` gives. Run `<plugin root>/scripts/prose-lint.py` on it and fix every finding
    before you present it.
-10. **Present and gate.** Ask the open questions and wait. An architectural deviation, a
-    spec change, or a risky migration needs explicit approval before implementation. Never
-    proceed on auto mode.
+10. **Cold read.** Read `../../assets/cold-read.md` now. One fresh subagent reads the
+    plan and the repo with none of your context. Give each finding a verdict, fix the
+    plan, and lint it again.
+11. **Present and gate.** Present the plan with the cold-read note. Ask the open
+    questions and wait. An architectural deviation, a spec change, or a risky migration
+    needs explicit approval before implementation. Never proceed on auto mode.
 
 ## Definition of done
 
