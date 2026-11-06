@@ -1,0 +1,24 @@
+You are about to present a document for sign-off. Before you do, test it against the
+running product. Change nothing in the repository or the document.
+
+Document: <path>
+Repository: <path>
+Request, in the user's words: <request>
+
+For every statement in the document about what a command prints, accepts, or returns,
+run the product today on inputs that stress the statement: odd titles, bad arguments, a
+missing log, a damaged log. Test a statement about a command that is not built yet
+against the nearest command that is built. Report each statement that the product
+disproves or cannot support.
+
+Report in this shape.
+
+FINDINGS
+One block per finding, the most serious first:
+- Severity: Blocker, Major, or Minor. A Blocker makes the result wrong. A Major costs
+  rework. A Minor is everything else.
+- Where: the section or line of the document.
+- What: the problem in one or two sentences.
+- Evidence: a command and its output.
+
+Report every finding, the lesser ones too. If you find nothing, say so.

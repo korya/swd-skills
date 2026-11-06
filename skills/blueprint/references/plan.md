@@ -55,3 +55,5 @@ Each item is answerable with evidence.
 - [ ] The counterfactual verdict is recorded. Unconfirmed means the plan is not ready.
 - [ ] The plan has every section above, in order, and passes `prose-lint.py`.
 - [ ] Every open question is surfaced. None is silently answered.
+- [ ] The cold read ran and every finding has a verdict, or the note says why it did not
+  run.

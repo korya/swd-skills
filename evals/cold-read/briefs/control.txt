@@ -1,0 +1,1 @@
+plan.md in this directory is a plan for a change to this repository. Nobody has implemented it yet. Review the plan before implementation: check it against the code and the docs in this repo, and find what is wrong, missing, or risky in it. Do not change the plan or the repo. Write your findings to review.md, ordered by severity, each with its evidence (file and line).

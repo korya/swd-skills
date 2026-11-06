@@ -4,7 +4,7 @@
     {
       "id": 1,
       "name": "spec-overdue-tickets",
-      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/spec/make_fixture.sh OUTPUT_DIR/repo`, then work inside OUTPUT_DIR/repo. Spec this out before anyone plans or builds it: support agents want tickets that pass their due time to show as OVERDUE in `ticketdesk list`, and a new `ticketdesk overdue` command that lists only overdue tickets, oldest due first. Write the spec into the repo's docs the way the repo does specs. Nobody is available to answer questions during this run: where the skill would ask me, write the questions to OUTPUT_DIR/questions.md, state the assumption you proceed on, and continue. Do not change any code. Do not commit.",
+      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/spec/make_fixture.sh OUTPUT_DIR/repo`, then work inside OUTPUT_DIR/repo. Spec this out before anyone plans or builds it: support agents want tickets that pass their due time to show as OVERDUE in `ticketdesk list`, and a new `ticketdesk overdue` command that lists only overdue tickets, oldest due first. Write the spec into the repo's docs the way the repo does specs. Nobody is available to answer questions during this run: where the skill would ask me, write the questions to OUTPUT_DIR/questions.md, state the assumption you proceed on, and continue. Do not change any code. Do not commit. If the skill has a cold-read step, save the reader's report word for word and your verdict for each finding to OUTPUT_DIR/cold-read.md.",
       "expected_output": "A new or amended spec file under docs/product-specs/ following the repo's own convention: an intro, a Prefix line, non-goals, at least five criteria headed PREFIX-NNN with testable behavioral bodies including edge and error cases (closed tickets, nothing overdue, a ticket exactly at its due time), feature-local invariants referencing INV-001 and INV-002 so overdue is derived and never written to the log, the product-specs README index and prefix table updated, open questions listed, lint-clean prose, no code changed.",
       "assertions": [
         "A spec for the overdue feature exists under OUTPUT_DIR/repo/docs/product-specs/, either as a new file with a new prefix or as new criteria appended to tickets.md or cli.md with fresh IDs; the transcript or spec says which was chosen and why.",
@@ -18,7 +18,8 @@
         "Open questions are listed at the end of the spec (or in OUTPUT_DIR/questions.md) and assumptions are marked inline; none of them is silently resolved in a criterion.",
         "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on the new or changed spec file(s) reports 0 findings.",
         "Skim test: the intro paragraph's first sentence says what the feature is for a support agent; each criterion title names the behavior; no lead is a teaser or a qualifier chain.",
-        "`git status --porcelain` in OUTPUT_DIR/repo shows changes only under docs/ and to AGENTS.md (the repo's own docs/README.md asks for its index to be updated); nothing committed; ticketdesk/ and tests/ are untouched."
+        "`git status --porcelain` in OUTPUT_DIR/repo shows changes only under docs/ and to AGENTS.md (the repo's own docs/README.md asks for its index to be updated); nothing committed; ticketdesk/ and tests/ are untouched.",
+        "A cold read ran: OUTPUT_DIR/cold-read.md holds the report of a fresh subagent that had only the document, the repo, and the request, and every finding in it has exactly one verdict (FIX, REJECT, or ASK) with evidence; or the final message says the cold read did not run and why."
       ],
       "files": []
     }

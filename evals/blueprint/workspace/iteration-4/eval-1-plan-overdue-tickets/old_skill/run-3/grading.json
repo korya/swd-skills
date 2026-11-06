@@ -1,0 +1,86 @@
+{
+  "expectations": [
+    {
+      "text": "OUTPUT_DIR/plan.md exists and contains, in order, sections for: headline, approach summary, out of scope, plan steps, assumptions, test plan, risks and mitigations, open questions (names may vary slightly).",
+      "passed": true,
+      "evidence": "check_run sections_in_order=false is a heuristic miss: 'test' matched '### Step 3. Service tests' (L120). Headings read in order: L5 '## Headline', L9 '## Approach summary', L15 '## Out of scope', L25 '## Plan' (Steps 0-6, L43-137), L141 '## Assumptions validated', L190 '## Test plan', L244 '## Risks and mitigations', L269 '## Open questions'."
+    },
+    {
+      "text": "The headline is one to three sentences and states what is being built and the chosen approach; the approach summary is prose of three to ten sentences, not bullets.",
+      "passed": true,
+      "evidence": "Headline L7 = 3 sentences. Approach: '`TicketService` derives \"overdue\" at read time from the due time each ticket already has and one reading of the store's clock.' Built: '`ticketdesk list` then prints `OVERDUE` in the state slot, and a new `ticketdesk overdue` prints only those tickets, earliest due time first.' Approach summary L11-13 = 10 sentences in 2 prose paragraphs (5 + 5), no bullets. Counting rule used for all six runs: prose sentences only; code blocks, diagrams, and tables are exhibits."
+    },
+    {
+      "text": "The plan states a falsifier for the hypothesis: an observation that would prove the chosen shape wrong, separate from the individual assumptions.",
+      "passed": true,
+      "evidence": "L143, before the assumption table: 'The falsifier targets the shape \"read-time flag\". If overdue needs a write to the log, or changes what replay returns, the shape is wrong. Overdue would then be an event or a stored state ... The prototype did not trigger it.'"
+    },
+    {
+      "text": "Project conventions are cited with file:line from AGENTS.md or docs/guidelines.md: the test framework is unittest run by `make test`, lint is `make lint`, and no package manager or test runner from outside the repo (pytest, poetry, npm) is assumed.",
+      "passed": true,
+      "evidence": "L177: '[`Makefile:3`, `AGENTS.md:22`] Convention: tests are `unittest`, run by `make test`.' L181: '[`Makefile:5`, `docs/guidelines.md:7-8`] Convention: `make lint` is a `compileall` syntax pass over every file.' Lines verified in the fixture. check_run foreign_tools=[]."
+    },
+    {
+      "text": "The plan cites the affected spec IDs by name: at least TKT-005 (due time by priority) and TKT-013 (listing order) or CLI-006 (list), and CLI-001 (the command list) as a spec that needs updating for the new subcommand.",
+      "passed": true,
+      "evidence": "L61: 'TKT-005 | The due time is the creation time plus the hours of the priority.' L62: 'TKT-013 | Listing returns every ticket sorted by ID.' CLI-001 flagged for update at L51 ('CLI-001 | \"takes one of four subcommands ...\" | \"takes one of five subcommands. They are `create`, `assign`, `close`, `list`, and `overdue`.\"') under the step 0 sign-off gate."
+    },
+    {
+      "text": "The plan respects INV-001 and INV-002: overdue status is derived from the ticket's due time at read time and is never written to the event log as an edit or a new event, or if an event is proposed, the plan flags it as a spec change needing user approval.",
+      "passed": true,
+      "evidence": "L11: 'Overdue is a derived fact that the service computes after replay, not a state and not an event.' L49 proposed TKT-014: 'Overdue is not a state, and no event records it.' L67: 'INV-001, INV-002 | The log is the only state, and no line changes. | 1 stores nothing.'"
+    },
+    {
+      "text": "The plan reuses the existing due_at value on Ticket (or ticketdesk.sla.due_at) instead of recomputing SLA hours in the CLI or a new module.",
+      "passed": true,
+      "evidence": "L61: 'TKT-005 | ... | 1 reuses `due_at` and does not recompute it.' L86: `t.overdue = t.state != \"closed\" and now > t.due_at   # TKT-014`. L168: '`sla.py` already owns the due time'."
+    },
+    {
+      "text": "The plan names where `now` comes from for the overdue comparison (an injectable clock or time source consistent with EventStore.clock) and validates that assumption against the code.",
+      "passed": true,
+      "evidence": "L150 A2: 'The service can reach the store's clock, and a test can move it. | Plausible | confirmed | `ticketdesk/store.py:14-16`, `tests/test_tickets.py:8-20`. `probe1.py` printed `A2 clock reachable via store.clock.now: 1700003603.0`.' Lines verified in the fixture. L68: 'INV-005 | ... 1 reads `self.store.clock()`.'"
+    },
+    {
+      "text": "Every load-bearing assumption in the assumptions section carries evidence: a file:line citation, a quoted doc passage, or a command output.",
+      "passed": true,
+      "evidence": "All 13 rows at L149-161 carry evidence: A1 `ticketdesk/tickets.py:36`; A2 `ticketdesk/store.py:14-16`; A3 '`L1 log unchanged by list/overdue/get: True`'; A4 '`L2 replay equal at two clock values: True`'; A7 '`B1 now == due_at   -> []`'; A9 '`Ran 7 tests` and `OK`'; A11 '`invalid choice: 'overdue'`, exit code 2'; A12 '`FAILED (failures=3, errors=7)`'; A13 marked partial with `pyproject.toml:5`. probe1.py and probe2.py exist in scratch. All 48 file:line citations are in range."
+    },
+    {
+      "text": "The test plan names unittest test files under tests/ and at least these cases: a ticket exactly at its due time, a closed ticket past due (expected not overdue, or flagged as an open question), and the ordering of the overdue list.",
+      "passed": true,
+      "evidence": "Files: L192 `tests/test_tickets.py`, L204 `tests/test_cli.py`. Exact due time: L196 `test_not_overdue_at_exact_due_time` 'TKT-014, the boundary'. Closed past due: L199 `test_closed_ticket_is_never_overdue`, with the closed 1970 ticket 3 in the end-to-end run printing `closed` (L232). Ordering: L200 `test_overdue_sorted_by_due_time_not_id`, L201 `test_overdue_tie_breaks_by_id`."
+    },
+    {
+      "text": "A counterfactual section maps each stated success criterion to a plan step and records Confirmed, Confirmed with gaps, or Unconfirmed.",
+      "passed": true,
+      "evidence": "L256: 'Verdict: **Confirmed with gaps.** Every success criterion has a plan step.' Table L260-265 maps 6 criteria to steps, e.g. '`ticketdesk overdue` lists the earliest due time first. | 1 | A6, A12'."
+    },
+    {
+      "text": "Open questions are listed explicitly (for example whether closed tickets count as overdue, the exit code when nothing is overdue) and none is silently answered in the plan steps without being named as an assumption.",
+      "passed": true,
+      "evidence": "L269-280 lists 8 questions, each with its assumption: Q3 'Is a closed ticket ever overdue? Assumption: never', Q4 exact due time, Q1 replace or sit beside, Q2 real state in `overdue`. The exit code with nothing overdue is not a listed question, but it is not silent either: L63 ties it to the existing spec ('CLI-008 | Success is exit code 0 with an empty stderr.'), and the 'prints nothing' text of CLI-010 (L53) sits under the Q5 sign-off."
+    },
+    {
+      "text": "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/plan.md reports 0 findings.",
+      "passed": true,
+      "evidence": "prose-lint.py output: '0 findings in 1 file', exit 0. check_run lint_findings=0."
+    },
+    {
+      "text": "Skim test: the first sentence of each paragraph in the headline and approach summary carries a claim a newcomer understands; no step numbers, shorthand, or teaser leads.",
+      "passed": true,
+      "evidence": "Leads carry claims: L7 '`TicketService` derives \"overdue\" at read time from the due time each ticket already has and one reading of the store's clock.' L11 'Overdue is a derived fact that the service computes after replay, not a state and not an event.' L13 'The log format, the replay code, `sla.py`, `store.py`, and the ID order of `list` stay as they are.' No step number or label in L7-13. The one spec ID is glossed: 'the `OVERDUE` display in CLI-006'. Bar used for all six runs: every text paragraph in the two sections must open with a claim, and the prose must hold no step number or plan-internal label; spec IDs count as repo names, not shorthand."
+    },
+    {
+      "text": "`git status --porcelain` in OUTPUT_DIR/repo is empty: no code or doc was changed.",
+      "passed": true,
+      "evidence": "`git status --porcelain` printed nothing. check_run repo_clean=true, repo_status=[]. HEAD has 1 commit and the tree matches evals/blueprint/fixture."
+    }
+  ],
+  "summary": {
+    "passed": 15,
+    "failed": 0,
+    "total": 15,
+    "pass_rate": 1.0
+  },
+  "notes": "Clean pass. The headline names one spec ID with a gloss ('the `OVERDUE` display in CLI-006'), which the skim bar tolerates in both arms. The exit code with nothing overdue is not an open question; it rests on cited CLI-008."
+}

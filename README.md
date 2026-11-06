@@ -126,6 +126,7 @@ hooks/
   guard-pr.py        # PreToolUse: refuses a bare `gh pr create` unless /submit is running
 assets/
   writing.md         # the writing rules for every skill and every document it produces
+  cold-read.md       # the fresh-context review that /spec and /blueprint run before sign-off
 scripts/
   validate.py        # manifest and budget checks, run by CI on every push
   prose-lint.py      # mechanical check of the writing rules, run by CI on skills and assets
@@ -144,3 +145,5 @@ Each host reads its own manifest. Claude Code reads `.claude-plugin/marketplace.
 - every `SKILL.md` fits Codex's budget
 
 `assets/writing.md` holds the writing rules for every skill and every document a skill writes. The claim comes first, sentences stay short, and each concept has one term. `scripts/prose-lint.py` checks the mechanical half of those rules, and CI runs it on the skills and the rule file. Each skill has an eval under `evals/` that measures a rewrite against the previous version.
+
+`assets/cold-read.md` holds the cold read. Before `/spec` or `/blueprint` presents its document, one subagent with a fresh context reads the document and the repo. The subagent paraphrases the document first, then checks every claim against the code. The author gives each finding a verdict and fixes the document.
