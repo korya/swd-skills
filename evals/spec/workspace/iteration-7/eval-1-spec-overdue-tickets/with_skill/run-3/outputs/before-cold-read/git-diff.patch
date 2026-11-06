@@ -1,0 +1,222 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index 3c34e65..4b2f47b 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -79,7 +79,7 @@ Each product spec has a stable, globally unique ID of the form `PREFIX-NNN`, suc
+ | [`docs/guidelines.md`](docs/guidelines.md) | none | Lint, test, planning, regression, and doc-update rules. | Onboarding, regressions, before any non-trivial change. |
+ | [`docs/product-specs/README.md`](docs/product-specs/README.md) | none | Spec format, prefix table, feature index. | Starting any spec-related work. |
+ | [`docs/product-specs/invariants.md`](docs/product-specs/invariants.md) | `INV` | Rules that must hold across all changes. | Before any change. **The floor.** |
+-| [`docs/product-specs/tickets.md`](docs/product-specs/tickets.md) | `TKT` | Ticket states, creation, assignment, closing, due time by priority, listing. | Touching `tickets.py` or `sla.py`, or any ticket rule. |
++| [`docs/product-specs/tickets.md`](docs/product-specs/tickets.md) | `TKT` | Ticket states, creation, assignment, closing, due time by priority, listing, overdue tickets. | Touching `tickets.py` or `sla.py`, or any ticket rule. |
+ | [`docs/product-specs/event-log.md`](docs/product-specs/event-log.md) | `LOG` | Event kinds and fields, replay, corrupt-line and missing-file behavior. | Touching `store.py` or the log format. |
+ | [`docs/product-specs/cli.md`](docs/product-specs/cli.md) | `CLI` | Commands, log path selection, output lines, errors, exit codes. | Touching `cli.py` or anything a user sees. |
+ 
+@@ -115,4 +115,6 @@ from `TICKETDESK_LOG` or defaults to `tickets.jsonl` in the current directory.
+   fail-fast replay. Tests for the service and the store.
+ - Not covered by tests: the CLI.
+ - Known conflict: unknown priority and corrupt log escape as tracebacks, see CLI-007.
+-- Planned: nothing is recorded in the repo. TODO: confirm the roadmap with the user.
++- Specified, not built: overdue tickets. The spec is TKT-014 to TKT-017 and CLI-010 to
++  CLI-012, proposed on 2026-11-05 and not signed off by the user.
++- Planned: nothing else is recorded in the repo. TODO: confirm the roadmap with the user.
+diff --git a/docs/product-specs/README.md b/docs/product-specs/README.md
+index 5df7966..717c93a 100644
+--- a/docs/product-specs/README.md
++++ b/docs/product-specs/README.md
+@@ -77,6 +77,6 @@ There is no master spec beyond these files. The repo README is a summary, not a
+ | File | What is inside |
+ |------|---------------|
+ | [`invariants.md`](invariants.md) | Rules that hold across every change. **Read first.** |
+-| [`tickets.md`](tickets.md) | Ticket lifecycle: states, creation rules, assignment, closing, due time by priority, listing. |
++| [`tickets.md`](tickets.md) | Ticket lifecycle: states, creation rules, assignment, closing, due time by priority, listing. Overdue tickets: goals, non-goals, the overdue rule, the overdue listing order. |
+ | [`event-log.md`](event-log.md) | The append-only JSON lines log: event kinds and fields, replay, the corrupt-line rule, the missing-file case. |
+ | [`cli.md`](cli.md) | The `ticketdesk` command: subcommands, log path selection, output lines, error reporting, exit codes. |
+diff --git a/docs/product-specs/cli.md b/docs/product-specs/cli.md
+index 9f68c5c..06c6306 100644
+--- a/docs/product-specs/cli.md
++++ b/docs/product-specs/cli.md
+@@ -11,9 +11,13 @@ Prefix: `CLI`.
+ 
+ ### CLI-001: Commands
+ 
+-The `ticketdesk` command takes one of four subcommands. They are `create`, `assign`,
+-`close`, and `list`. Invoking `ticketdesk` with no subcommand, or with an unknown one,
+-prints usage to stderr and exits with code 2.
++The `ticketdesk` command takes one of five subcommands. They are `create`, `assign`,
++`close`, `list`, and `overdue`. Invoking `ticketdesk` with no subcommand, or with an
++unknown one, prints usage to stderr and exits with code 2.
++
++TODO: build `overdue`. On 2026-11-05 it is proposed, not built, and not signed off by the
++user, see [Overdue tickets](tickets.md#overdue-tickets). Until it ships, `overdue` is an
++unknown subcommand, and CLI-006 holds without CLI-010. Remove this note when it ships.
+ 
+ ### CLI-002: Log path selection
+ 
+@@ -39,8 +43,9 @@ prints `#<id> open <title>`. Without `--priority` the ticket gets priority `P3`.
+ ### CLI-006: list
+ 
+ `ticketdesk list` prints one line per ticket in ID order, see TKT-013. Each line is
+-`#<id> [<priority>] <state> <title>` with the state padded to 8 characters. With no tickets
+-it prints nothing.
++`#<id> [<priority>] <state> <title>` with the state padded to 8 characters. The line of an
++overdue ticket also carries the word `OVERDUE`, see CLI-010. With no tickets it prints
++nothing.
+ 
+ ### CLI-007: Ticket rule errors
+ 
+@@ -59,3 +64,51 @@ A command that succeeds exits with code 0 and writes nothing to stderr.
+ 
+ A non-integer `<id>` for `assign` or `close` is rejected with a usage error on stderr and
+ exit code 2. No event is appended.
++
++### CLI-010: OVERDUE marker in list
++
++`ticketdesk list` prints the word `OVERDUE` on the line of each ticket that is overdue per
++TKT-014. The word sits between the state and the title. The line is
++`#<id> [<priority>] <state> OVERDUE <title>`, with the state padded to 8 characters as in
++CLI-006. The marker is plain uppercase text with no color.
++
++The line of a ticket that is not overdue is exactly the line of CLI-006. The order of the
++lines does not change, see TKT-013. In this example ticket 1 is overdue, ticket 2 is not,
++and ticket 3 is closed:
++
++```
++#1 [P1] open     OVERDUE Printer on fire
++#2 [P3] assigned Paper jam
++#3 [P2] closed   Password reset
++```
++
++The goals and non-goals of the feature are in
++[Overdue tickets](tickets.md#overdue-tickets).
++
++TODO: the request says overdue tickets "show as OVERDUE". This text assumes that the word
++joins the state and does not replace it. An agent then still sees whether an overdue
++ticket has an assignee. The cost is that a title that starts with `OVERDUE ` reads like
++the marker. The alternative is to print `OVERDUE` in place of the state. Confirm with the
++user.
++
++### CLI-011: overdue
++
++`ticketdesk overdue` prints one line per overdue ticket, in the order of TKT-017. Each
++line is the line that `list` prints for that ticket, see CLI-010. It prints no other
++ticket, no header, and no count. It appends no event, see LOG-001.
++
++With no overdue ticket, `overdue` prints nothing and exits with code 0. That covers a log
++with no tickets and a log file that does not exist, see LOG-006.
++
++A corrupt log stops `overdue` as it stops every command, see LOG-007. How the CLI reports
++that failure is the open TODO under CLI-007. This item does not settle it.
++
++TODO: two assumptions need the user. The first is that the lines show no due time and no
++amount of lateness. The second is exit code 0 when no ticket is overdue. A non-zero code
++would let a script branch on "nothing overdue". Confirm both with the user.
++
++### CLI-012: overdue takes no arguments
++
++`ticketdesk overdue` takes no ticket ID, no filter, and no other value. A value or an
++unknown option after `overdue`, as in `ticketdesk overdue 3`, prints usage to stderr and
++exits with code 2. It prints nothing to stdout.
+diff --git a/docs/product-specs/tickets.md b/docs/product-specs/tickets.md
+index e8fdb48..3741768 100644
+--- a/docs/product-specs/tickets.md
++++ b/docs/product-specs/tickets.md
+@@ -8,6 +8,10 @@ through a service-level target. Every change is one event in the log, see
+ A ticket moves forward only. It goes from `open` to `assigned` to `closed`, or straight
+ from `open` to `closed`. Nothing reopens a closed ticket.
+ 
++A ticket that is not closed when its due time passes is overdue. Overdue is worked out
++from the due time and the current time each time a command runs. It is never a state and
++never an event, see [Overdue tickets](#overdue-tickets).
++
+ Prefix: `TKT`.
+ 
+ ---
+@@ -83,3 +87,88 @@ Assigning or closing a ticket ID that does not exist fails with the error
+ ### TKT-013: Listing order
+ 
+ Listing returns every ticket, closed ones included, sorted by ID ascending.
++
++---
++
++## Overdue tickets
++
++Support agents see which tickets missed their due time, and can list only those tickets.
++The list of overdue tickets starts with the ticket that has been overdue longest. Before
++this feature, the due time of TKT-005 exists and no command shows it. An agent cannot tell
++a late ticket from a ticket that is on time.
++
++Status on 2026-11-05: proposed, not built, and not signed off by the user. The behavior is
++in TKT-014 to TKT-017 below. The command surface is in CLI-001, CLI-006, and CLI-010 to
++CLI-012 in [`cli.md`](cli.md). Each `TODO:` paragraph under those items is an open question.
++It names the assumption that the text makes until the user answers.
++
++Goals:
++
++1. An agent who reads `ticketdesk list` sees which tickets are overdue, with no due time
++   to work out. Covered by TKT-014, TKT-015, and CLI-010.
++2. An agent gets only the overdue tickets from one command, the longest overdue first.
++   Covered by TKT-017, CLI-011, and CLI-012.
++3. Everything else stays as it is. A ticket that is not overdue prints as it does today,
++   and no log changes. Covered by TKT-016 and CLI-010.
++
++Non-goals:
++
++- No fourth state. The states of TKT-001 and the forward-only rule do not change.
++- No lateness history. A ticket closed after its due time is not reported as late
++  anywhere.
++- No change to due times. The hours of TKT-005 stay. There are no business hours, no
++  paused clock, and no due time set by hand.
++- No alerts. An agent learns that a ticket is overdue only from `list` or `overdue`.
++- No "due soon" warning. A ticket is overdue or it is not.
++- No due time and no amount of lateness in any output.
++- No filter and no option on `overdue`, such as by assignee or by priority.
++- No change to the order of `list`, or to the output of `create`, `assign`, and `close`.
++
++### TKT-014: When a ticket is overdue
++
++A ticket is overdue when it is `open` or `assigned` and the current time is later than its
++due time. The due time is the one of TKT-005. At the exact due time the ticket is not
++overdue yet. The current time is the moment the command runs, on the same clock that
++stamps events, see LOG-004.
++
++A `P1` ticket created 4 hours and 1 minute ago is overdue. A `P1` ticket created 3 hours
++and 59 minutes ago is not.
++
++TODO: the request says tickets that "pass their due time". This text reads that as
++strictly later than the due time. Confirm with the user.
++
++### TKT-015: A closed ticket is never overdue
++
++A `closed` ticket is not overdue, whenever it was closed. Closing an overdue ticket ends
++its overdue condition at once. A ticket closed after its due time is not overdue either.
++
++TODO: this assumes that overdue means "needs action now". The other reading is a report of
++every ticket that missed its due time, closed ones included. Confirm with the user.
++
++### TKT-016: Overdue changes nothing else
++
++A ticket that becomes overdue keeps its state, its assignee, and its due time. No event is
++appended when the due time passes, so the log file stays byte for byte the same. Assigning
++and closing an overdue ticket follow TKT-006 to TKT-011 as for any other ticket. Assigning
++an overdue ticket leaves it overdue.
++
++TODO: this assumes that overdue is a marker and not a fourth state. A fourth state needs
++changes to TKT-001, LOG-002, LOG-003, and INV-001. Confirm with the user.
++
++### TKT-017: Overdue listing order
++
++The overdue listing returns every overdue ticket and no other ticket. It sorts them by due
++time ascending, so the ticket that has been overdue longest comes first. Tickets with the
++same due time are sorted by ID ascending.
++
++The order follows the due time. It does not follow the ID, the creation time, or the
++priority.
++
++| ID | Priority | Created | Due | Position in the overdue listing |
++|----|----------|---------|-----|---------------------------------|
++| 1 | `P3` | 74 hours ago | 2 hours ago | 2 |
++| 2 | `P2` | 30 hours ago | 6 hours ago | 1 |
++| 3 | `P1` | 5 hours ago | 1 hour ago | 3 |
++
++TODO: the request gives no order for tickets with the same due time. ID ascending is an
++assumption taken from TKT-013. Confirm with the user.
