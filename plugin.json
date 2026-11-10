@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "swd",
-  "version": "1.4.1",
-  "description": "Software development skills: product specs, deep planning, root-cause analysis, agent-oriented repo docs, spec-aware rebasing, PR review, PR submission, review revision, and end-user e2e testing.",
+  "version": "1.5.0",
+  "description": "Software development skills: product specs, deep planning, root-cause analysis, agent-oriented repo docs, spec-aware rebasing, PR review, PR submission, review revision, end-user e2e testing, and spec drift checks.",
   "author": {
     "name": "korya"
   },
@@ -16,6 +16,7 @@
     "rebase",
     "documentation",
     "pull-request",
-    "e2e-testing"
+    "e2e-testing",
+    "spec-drift"
   ]
 }

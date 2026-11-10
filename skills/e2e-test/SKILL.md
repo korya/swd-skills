@@ -70,3 +70,8 @@ you create. They reproduce findings, and the report lists them.
 - [ ] Zero product files modified. Artifacts created through the surface are listed.
 - [ ] Report delivered at the depth the invocation asked for, headline verdict first, and
   it passes `prose-lint.py` with no findings.
+
+## Related skills
+
+`/drift` runs the same checks over the whole spec set and reads the product back against
+the specs. `/examine` reviews the code of the change.

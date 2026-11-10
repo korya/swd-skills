@@ -2,7 +2,7 @@
 
 ![The swd skills as six workbench stations covering the development cycle, with a /revise loop back](assets/hero.jpg)
 
-swd is a plugin of skills that take a change from a fuzzy request to a merged pull request. Each skill runs one stage: spec, plan, investigate, rebase, submit, review, revise, or test. Nine skills are shipped and one is planned. The plugin runs on Claude Code, Codex CLI, and any [Agent Plugins](https://agent-plugins.org/) client.
+swd is a plugin of skills that take a change from a fuzzy request to a merged pull request. Each skill runs one stage: spec, plan, investigate, rebase, submit, review, revise, test, or drift check. Ten skills are shipped and one is planned. The plugin runs on Claude Code, Codex CLI, and any [Agent Plugins](https://agent-plugins.org/) client.
 
 | Skill | What it does | Say |
 | --- | --- | --- |
@@ -15,6 +15,7 @@ swd is a plugin of skills that take a change from a fuzzy request to a merged pu
 | **[/examine](./skills/examine)** | Reviews a PR, a branch, or the working tree for production risk first. The host's own review finds defects. This one also judges the intent, the approach, and the size. | "/examine", "review this PR", "check my PR before merge". |
 | **[/revise](./skills/revise)** | Answers review feedback instead of obeying it. It checks every claim against the code and the specs. Each finding gets a verdict with evidence: ACCEPT, PARTIAL, REJECT, or DEFER. Accepted items are fixed at the root, and the reply goes where the feedback lives. | "/revise", "address the review", "respond to the reviewer". |
 | **[/e2e-test](./skills/e2e-test)** | Tests the product the way its user does: a web app in the browser, a CLI through its binary, a library through consumer programs. It reports each case as PASS, FAILURE, or BLOCKED, and fixes nothing. | "/e2e-test", "test it as the end user", "test it in the browser". |
+| **[/drift](./skills/drift)** | Finds where the product and its specs disagree. It runs every criterion in the spec set against the product through its real surface, lists behaviour no criterion covers, and reports each with the run that shows it. Which side changes is the user's call. | "/drift", "drift check", "do the specs still match the product" |
 | **/implement** | Runs an approved blueprint step by step, with tests per step. This one is still on the drawing board. | Nothing yet. Progress is in [#27](https://github.com/korya/swd-skills/issues/27). |
 
 In Claude Code, type the slash command or say one of the triggers. In Codex, every skill is a namespaced mention, such as `$swd:spec` or `$swd:submit`.

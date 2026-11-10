@@ -66,7 +66,17 @@ Each fact has one home. The other files link to it instead of restating it.
      surface the conflict. Never edit the spec to match.
 4. **Cross-link.** Every ID cited as "see XXX-NNN" exists. `AGENTS.md` indexes every file
    under `docs/`. The specs README indexes every spec file with its prefix.
-5. **Lint and show.** Run `prose-lint.py` on `AGENTS.md` and every file under `docs/`, and
+5. **Read back against the product.** When the product can be run, read
+   `../drift/SKILL.md` and follow it, scoped to the spec files you wrote. Where the host
+   has subagents, start it in one as soon as the spec files exist, and write the remaining
+   files while it runs. Then act on each verdict. A DRIFT is a criterion you got wrong:
+   fix the text, never the code. A BLOCKED is a criterion no tester can check: rewrite it
+   as behaviour a user sees, or move the fact to `architecture.md`. An UNCOVERED behaviour
+   is one you missed. Add a criterion only for behaviour a user relies on. A crash, a
+   traceback, or an input the product mishandles goes to the questions, never into a
+   criterion. Then reread the criteria you changed against each other. A product that cannot be run gets one line in the
+   questions.
+6. **Lint and show.** Run `prose-lint.py` on `AGENTS.md` and every file under `docs/`, and
    fix every finding. Then show the user the final layout and ask them to confirm.
 
 ## Definition of done
@@ -82,6 +92,13 @@ Each item is answerable with evidence: a file path, a grep result, or a user con
 - [ ] Every cited ID exists, and both indexes are complete.
 - [ ] Sizes: `AGENTS.md` at most about 150 lines, each feature spec 5 to 15 items of 1 to
   3 sentences, architecture 1 to 3 pages.
+- [ ] The specs were read back against the product with `/drift`. Every DRIFT, BLOCKED,
+  and UNCOVERED item was acted on, or the questions say why the product could not run.
 - [ ] `prose-lint.py` reports no findings on any created or edited file.
 - [ ] In a repo that already had this layout, only the requested files changed.
 - [ ] The user has seen the final layout and confirmed it.
+
+## Related skills
+
+`/spec` adds criteria to the specs this skill lays out. `/drift` reads them back against
+the product, here at step 5 and later on demand.
