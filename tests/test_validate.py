@@ -116,5 +116,56 @@ class FrontmatterCase(unittest.TestCase):
         self.assertEqual(data["description"], "quoted: with colon")
 
 
+class CrossSkillReferences(unittest.TestCase):
+    """A SKILL.md may read another skill's reference as ../<skill>/references/<file>.md."""
+
+    def make_tree(self, tmp: str, drift_md: str) -> Path:
+        skills = Path(tmp) / "skills"
+        (skills / "e2e-test" / "references").mkdir(parents=True)
+        (skills / "e2e-test" / "SKILL.md").write_text(
+            "---\nname: e2e-test\ndescription: d\n---\nRead `references/cases.md`.\n"
+        )
+        (skills / "e2e-test" / "references" / "cases.md").write_text("cases\n")
+        (skills / "drift" / "references").mkdir(parents=True)
+        (skills / "drift" / "SKILL.md").write_text(drift_md)
+        (skills / "drift" / "references" / "report.md").write_text("report\n")
+        return skills
+
+    def test_existing_cross_skill_reference_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skills = self.make_tree(
+                tmp,
+                "---\nname: drift\ndescription: d\n---\n"
+                "Read `../e2e-test/references/cases.md` and `references/report.md`.\n",
+            )
+            errors: list[str] = []
+            validate.validate_references(errors, skills_dir=skills)
+            self.assertEqual(errors, [])
+
+    def test_missing_cross_skill_reference_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skills = self.make_tree(
+                tmp,
+                "---\nname: drift\ndescription: d\n---\n"
+                "Read `../e2e-test/references/missing.md` and `references/report.md`.\n",
+            )
+            errors: list[str] = []
+            validate.validate_references(errors, skills_dir=skills)
+            self.assertEqual(len(errors), 1)
+            self.assertIn("../e2e-test/references/missing.md", errors[0])
+
+    def test_cross_skill_reference_is_not_counted_as_own(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skills = self.make_tree(
+                tmp,
+                "---\nname: drift\ndescription: d\n---\n"
+                "Read `../e2e-test/references/cases.md`.\n",
+            )
+            errors: list[str] = []
+            validate.validate_references(errors, skills_dir=skills)
+            self.assertEqual(len(errors), 1)
+            self.assertIn("references/report.md: not mentioned", errors[0])
+
+
 if __name__ == "__main__":
     unittest.main()

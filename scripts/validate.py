@@ -272,24 +272,36 @@ def validate_skill_layout(errors: list[str], marketplace: dict) -> None:
         )
 
 
-def validate_references(errors: list[str]) -> None:
+CROSS_SKILL_REF = re.compile(r"\.\./([\w-]+)/references/([\w.-]+\.md)")
+
+
+def validate_references(errors: list[str], skills_dir: Path = SKILLS_DIR) -> None:
     """Progressive-disclosure hygiene: reference files and SKILL.md must point at each other.
 
     A file under skills/<name>/references/ that SKILL.md never mentions is dead weight the
     model will never load; a referenced path that does not exist is an instruction the model
-    cannot follow. Both are errors.
+    cannot follow. Both are errors. A skill may also read another skill's reference as
+    `../<skill>/references/<file>.md`; that skill and that file must exist.
     """
-    if not SKILLS_DIR.is_dir():
+    if not skills_dir.is_dir():
         return
-    for skill_dir in sorted(SKILLS_DIR.iterdir()):
+    for skill_dir in sorted(skills_dir.iterdir()):
         skill_md = skill_dir / "SKILL.md"
         if not skill_md.is_file():
             continue
         text = skill_md.read_text()
 
+        for other, name in sorted(set(CROSS_SKILL_REF.findall(text))):
+            if not (skills_dir / other / "references" / name).is_file():
+                errors.append(
+                    f"skills/{skill_dir.name}/SKILL.md references ../{other}/references/{name}, "
+                    "which does not exist"
+                )
+        own_text = CROSS_SKILL_REF.sub("", text)
+
         refs_dir = skill_dir / "references"
         on_disk = {p.name for p in refs_dir.glob("*.md")} if refs_dir.is_dir() else set()
-        mentioned = set(re.findall(r"references/([\w.-]+\.md)", text))
+        mentioned = set(re.findall(r"references/([\w.-]+\.md)", own_text))
 
         for unused in sorted(on_disk - mentioned):
             errors.append(
