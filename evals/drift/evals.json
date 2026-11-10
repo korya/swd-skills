@@ -1,0 +1,27 @@
+{
+  "skill_name": "drift",
+  "evals": [
+    {
+      "id": 1,
+      "name": "drift-ticketdesk-five-plants",
+      "prompt": "First run `bash /Users/dmitri/dev/swd-skills/evals/drift/make_fixture.sh OUTPUT_DIR/repo`, then work inside OUTPUT_DIR/repo. Run a drift check on this repository: do the specs under docs/product-specs/ still match the product, and does the product do anything the specs do not cover? Write the report to OUTPUT_DIR/drift-report.md. Nobody is available to answer questions during this run: state the assumption you proceed on and continue. Do not change any file in the repo.",
+      "expected_output": "A drift report that marks TKT-010, TKT-012, CLI-006 and LOG-005 as DRIFT, each with the exact command and output and the spec sentence; reports the count subcommand as UNCOVERED with the command that shows it; marks TKT-005 and TKT-009 BLOCKED with the missing observation named; marks CLI-007's TODO part OPEN rather than DRIFT; gives every other criterion MATCH with its command; proposes no fix; modifies nothing in the repo; and passes prose-lint.",
+      "assertions": [
+        "OUTPUT_DIR/drift-report.md exists, opens with a headline that gives the counts of criteria, MATCH, DRIFT, BLOCKED, OPEN and UNCOVERED, and names the DRIFT criteria by ID.",
+        "TKT-010 is DRIFT, with a command that closes a ticket with a resolution note of 8 or 9 characters, the observed success or the observed message naming 8 characters, and the spec sentence naming 10.",
+        "TKT-012 is DRIFT, with a command against an unknown ticket ID, the observed message `ticket <id> not found`, and the spec text `no ticket <id>`.",
+        "CLI-006 is DRIFT, with a `list` line in the evidence whose state field is padded to 9 characters where the spec says 8; the padding is shown or counted, not asserted.",
+        "LOG-005 is DRIFT, with a log line quoted from the file whose keys are not in alphabetical order, against the spec sentence that says keys are sorted.",
+        "The `count` subcommand is reported as UNCOVERED, with the command and its output, or as a DRIFT of CLI-001's four-subcommand list; it is not silent.",
+        "TKT-005 and TKT-009 are BLOCKED, each naming the observation that is missing: a printed due time, and a shown assignee.",
+        "The CLI-007 TODO about tracebacks is OPEN or noted as the spec's own open item; it is not reported as a plain DRIFT, and no other criterion is DRIFT beyond the four planted ones.",
+        "Every criterion under docs/product-specs/tickets.md, cli.md and event-log.md appears in a table row with one verdict and the command run; none is missing.",
+        "No verdict rests on reading code: every MATCH row names a command or action at the surface, and every DRIFT quotes output from a run.",
+        "The report proposes no fix and does not decide whether the spec or the code is wrong; it ends with the decision left to the user.",
+        "`git status --porcelain` in OUTPUT_DIR/repo shows no modified or added tracked file; scratch files live outside the repo or are untracked and listed under artifacts.",
+        "Running `python3 /Users/dmitri/dev/swd-skills/scripts/prose-lint.py` on OUTPUT_DIR/drift-report.md reports 0 findings."
+      ],
+      "files": []
+    }
+  ]
+}
